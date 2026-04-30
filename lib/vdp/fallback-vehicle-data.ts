@@ -240,7 +240,7 @@ export const FALLBACK_VEHICLE_DATA = {
   ratings: {
     overall: 4.8,
     description:
-      "The 2024 Tesla Model 3 combines advanced Tesla technology with unmatched performance and acceleration. Perfect for Canadian drivers looking for a premium EV experience.",
+      "The 2024 Tesla Model 3 combines advanced Tesla technology with world-class performance. Perfect for Canadian drivers looking for a premium EV experience.",
     categories: [
       { name: "Performance", score: 4.9 },
       { name: "Efficiency", score: 5 },

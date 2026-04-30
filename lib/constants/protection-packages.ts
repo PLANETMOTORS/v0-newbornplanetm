@@ -104,7 +104,7 @@ export const PROTECTION_PACKAGES: ProtectionPackage[] = [
       inspection: true,
       safetyCertificate: true,
     },
-    description: "Extended warranty with FREE delivery. Comprehensive mechanical coverage.",
+    description: "Extended warranty with FREE delivery. Full mechanical coverage.",
     highlighted: true,
     badge: "Most Popular",
     maxCoverage: "$60K Replacement | ~$1M Life | ~$500K CI",

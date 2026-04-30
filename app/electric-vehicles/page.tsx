@@ -55,7 +55,7 @@ const priceRanges = [
 
 const features = [
   { icon: Battery, title: "Battery Health Reports", description: "Every EV comes with a detailed battery health analysis showing capacity, range, and charging performance" },
-  { icon: Shield, title: "210-Point Inspection", description: "Our comprehensive inspection covers EV-specific components including motors, inverters, and thermal systems" },
+  { icon: Shield, title: "210-Point Inspection", description: "Our rigorous inspection covers EV-specific components including motors, inverters, and thermal systems" },
   { icon: TrendingDown, title: "Save on Fuel", description: "Average EV owners save $2,000-3,000/year on fuel costs compared to gas vehicles" },
   { icon: Leaf, title: "Zero Emissions", description: "Drive clean with zero tailpipe emissions and reduced environmental impact" },
 ]
@@ -176,7 +176,7 @@ export default function ElectricVehiclesPage() {
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-3xl font-bold mb-4">Why Buy an EV from Planet Motors?</h2>
               <p className="text-muted-foreground">
-                We specialize in certified pre-owned electric vehicles with comprehensive inspections and battery health guarantees.
+                We specialize in certified pre-owned electric vehicles with rigorous inspections and battery health guarantees.
               </p>
             </div>
             

@@ -522,7 +522,7 @@ export function WarrantyPageJsonLd() {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": "Planet Motors Vehicle Warranty",
-    "description": "Comprehensive warranty coverage for your certified pre-owned vehicle purchase.",
+    "description": "Full warranty coverage for your certified pre-owned vehicle purchase.",
     "url": `${SITE_URL}/protection-plans`,
     "brand": {
       "@type": "Brand",
