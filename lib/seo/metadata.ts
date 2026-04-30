@@ -19,7 +19,9 @@ export function generateSEOMetadata({
   title,
   description = DEFAULT_DESCRIPTION,
   path = "",
-  image = "/images/planet-motors-logo.png",
+  // Branded 1200x630 social-share card. Pages that need a vehicle-specific
+  // OG image (e.g., VDP) pass their own absolute imgix URL via `image`.
+  image = "/brand/og-image.png",
   noIndex = false,
   keywords = [],
 }: GenerateMetadataParams): Metadata {
