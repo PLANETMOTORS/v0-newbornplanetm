@@ -1,3 +1,128 @@
+# Docs Updates — 2026-04-30
+
+> Summary of documentation updates made to bring `/docs` in line with
+> the SEO + AI-discovery + analytics work shipped in the launch sprint.
+
+## Files Updated
+
+### `docs/08-SEO-STRUCTURE.md` — full rewrite
+
+The previous version (last updated 2026-03-28) was authored before the
+launch-sprint work and was missing or wrong on **every major topic**:
+
+| Topic | Before | After |
+|---|---|---|
+| Vehicle count | "9,500+ certified vehicles" (wrong) | Reflects 50–200 vehicle scale |
+| `llms.txt` | Not mentioned | Full section + URL grammar |
+| Robots policy | Generic "block aggressive crawlers" | Split AI allow/block lists |
+| IndexNow | Not mentioned | Section 6 + integration map |
+| Category landing pages | Not mentioned | Section 3 + ~150 URL grammar |
+| Image sitemap | Not mentioned | Documented under sub-sitemaps |
+| Vehicle Trust JSON-LD | Not mentioned | Section 2 |
+| `/cars/<slug>` page checklist | Not mentioned | Section 9 |
+| Search engine submission flow | Not mentioned | Section 7 (Google + Bing + Yandex) |
+| Indexing cadence expectations | Not mentioned | Section 8 (per-engine table) |
+| Analytics env vars | GA + GTM only | All 6 pixels + CAPI + Clarity |
+| Test coverage | Not mentioned | Section 12 (per-module %) |
+
+**New sections added:**
+
+1. File structure map (current paths and roles)
+2. JSON-LD library reference (Org, LocalBusiness, FAQ, Article,
+   Breadcrumb, Vehicle, VehicleTrust, **Category**)
+3. Sitemap aggregation pipeline (4 sub-sitemaps + `enumerateCategorySlugs`)
+4. Robots policy with split AI bot allow/block (recommendation vs training)
+5. `llms.txt` content map with all 5 sections
+6. IndexNow integration with `pingVehicleChange` examples
+7. Search engine submission walkthrough (manual GSC + Bing setup)
+8. Indexing cadence table (Google vs Bing vs Yandex vs AI agents)
+9. Per-page SEO checklist (Homepage, VDP, **Category**, Inventory, Blog, FAQ)
+10. Coverage table for SEO modules
+11. Future enhancements roadmap
+
+---
+
+### `docs/LAUNCH_GUIDE.md` — Pre-Launch Checklist (Section 3) expanded
+
+**Before:**
+
+```
+### SEO & Analytics
+- [ ] robots.txt allows crawling of public pages
+- [ ] sitemap.xml generates correctly
+- [ ] Google Search Console verified
+- [ ] Analytics (Vercel Analytics or GA4) configured
+```
+
+(4 generic items, missing every new pixel and the IndexNow flow.)
+
+**After:** 3 grouped subsections totaling 18 items —
+
+- **Crawlers + structured data**: 5 items including `llms.txt`,
+  category-page JSON-LD validation, AI bot allow-list verification.
+- **Search engine submission**: 6 items covering Google Search Console
+  property setup, sitemap submission, top-5 URL inspection requests,
+  Bing Webmaster Tools, IndexNow key setup + key-file accessibility.
+- **Analytics**: 7 items — Meta Pixel `1051755249904003`, GTM
+  `GTM-K9LZ27CK`, GA4, TikTok, Clarity, Bing UET, Snapchat, plus
+  Meta Conversions API token and Vercel Analytics.
+
+---
+
+### `docs-updates.md` — this file (NEW)
+
+Lives at repo root for quick discovery. Tracks doc deltas per release.
+Future doc updates should append below with date headers.
+
+---
+
+## Files NOT Updated (still accurate)
+
+- `docs/01-TECHNICAL-BLUEPRINT.md` — current
+- `docs/02-ENTERPRISE-ARCHITECTURE.md` — current
+- `docs/03-DATABASE-SCHEMA.md` — current (no schema changes this sprint)
+- `docs/04-API-ARCHITECTURE.md` — current
+- `docs/05-SECURITY-ARCHITECTURE.md` — current
+- `docs/06-INTEGRATIONS.md` — current
+- `docs/PRE_LAUNCH_SMOKE_TEST.md` — written this sprint, current
+- `docs/POST_LAUNCH_FIXES.md` — current
+
+## Files That Will Need Updating Tomorrow
+
+- `docs/06-INTEGRATIONS.md` — add Carfax integration once API key arrives
+- `docs/08-SEO-STRUCTURE.md` Section 13 — flip the Carfax bullet from
+  "future" to "shipped" once integration lands
+- `docs/LAUNCH_GUIDE.md` Section 2 — add `CARFAX_API_KEY` env var
+
+## Code → Docs Drift Prevention
+
+Two anchors to keep docs from going stale again:
+
+1. **`enumerateCategorySlugs()`** is the single source of truth for
+   category URLs. Adding a city or premium tag updates both router AND
+   sitemap automatically — no doc update required for individual URLs.
+2. **`public/llms.txt`** is the canonical AI-facing brief. Any business
+   change (e.g., new service area, new policy) goes here first; docs
+   reference it.
+
+When updating the SEO doc:
+
+```bash
+# Confirm code matches doc claims
+npx vitest run __tests__/lib/category-slug-parser.test.ts \
+              __tests__/lib/llms-txt.test.ts \
+              __tests__/lib/sitemap-builders.test.ts
+
+# Diff `public/llms.txt` against doc
+diff <(cat public/llms.txt) <(grep -A1 'llms.txt' docs/08-SEO-STRUCTURE.md)
+```
+
+---
+
+*Update format: append entries below as `## YYYY-MM-DD — <reason>`.*
+
+---
+
 # Docs Update — Post-Launch Cleanup Sweep
 
 > Date: 2026-04-27 · Branch: `chore/post-launch-cleanup` · Author: Droid

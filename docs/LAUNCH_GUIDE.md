@@ -170,10 +170,36 @@ CRON_SECRET=...
 - [ ] Admin emails listed in `lib/admin.ts` → `ADMIN_EMAILS`
 
 ### SEO & Analytics
-- [ ] `robots.txt` allows crawling of public pages
-- [ ] `sitemap.xml` generates correctly
-- [ ] Google Search Console verified
-- [ ] Analytics (Vercel Analytics or GA4) configured
+
+**Crawlers + structured data**
+- [ ] `https://www.planetmotors.ca/robots.txt` allows public pages
+      and explicitly allows AI recommendation crawlers (`OAI-SearchBot`,
+      `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`)
+- [ ] `https://www.planetmotors.ca/sitemap.xml` generates with
+      ~150 category pages + every public vehicle + image tags
+- [ ] `https://www.planetmotors.ca/llms.txt` returns the AI brief
+      with URL grammar section
+- [ ] JSON-LD validates on a sample VDP via Google Rich Results Test
+- [ ] JSON-LD validates on a sample category page (`/cars/electric`)
+
+**Search engine submission (one-time, post-deploy)**
+- [ ] Google Search Console property added + verified
+- [ ] Sitemap submitted in GSC (`/sitemap.xml`)
+- [ ] Top 5 pages requested for indexing in GSC URL Inspection
+- [ ] Bing Webmaster Tools site added + sitemap submitted
+- [ ] IndexNow API key set (`INDEXNOW_API_KEY` env var)
+- [ ] IndexNow key file accessible at `/<key>.txt`
+
+**Analytics (all gated on consent + env var)**
+- [ ] `NEXT_PUBLIC_GA_ID` set; GA4 property receives events
+- [ ] `NEXT_PUBLIC_GTM_ID=GTM-K9LZ27CK` set; container published
+- [ ] `NEXT_PUBLIC_META_PIXEL_ID` set; Meta Events Manager
+      receives PageView and Lead events
+- [ ] `META_CONVERSIONS_API_TOKEN` set (server-side CAPI deduped via event_id)
+- [ ] `NEXT_PUBLIC_TIKTOK_PIXEL_ID`, `NEXT_PUBLIC_CLARITY_PROJECT_ID`,
+      `NEXT_PUBLIC_BING_UET_ID`, `NEXT_PUBLIC_SNAPCHAT_PIXEL_ID`
+      set if used
+- [ ] Vercel Analytics enabled (Speed Insights + Web Analytics)
 
 ---
 
