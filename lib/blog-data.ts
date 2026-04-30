@@ -21,6 +21,8 @@ export interface BlogPostEntry {
   author: string
   content: string
   relatedPosts: string[]
+  ogTitle?: string
+  ogDescription?: string
 }
 
 /**
@@ -40,6 +42,8 @@ export interface BlogPostFields {
   category: string
   image: string
   author: string
+  ogTitle?: string
+  ogDescription?: string
 }
 
 export function createBlogPost(
