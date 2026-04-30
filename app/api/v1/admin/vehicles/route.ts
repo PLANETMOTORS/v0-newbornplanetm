@@ -165,9 +165,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Notify search engines that a new VDP + the inventory listing
-    // exist. Non-blocking — IndexNow failures must never cascade into
-    // a 500 for the admin user.
-    const indexNow = await pingVehicleChange(data.id)
+    // exist. Do not let a slow/unreachable IndexNow endpoint delay
+    // the admin response; only wait briefly, then fall back.
+    const indexNowPromise = pingVehicleChange(data.id).catch(error => {
+      console.error("IndexNow ping failed after vehicle creation:", error)
+      return { ok: false, count: 0 }
+    })
+    const indexNow = await Promise.race([
+      indexNowPromise,
+      new Promise<{ ok: boolean; count: number }>(resolve =>
+        setTimeout(() => resolve({ ok: false, count: 0 }), 250),
+      ),
+    ])
 
     return NextResponse.json(
       {
