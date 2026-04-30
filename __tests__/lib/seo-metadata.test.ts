@@ -85,6 +85,12 @@ describe("generateSEOMetadata", () => {
       height: 630,
     })
   })
+
+  it("defaults openGraph image to the branded /brand/og-image.png", () => {
+    const m = generateSEOMetadata({ title: "X" })
+    const ogImg = (m.openGraph?.images as Array<{ url: string }>)[0]
+    expect(ogImg.url).toMatch(/\/brand\/og-image\.png$/)
+  })
 })
 
 describe("pageMetadata", () => {
