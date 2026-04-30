@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     // Authenticate the request
     const authHeader = request.headers.get("authorization")
     const apiKeyHeader = request.headers.get("x-api-key")
-    const apiKey = apiKeyHeader || authHeader?.replaceAll("Bearer ", "")
+    const apiKey = apiKeyHeader || authHeader?.replace(/^Bearer /i, "")
     
     if (apiKey !== HOMENET_API_KEY) {
       console.warn("[HomenetIOL] Unauthorized request attempt")
@@ -136,7 +136,7 @@ export async function GET(request: Request) {
   // Authenticate — same API key check as POST
   const authHeader = request.headers.get("authorization")
   const apiKeyHeader = request.headers.get("x-api-key")
-  const apiKey = apiKeyHeader || authHeader?.replaceAll("Bearer ", "")
+  const apiKey = apiKeyHeader || authHeader?.replace(/^Bearer /i, "")
 
   if (apiKey !== HOMENET_API_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
