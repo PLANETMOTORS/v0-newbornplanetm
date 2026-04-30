@@ -192,6 +192,22 @@ describe("lib/email sendNotificationEmail — routing & all template branches", 
     expect(sentEmails[0].html).toContain("Is it certified?")
   })
 
+  it("renders vehicle_inquiry with phone and vehicleInfo provided (truthy branches)", async () => {
+    const { sendNotificationEmail } = await import("@/lib/email")
+    await sendNotificationEmail({
+      type: "vehicle_inquiry",
+      customerName: "Full",
+      customerEmail: "full@example.com",
+      customerPhone: "416-555-0100",
+      vehicleInfo: "2024 Tesla Model Y",
+      additionalData: { message: "Is this certified?" },
+    })
+    const html = sentEmails[0].html
+    expect(html).toContain("416-555-0100")
+    expect(html).toContain("2024 Tesla Model Y")
+    expect(html).toContain("Is this certified?")
+  })
+
   it("renders vehicle_inquiry WITHOUT a message row when additionalData.message is missing", async () => {
     const { sendNotificationEmail } = await import("@/lib/email")
     await sendNotificationEmail({
@@ -213,6 +229,22 @@ describe("lib/email sendNotificationEmail — routing & all template branches", 
       additionalData: { preferredDate: "2026-05-01 14:00" },
     })
     expect(sentEmails[0].html).toContain("2026-05-01 14:00")
+  })
+
+  it("renders test_drive_request with phone and vehicleInfo provided (truthy branches)", async () => {
+    const { sendNotificationEmail } = await import("@/lib/email")
+    await sendNotificationEmail({
+      type: "test_drive_request",
+      customerName: "Full",
+      customerEmail: "full@example.com",
+      customerPhone: "647-555-0200",
+      vehicleInfo: "2024 Tesla Model 3",
+      additionalData: { preferredDate: "2026-06-01 10:00" },
+    })
+    const html = sentEmails[0].html
+    expect(html).toContain("647-555-0200")
+    expect(html).toContain("2024 Tesla Model 3")
+    expect(html).toContain("2026-06-01 10:00")
   })
 
   it("renders test_drive_request WITHOUT preferredDate row when missing", async () => {
@@ -259,6 +291,21 @@ describe("lib/email sendNotificationEmail — routing & all template branches", 
     const html = sentEmails[0].html
     expect(html).toContain("approved")
     expect(html).toContain("Stips OK")
+  })
+
+  it("renders application_status_changed with applicationId provided (truthy branch)", async () => {
+    const { sendNotificationEmail } = await import("@/lib/email")
+    await sendNotificationEmail({
+      type: "application_status_changed",
+      customerName: "S",
+      customerEmail: "s@example.com",
+      applicationId: "APP-42",
+      additionalData: { newStatus: "pending_review", notes: "Doc check" },
+    })
+    const html = sentEmails[0].html
+    expect(html).toContain("APP-42")
+    expect(html).toContain("pending_review")
+    expect(html).toContain("Doc check")
   })
 
   it("renders application_status_changed WITHOUT notes row when missing", async () => {
@@ -385,6 +432,14 @@ describe("lib/email sendCustomerConfirmationEmail", () => {
       vehicleInfo: "2018 Civic",
     })
     expect(sentEmails[0].html).toContain("2018 Civic")
+  })
+
+  it("renders trade_in_submitted WITHOUT vehicleInfo row when missing", async () => {
+    const { sendCustomerConfirmationEmail } = await import("@/lib/email")
+    await sendCustomerConfirmationEmail("c@example.com", "trade_in_submitted", {
+      customerName: "T",
+    })
+    expect(sentEmails[0].html).not.toContain("Your Vehicle:")
   })
 
   it("renders ico_confirmed with offer amount when provided", async () => {

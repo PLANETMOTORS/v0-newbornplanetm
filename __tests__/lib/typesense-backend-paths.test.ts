@@ -151,6 +151,40 @@ describe('searchVehicles — Typesense path', () => {
     expect(searchArgs.filter_by).toContain('price:<=5000000')
   })
 
+  it('passes fuel_type and drivetrain filters', async () => {
+    await searchVehicles({ fuel_type: ['Electric'], drivetrain: ['AWD'] })
+    const searchArgs = mockSearch.mock.calls[0][0]
+    expect(searchArgs.filter_by).toContain('fuel_type:=[`Electric`]')
+    expect(searchArgs.filter_by).toContain('drivetrain:=[`AWD`]')
+  })
+
+  it('passes is_ev and is_certified boolean filters', async () => {
+    await searchVehicles({ is_ev: true, is_certified: false })
+    const searchArgs = mockSearch.mock.calls[0][0]
+    expect(searchArgs.filter_by).toContain('is_ev:=true')
+    expect(searchArgs.filter_by).toContain('is_certified:=false')
+  })
+
+  it('passes year_min, year_max, and mileage_max filters', async () => {
+    await searchVehicles({ year_min: 2020, year_max: 2024, mileage_max: 50000 })
+    const searchArgs = mockSearch.mock.calls[0][0]
+    expect(searchArgs.filter_by).toContain('year:>=2020')
+    expect(searchArgs.filter_by).toContain('year:<=2024')
+    expect(searchArgs.filter_by).toContain('mileage:<=50000')
+  })
+
+  it('passes model filter', async () => {
+    await searchVehicles({ model: ['Model 3'] })
+    const searchArgs = mockSearch.mock.calls[0][0]
+    expect(searchArgs.filter_by).toContain('model:=[`Model 3`]')
+  })
+
+  it('passes query as q parameter', async () => {
+    await searchVehicles({ query: 'Tesla red' })
+    const searchArgs = mockSearch.mock.calls[0][0]
+    expect(searchArgs.q).toBe('Tesla red')
+  })
+
   it('returns facet_counts from Typesense response', async () => {
     const result = await searchVehicles({})
     expect(result.facet_counts).toHaveLength(1)
