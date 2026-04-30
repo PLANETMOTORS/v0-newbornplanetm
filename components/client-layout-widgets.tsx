@@ -30,6 +30,14 @@ const BingUET = dynamic(
   () => import('@/components/analytics/bing-uet').then(m => ({ default: m.BingUET })),
   { ssr: false }
 )
+const SnapchatPixel = dynamic(
+  () => import('@/components/analytics/snapchat-pixel').then(m => ({ default: m.SnapchatPixel })),
+  { ssr: false }
+)
+const MetaPixel = dynamic(
+  () => import('@/components/analytics/meta-pixel').then(m => ({ default: m.MetaPixel })),
+  { ssr: false }
+)
 
 // Cookie consent & UTM — client-only, lazy-loaded
 const CookieConsentBanner = dynamic(
@@ -90,6 +98,8 @@ export function ClientLayoutWidgets() {
       <TikTokPixel />
       <MicrosoftClarity />
       <BingUET />
+      <SnapchatPixel />
+      <MetaPixel />
       {isVercelDeploy && <VercelAnalytics />}
       {isVercelDeploy && <VercelSpeedInsights />}
     </>

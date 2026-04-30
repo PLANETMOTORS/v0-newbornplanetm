@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * Tests for the three social/marketing pixels. Each pixel is a thin
+ * Tests for the social/marketing pixels. Each pixel is a thin
  * `next/script` wrapper double-gated by:
  *
  *   1. its env var being set (NEXT_PUBLIC_TIKTOK_PIXEL_ID, etc.)
@@ -51,6 +51,8 @@ beforeEach(() => {
   delete process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID
   delete process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID
   delete process.env.NEXT_PUBLIC_BING_UET_ID
+  delete process.env.NEXT_PUBLIC_SNAPCHAT_PIXEL_ID
+  delete process.env.NEXT_PUBLIC_META_PIXEL_ID
   vi.resetModules()
 })
 
@@ -234,5 +236,146 @@ describe("BingUET", () => {
     expect(pushSpy).toHaveBeenCalledWith("event", "conversion", {})
 
     delete (window as unknown as Record<string, unknown>).uetq
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Snapchat Pixel
+// ---------------------------------------------------------------------------
+
+describe("SnapchatPixel", () => {
+  it("renders nothing when env var is unset", async () => {
+    consentState.hasMarketingConsent = true
+    const { SnapchatPixel } = await import("@/components/analytics/snapchat-pixel")
+    const { container } = render(<SnapchatPixel />)
+    expect(container.innerHTML).toBe("")
+  })
+
+  it("renders nothing when marketing consent is denied", async () => {
+    process.env.NEXT_PUBLIC_SNAPCHAT_PIXEL_ID = "5d0475dd-7de8-45cd-9088-aa9d7475cc64"
+    consentState.hasMarketingConsent = false
+    const { SnapchatPixel } = await import("@/components/analytics/snapchat-pixel")
+    const { container } = render(<SnapchatPixel />)
+    expect(container.innerHTML).toBe("")
+  })
+
+  it("does NOT render under analytics-only consent (Snap is marketing, not analytics)", async () => {
+    process.env.NEXT_PUBLIC_SNAPCHAT_PIXEL_ID = "5d0475dd-7de8-45cd-9088-aa9d7475cc64"
+    consentState.hasAnalyticsConsent = true
+    consentState.hasMarketingConsent = false
+    const { SnapchatPixel } = await import("@/components/analytics/snapchat-pixel")
+    const { container } = render(<SnapchatPixel />)
+    expect(container.innerHTML).toBe("")
+  })
+
+  it("renders the script when env var set AND marketing consent granted", async () => {
+    process.env.NEXT_PUBLIC_SNAPCHAT_PIXEL_ID = "5d0475dd-7de8-45cd-9088-aa9d7475cc64"
+    consentState.hasMarketingConsent = true
+    const { SnapchatPixel } = await import("@/components/analytics/snapchat-pixel")
+    const { getByTestId } = render(<SnapchatPixel />)
+    const node = getByTestId("script-snapchat-pixel")
+    expect(node.textContent).toContain("'5d0475dd-7de8-45cd-9088-aa9d7475cc64'")
+    expect(node.textContent).toContain("snaptr('init'")
+    expect(node.textContent).toContain("'PAGE_VIEW'")
+    expect(node.textContent).toContain("sc-static.net/scevent.min.js")
+  })
+
+  it("trackSnapEvent is a no-op when snaptr is not on window", async () => {
+    const { trackSnapEvent } = await import("@/components/analytics/snapchat-pixel")
+    expect(() => trackSnapEvent("VIEW_CONTENT", { item_ids: ["x"] })).not.toThrow()
+  })
+
+  it("trackSnapEvent forwards to window.snaptr when present", async () => {
+    const snaptr = vi.fn()
+    Object.defineProperty(window, "snaptr", { value: snaptr, configurable: true, writable: true })
+
+    const { trackSnapEvent } = await import("@/components/analytics/snapchat-pixel")
+    trackSnapEvent("PURCHASE", { price: 49999, currency: "CAD" })
+    expect(snaptr).toHaveBeenCalledWith("track", "PURCHASE", { price: 49999, currency: "CAD" })
+
+    delete (window as unknown as Record<string, unknown>).snaptr
+  })
+
+  it("trackSnapEvent uses an empty props object when none provided", async () => {
+    const snaptr = vi.fn()
+    Object.defineProperty(window, "snaptr", { value: snaptr, configurable: true, writable: true })
+
+    const { trackSnapEvent } = await import("@/components/analytics/snapchat-pixel")
+    trackSnapEvent("PAGE_VIEW")
+    expect(snaptr).toHaveBeenCalledWith("track", "PAGE_VIEW", {})
+
+    delete (window as unknown as Record<string, unknown>).snaptr
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Meta (Facebook) Pixel — client-side counterpart to lib/meta-capi.ts
+// ---------------------------------------------------------------------------
+
+describe("MetaPixel", () => {
+  it("renders nothing when env var is unset", async () => {
+    consentState.hasMarketingConsent = true
+    const { MetaPixel } = await import("@/components/analytics/meta-pixel")
+    const { container } = render(<MetaPixel />)
+    expect(container.innerHTML).toBe("")
+  })
+
+  it("renders nothing when marketing consent is denied", async () => {
+    process.env.NEXT_PUBLIC_META_PIXEL_ID = "1041139527892582"
+    consentState.hasMarketingConsent = false
+    const { MetaPixel } = await import("@/components/analytics/meta-pixel")
+    const { container } = render(<MetaPixel />)
+    expect(container.innerHTML).toBe("")
+  })
+
+  it("renders the script when env var set AND marketing consent granted", async () => {
+    process.env.NEXT_PUBLIC_META_PIXEL_ID = "1041139527892582"
+    consentState.hasMarketingConsent = true
+    const { MetaPixel } = await import("@/components/analytics/meta-pixel")
+    const { getByTestId, container } = render(<MetaPixel />)
+
+    // Script body
+    const node = getByTestId("script-meta-pixel")
+    expect(node.textContent).toContain("'1041139527892582'")
+    expect(node.textContent).toContain("fbq('init'")
+    expect(node.textContent).toContain("'PageView'")
+    expect(node.textContent).toContain("connect.facebook.net/en_US/fbevents.js")
+
+    // noscript fallback wrapper exists (jsdom does not render
+    // children inside <noscript> consistently across React versions,
+    // so we assert presence of the tag and trust the JSX).
+    expect(container.querySelector("noscript")).not.toBeNull()
+  })
+
+  it("trackMetaEvent is a no-op when fbq is not on window", async () => {
+    const { trackMetaEvent } = await import("@/components/analytics/meta-pixel")
+    expect(() => trackMetaEvent("ViewContent", { content_ids: ["x"] })).not.toThrow()
+  })
+
+  it("trackMetaEvent forwards to window.fbq when present", async () => {
+    const fbq = vi.fn()
+    Object.defineProperty(window, "fbq", { value: fbq, configurable: true, writable: true })
+
+    const { trackMetaEvent } = await import("@/components/analytics/meta-pixel")
+    trackMetaEvent("Purchase", { value: 49999, currency: "CAD" })
+    expect(fbq).toHaveBeenCalledWith("track", "Purchase", { value: 49999, currency: "CAD" })
+
+    delete (window as unknown as Record<string, unknown>).fbq
+  })
+
+  it("trackMetaCustomEvent uses 'trackCustom' for non-standard events", async () => {
+    const fbq = vi.fn()
+    Object.defineProperty(window, "fbq", { value: fbq, configurable: true, writable: true })
+
+    const { trackMetaCustomEvent } = await import("@/components/analytics/meta-pixel")
+    trackMetaCustomEvent("VehicleConfigured", { trim: "Sport" })
+    expect(fbq).toHaveBeenCalledWith("trackCustom", "VehicleConfigured", { trim: "Sport" })
+
+    delete (window as unknown as Record<string, unknown>).fbq
+  })
+
+  it("trackMetaCustomEvent is a no-op when fbq is not on window", async () => {
+    const { trackMetaCustomEvent } = await import("@/components/analytics/meta-pixel")
+    expect(() => trackMetaCustomEvent("VehicleConfigured")).not.toThrow()
   })
 })
