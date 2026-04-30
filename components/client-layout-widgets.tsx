@@ -15,6 +15,21 @@ const GoogleTagManagerNoScript = dynamic(
   () => import('@/components/analytics/google-tag-manager').then(m => ({ default: m.GoogleTagManagerNoScript })),
   { ssr: false }
 )
+// Social/marketing pixels — same pattern, gated on consent + env var.
+// Each component returns null when its env var is unset, so unset
+// pixels add zero runtime cost and zero network requests.
+const TikTokPixel = dynamic(
+  () => import('@/components/analytics/tiktok-pixel').then(m => ({ default: m.TikTokPixel })),
+  { ssr: false }
+)
+const MicrosoftClarity = dynamic(
+  () => import('@/components/analytics/microsoft-clarity').then(m => ({ default: m.MicrosoftClarity })),
+  { ssr: false }
+)
+const BingUET = dynamic(
+  () => import('@/components/analytics/bing-uet').then(m => ({ default: m.BingUET })),
+  { ssr: false }
+)
 
 // Cookie consent & UTM — client-only, lazy-loaded
 const CookieConsentBanner = dynamic(
@@ -72,6 +87,9 @@ export function ClientLayoutWidgets() {
       <GoogleAnalytics />
       <GoogleTagManager />
       <GoogleTagManagerNoScript />
+      <TikTokPixel />
+      <MicrosoftClarity />
+      <BingUET />
       {isVercelDeploy && <VercelAnalytics />}
       {isVercelDeploy && <VercelSpeedInsights />}
     </>
