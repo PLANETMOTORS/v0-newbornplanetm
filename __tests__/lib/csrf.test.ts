@@ -118,6 +118,12 @@ describe("validateOrigin — production checks", () => {
     expect(validateOrigin(makeRequest({ origin: "https://anything.com" }))).toBe(false)
   })
 
+  it("handles completely unparseable BASE_URL gracefully", async () => {
+    process.env.NEXT_PUBLIC_BASE_URL = "://"
+    const { validateOrigin } = await import("@/lib/csrf")
+    expect(validateOrigin(makeRequest({ origin: "https://example.com" }))).toBe(false)
+  })
+
   it("does NOT include localhost origins in production", async () => {
     process.env.NEXT_PUBLIC_BASE_URL = "https://planetmotors.ca"
     const { validateOrigin } = await import("@/lib/csrf")

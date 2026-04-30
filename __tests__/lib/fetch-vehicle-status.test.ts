@@ -110,4 +110,27 @@ describe('fetchVehicleForSSR — status allowlist', () => {
     const result = await fetchVehicleForSSR('550e8400-e29b-41d4-a716-446655440000')
     expect(result).toBeNull()
   })
+
+  it('uses VIN lookup column for 17-char VIN format', async () => {
+    setupMock(makeRow({ vin: '1HGCM82633A004352' }))
+    const { fetchVehicleForSSR } = await import('@/lib/vehicles/fetch-vehicle')
+    const result = await fetchVehicleForSSR('1HGCM82633A004352')
+    expect(result).not.toBeNull()
+    expect(result?.vin).toBe('1HGCM82633A004352')
+  })
+
+  it('returns null and logs when an exception is thrown', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    ;(createStaticClient as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      throw new Error('connection refused')
+    })
+    const { fetchVehicleForSSR } = await import('@/lib/vehicles/fetch-vehicle')
+    const result = await fetchVehicleForSSR('550e8400-e29b-41d4-a716-446655440000')
+    expect(result).toBeNull()
+    expect(errSpy).toHaveBeenCalledWith(
+      '[fetchVehicleForSSR] Failed:',
+      expect.any(Error),
+    )
+    errSpy.mockRestore()
+  })
 })
