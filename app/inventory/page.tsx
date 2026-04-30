@@ -94,14 +94,6 @@ function mapDisplayFuelType(fuelType: string | null | undefined = "Gasoline"): s
   return "Gasoline"
 }
 
-function deriveBadge(v: Vehicle, priceInDollars: number): { badge: string; badgeColor: string } {
-  if (v.is_new_arrival) return { badge: "Just Arrived", badgeColor: "bg-green-700" }
-  if (v.fuel_type === "Electric") return { badge: "Electric", badgeColor: "bg-teal-700" }
-  if (v.is_certified) return { badge: "PM Certified", badgeColor: "bg-primary" }
-  if (priceInDollars > 100000) return { badge: "Premium", badgeColor: "bg-purple-700" }
-  return { badge: "", badgeColor: "bg-primary" }
-}
-
 const REAL_IMAGE_INDICATORS = ['.jpg', '.png', '.webp', 'cdn.planetmotors.ca', 'imgix.net', 'homenetiol.com', 'cpsimg.com']
 function pickImageUrl(primaryImageUrl: string | null | undefined): string | null {
   if (!primaryImageUrl) return null
@@ -113,13 +105,12 @@ function pickImageUrl(primaryImageUrl: string | null | undefined): string | null
 function transformVehicle(v: Vehicle) {
   const priceInDollars = safeNum(v.price)
   const msrpInDollars = safeNum(v.msrp, priceInDollars * 1.1)
-  const { badge, badgeColor } = deriveBadge(v, priceInDollars)
 
   // Map fuel types for filtering
   const displayFuelType = mapDisplayFuelType(v.fuel_type)
 
   const imageUrl = pickImageUrl(v.primary_image_url)
-  
+
   return {
     id: v.id,
     stockNumber: v.stock_number,
@@ -141,8 +132,7 @@ function transformVehicle(v: Vehicle) {
     image: imageUrl,
     location: v.location || "Richmond Hill",
     inspectionScore: v.inspection_score || 210,
-    badge,
-    badgeColor,
+    isNewArrival: !!v.is_new_arrival,
     // Display-only engagement estimates. We use a crypto-backed RNG via
     // `randomInt` so SonarCloud does not flag this as S2245; these values
     // are not used for security, auth, or unique identifiers.
@@ -953,18 +943,26 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </div>
                   )}
                   
-                  {/* Badges — z-2 to sit above the image link */}
+                  {/* Badges — z-2 to sit above the image link.
+                      Stack rules:
+                        - Electric:  Electric → % Battery → PM Certified (3 badges)
+                        - Gas/Hybrid: PM Certified only (1 badge)
+                      The previous generic `vehicle.badge` (which could resolve to a
+                      blue "PM Certified" via deriveBadge) was creating a duplicate
+                      certified chip on Hybrid rows — removed. */}
                   <div className="absolute top-3 left-3 flex flex-col gap-2 z-2 pointer-events-none">
-                    <Badge className={`${vehicle.badgeColor} text-white shadow-lg`}>
-                      {vehicle.badge}
-                    </Badge>
                     {vehicle.fuelType === "Electric" && (
-                      <Badge className="bg-green-700 text-white shadow-lg">
-                        <Battery className="w-3 h-3 mr-1" />
-                        {vehicle.batteryHealth}% Battery
-                      </Badge>
+                      <>
+                        <Badge className="bg-teal-700 text-white shadow-lg">
+                          <Zap className="w-3 h-3 mr-1" />
+                          Electric
+                        </Badge>
+                        <Badge className="bg-green-700 text-white shadow-lg">
+                          <Battery className="w-3 h-3 mr-1" />
+                          {vehicle.batteryHealth}% Battery
+                        </Badge>
+                      </>
                     )}
-                    {/* PM Certified Badge */}
                     <Badge className="bg-teal-700 text-white shadow-lg">
                       <Shield className="w-3 h-3 mr-1" />
                       PM Certified
