@@ -1,9 +1,9 @@
 // imgix Image Loader for Next.js
 // AVIF-first delivery with automatic fallback to WebP/JPEG for older browsers.
 //
-// When NEXT_PUBLIC_IMGIX_DOMAIN is set and the imgix source is configured as a
-// "Web Proxy" type, external image URLs (HomenetIOL, Sanity, etc.) are routed
-// through imgix for on-the-fly AVIF conversion, adaptive quality, and CDN caching.
+// The imgix source is configured as "Web Folder" with base URL
+// https://content.homenetiol.com/ — so vehicle image URLs from HomenetIOL
+// are stripped to relative paths before being sent to imgix.
 //
 // The custom loader is only activated at build time when NEXT_PUBLIC_IMGIX_DOMAIN
 // is set (see next.config.mjs). When unset, Vercel's built-in optimizer is used.
@@ -80,10 +80,16 @@ export default function imgixLoader({ src, width, quality = 75 }: ImageLoaderPro
     return src
   }
 
-  // Proxy external image URLs through imgix (HomenetIOL, Sanity, etc.)
-  // imgix "Web Proxy" source type fetches the original and applies transforms.
+  // HomenetIOL vehicle images — strip base URL to get relative path for Web Folder source.
+  // e.g. https://content.homenetiol.com/2003873/2291843/0x0/abc.jpg → 2003873/2291843/0x0/abc.jpg
+  if (src.includes('content.homenetiol.com')) {
+    const path = src.replace(/^https?:\/\/content\.homenetiol\.com\//, '')
+    return buildImgixUrl(path, width, quality)
+  }
+
+  // Other external URLs can't be served through a Web Folder source — pass through unchanged
   if (src.startsWith('http')) {
-    return buildImgixUrl(src, width, quality)
+    return src
   }
 
   // Local images — serve from imgix with the relative path

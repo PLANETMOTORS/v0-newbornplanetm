@@ -78,33 +78,30 @@ describe("imgixLoader with NEXT_PUBLIC_IMGIX_DOMAIN configured", () => {
     expect(result).toContain("https://test.imgix.net/cars/foo.jpg")
   })
 
-  it("proxies HomenetIOL external URLs through imgix", () => {
+  it("strips base URL from HomenetIOL images and routes through imgix", () => {
     const result = loader({
-      src: "https://content.homenetiol.com/2000001/2192x1460/abc.jpg",
+      src: "https://content.homenetiol.com/2003873/2291843/0x0/abc.jpg",
       width: 600,
     })
-    expect(result).toContain("https://test.imgix.net/")
-    expect(result).toContain("content.homenetiol.com")
-    expect(result).toContain("w=600")
+    // Web Folder source: base URL stripped, only relative path sent to imgix
+    expect(result).toBe(
+      "https://test.imgix.net/2003873/2291843/0x0/abc.jpg?w=600&q=72&auto=format%2Ccompress&fit=max&cs=srgb&chromasub=444&dpr=1"
+    )
+    // Must NOT contain the full HomenetIOL domain in the path
+    expect(result).not.toContain("content.homenetiol.com")
   })
 
-  it("proxies photos.homenetiol.com through imgix", () => {
-    const result = loader({
-      src: "https://photos.homenetiol.com/abc/123.jpg",
-      width: 800,
-    })
-    expect(result).toContain("https://test.imgix.net/")
-    expect(result).toContain("photos.homenetiol.com")
+  it("passes through photos.homenetiol.com unchanged (different base URL)", () => {
+    const src = "https://photos.homenetiol.com/abc/123.jpg"
+    const result = loader({ src, width: 800 })
+    // photos.homenetiol.com is a different domain — not covered by our Web Folder source
+    expect(result).toBe(src)
   })
 
-  it("proxies other external URLs through imgix", () => {
-    const result = loader({
-      src: "https://cdn.sanity.io/images/abc/production/img.jpg",
-      width: 1200,
-    })
-    expect(result).toContain("https://test.imgix.net/")
-    expect(result).toContain("cdn.sanity.io")
-    expect(result).toContain("w=1200")
+  it("passes through other external URLs unchanged (Web Folder can only serve its base)", () => {
+    const src = "https://cdn.sanity.io/images/abc/production/img.jpg"
+    const result = loader({ src, width: 1200 })
+    expect(result).toBe(src)
   })
 
   it("still passes through Vercel Blob URLs directly", () => {
