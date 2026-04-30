@@ -241,12 +241,12 @@ export default async function CategoryPage({ params }: PageProps) {
               Our team can pull a car from inventory, set up a test drive, or coordinate
               delivery to your door. Open 7 days.
             </p>
-            <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
-              <Button size="lg" variant="secondary">
+            <Button asChild size="lg" variant="secondary">
+              <a href={`tel:${PHONE_TOLL_FREE_TEL}`}>
                 <Phone className="w-4 h-4 mr-2" />
                 Call {PHONE_TOLL_FREE}
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         </section>
       </main>
