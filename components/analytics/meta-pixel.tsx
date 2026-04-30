@@ -102,12 +102,12 @@ export function trackMetaEvent(
   props?: Record<string, unknown>,
   eventID?: string,
 ): void {
-  if (typeof window === "undefined") return
-  if (!window.fbq) return
+  if (globalThis.window === undefined) return
+  if (!globalThis.window.fbq) return
   if (eventID) {
-    window.fbq("track", event, props ?? {}, { eventID })
+    globalThis.window.fbq("track", event, props ?? {}, { eventID })
   } else {
-    window.fbq("track", event, props ?? {})
+    globalThis.window.fbq("track", event, props ?? {})
   }
 }
 
@@ -122,11 +122,11 @@ export function trackMetaCustomEvent(
   props?: Record<string, unknown>,
   eventID?: string,
 ): void {
-  if (typeof window === "undefined") return
-  if (!window.fbq) return
+  if (globalThis.window === undefined) return
+  if (!globalThis.window.fbq) return
   if (eventID) {
-    window.fbq("trackCustom", event, props ?? {}, { eventID })
+    globalThis.window.fbq("trackCustom", event, props ?? {}, { eventID })
   } else {
-    window.fbq("trackCustom", event, props ?? {})
+    globalThis.window.fbq("trackCustom", event, props ?? {})
   }
 }

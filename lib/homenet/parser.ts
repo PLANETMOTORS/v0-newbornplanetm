@@ -443,239 +443,242 @@ export const __testing__ = {
  * banner + Similar Vehicles carousel, and search engines see
  * `schema.org/SoldOut` on re-crawl (already wired in the VDP layout).
  */
-export async function syncVehiclesToDatabase(
+interface UpsertAccumulator {
+  inserted: number
+  updated: number
+  insertedVehicleIds: string[]
+  updatedVehicleIds: string[]
+  errors: { vin: string; error: string }[]
+}
+
+/** Upsert a single vehicle row (INSERT … ON CONFLICT UPDATE). */
+async function upsertVehicle(
   sql: SqlClient,
-  vehicles: VehicleData[],
-): Promise<SyncVehiclesResult> {
-  let inserted = 0
-  let updated = 0
-  let removed = 0
-  const errors: { vin: string; error: string }[] = []
-  const insertedVehicleIds: string[] = []
-  const soldVehicleIds: string[] = []
-  const updatedVehicleIds: string[] = []
-  let safetyAborted = false
-  let safetyContext: SyncVehiclesResult['safetyContext'] | undefined
-  const BATCH_SIZE = 100
-
-  // Collect all VINs from incoming file
-  const incomingVins = vehicles.map(v => v.vin)
-
-  // Step 1: Upsert all vehicles from the file
-  for (let i = 0; i < vehicles.length; i += BATCH_SIZE) {
-    const batch = vehicles.slice(i, i + BATCH_SIZE)
-
-    await Promise.all(
-      batch.map(async (vehicle) => {
-        try {
-          const result = await sql`
-            INSERT INTO vehicles (
-              stock_number, vin, year, make, model, trim, body_style,
-              exterior_color, interior_color, price, msrp, mileage,
-              drivetrain, transmission, engine, fuel_type,
-              fuel_economy_city, fuel_economy_highway, is_ev,
-              battery_capacity_kwh, range_miles, status, is_certified,
-              is_new_arrival, featured, inspection_score,
-              primary_image_url, image_urls, has_360_spin, video_url, location,
-              description, source_vdp_url, title_status
-            ) VALUES (
-              ${vehicle.stock_number}, ${vehicle.vin}, ${vehicle.year},
-              ${vehicle.make}, ${vehicle.model}, ${vehicle.trim || null},
-              ${vehicle.body_style || null}, ${vehicle.exterior_color || null},
-              ${vehicle.interior_color || null}, ${vehicle.price},
-              ${vehicle.msrp || null}, ${vehicle.mileage},
-              ${vehicle.drivetrain || null}, ${vehicle.transmission || null},
-              ${vehicle.engine || null}, ${vehicle.fuel_type || null},
-              ${vehicle.fuel_economy_city || null}, ${vehicle.fuel_economy_highway || null},
-              ${vehicle.is_ev ?? false}, ${vehicle.battery_capacity_kwh || null},
-              ${vehicle.range_miles || null}, ${vehicle.status || 'available'},
-              ${vehicle.is_certified ?? true}, ${vehicle.is_new_arrival ?? false},
-              ${vehicle.featured ?? false}, ${vehicle.inspection_score ?? 210},
-              ${vehicle.primary_image_url || null}, ${vehicle.image_urls || []},
-              ${vehicle.has_360_spin || false}, ${vehicle.video_url || null},
-              ${vehicle.location || 'Richmond Hill, ON'},
-              ${vehicle.description || null}, ${vehicle.source_vdp_url || null},
-              ${vehicle.title_status || null}
-            )
-            ON CONFLICT (vin)
-            DO UPDATE SET
-              stock_number = EXCLUDED.stock_number,
-              year = EXCLUDED.year, make = EXCLUDED.make,
-              model = EXCLUDED.model, trim = EXCLUDED.trim,
-              body_style = EXCLUDED.body_style,
-              exterior_color = EXCLUDED.exterior_color,
-              interior_color = EXCLUDED.interior_color,
-              price = EXCLUDED.price, msrp = EXCLUDED.msrp,
-              mileage = EXCLUDED.mileage, drivetrain = EXCLUDED.drivetrain,
-              transmission = EXCLUDED.transmission, engine = EXCLUDED.engine,
-              fuel_type = EXCLUDED.fuel_type,
-              fuel_economy_city = EXCLUDED.fuel_economy_city,
-              fuel_economy_highway = EXCLUDED.fuel_economy_highway,
-              is_ev = EXCLUDED.is_ev,
-              battery_capacity_kwh = EXCLUDED.battery_capacity_kwh,
-              range_miles = EXCLUDED.range_miles, status = EXCLUDED.status,
-              is_certified = EXCLUDED.is_certified,
-              is_new_arrival = EXCLUDED.is_new_arrival,
-              featured = EXCLUDED.featured,
-              inspection_score = EXCLUDED.inspection_score,
-              primary_image_url = EXCLUDED.primary_image_url,
-              image_urls = EXCLUDED.image_urls,
-              has_360_spin = EXCLUDED.has_360_spin,
-              video_url = EXCLUDED.video_url,
-              location = EXCLUDED.location,
-              description = EXCLUDED.description,
-              source_vdp_url = EXCLUDED.source_vdp_url,
-              title_status = EXCLUDED.title_status,
-              updated_at = NOW()
-            WHERE (
-              vehicles.stock_number, vehicles.year, vehicles.make, vehicles.model,
-              vehicles.trim, vehicles.body_style, vehicles.exterior_color,
-              vehicles.interior_color, vehicles.price, vehicles.msrp,
-              vehicles.mileage, vehicles.drivetrain, vehicles.transmission,
-              vehicles.engine, vehicles.fuel_type, vehicles.fuel_economy_city,
-              vehicles.fuel_economy_highway, vehicles.is_ev, vehicles.battery_capacity_kwh,
-              vehicles.range_miles, vehicles.status, vehicles.is_certified,
-              vehicles.is_new_arrival, vehicles.featured, vehicles.inspection_score,
-              vehicles.primary_image_url, vehicles.image_urls, vehicles.has_360_spin,
-              vehicles.video_url, vehicles.location, vehicles.description,
-              vehicles.source_vdp_url, vehicles.title_status
-            ) IS DISTINCT FROM (
-              EXCLUDED.stock_number, EXCLUDED.year, EXCLUDED.make, EXCLUDED.model,
-              EXCLUDED.trim, EXCLUDED.body_style, EXCLUDED.exterior_color,
-              EXCLUDED.interior_color, EXCLUDED.price, EXCLUDED.msrp,
-              EXCLUDED.mileage, EXCLUDED.drivetrain, EXCLUDED.transmission,
-              EXCLUDED.engine, EXCLUDED.fuel_type, EXCLUDED.fuel_economy_city,
-              EXCLUDED.fuel_economy_highway, EXCLUDED.is_ev, EXCLUDED.battery_capacity_kwh,
-              EXCLUDED.range_miles, EXCLUDED.status, EXCLUDED.is_certified,
-              EXCLUDED.is_new_arrival, EXCLUDED.featured, EXCLUDED.inspection_score,
-              EXCLUDED.primary_image_url, EXCLUDED.image_urls, EXCLUDED.has_360_spin,
-              EXCLUDED.video_url, EXCLUDED.location, EXCLUDED.description,
-              EXCLUDED.source_vdp_url, EXCLUDED.title_status
-            )
-            RETURNING id, (xmax = 0) AS inserted
-          `
-          const rows = result as Array<{ id: string; inserted: boolean }>
-          const row = rows?.[0]
-          if (row?.inserted) {
-            inserted++
-            if (row.id) insertedVehicleIds.push(row.id)
-          } else if (row?.id) {
-            // Row was returned with xmax != 0, meaning an actual update occurred
-            // (WHERE clause evaluated to true because data changed)
-            updated++
-            updatedVehicleIds.push(row.id)
-          }
-          // If row is undefined, the WHERE clause prevented the update
-          // because no data changed — vehicle exists but is unchanged.
-        } catch (error) {
-          console.error(`[HomenetIOL] Error syncing VIN ${vehicle.vin}:`, error)
-          errors.push({
-            vin: vehicle.vin,
-            error: error instanceof Error ? error.message : "Unknown error",
-          })
-        }
-      })
-    )
+  vehicle: VehicleData,
+  acc: UpsertAccumulator,
+): Promise<void> {
+  try {
+    const result = await sql`
+      INSERT INTO vehicles (
+        stock_number, vin, year, make, model, trim, body_style,
+        exterior_color, interior_color, price, msrp, mileage,
+        drivetrain, transmission, engine, fuel_type,
+        fuel_economy_city, fuel_economy_highway, is_ev,
+        battery_capacity_kwh, range_miles, status, is_certified,
+        is_new_arrival, featured, inspection_score,
+        primary_image_url, image_urls, has_360_spin, video_url, location,
+        description, source_vdp_url, title_status
+      ) VALUES (
+        ${vehicle.stock_number}, ${vehicle.vin}, ${vehicle.year},
+        ${vehicle.make}, ${vehicle.model}, ${vehicle.trim || null},
+        ${vehicle.body_style || null}, ${vehicle.exterior_color || null},
+        ${vehicle.interior_color || null}, ${vehicle.price},
+        ${vehicle.msrp || null}, ${vehicle.mileage},
+        ${vehicle.drivetrain || null}, ${vehicle.transmission || null},
+        ${vehicle.engine || null}, ${vehicle.fuel_type || null},
+        ${vehicle.fuel_economy_city || null}, ${vehicle.fuel_economy_highway || null},
+        ${vehicle.is_ev ?? false}, ${vehicle.battery_capacity_kwh || null},
+        ${vehicle.range_miles || null}, ${vehicle.status || 'available'},
+        ${vehicle.is_certified ?? true}, ${vehicle.is_new_arrival ?? false},
+        ${vehicle.featured ?? false}, ${vehicle.inspection_score ?? 210},
+        ${vehicle.primary_image_url || null}, ${vehicle.image_urls || []},
+        ${vehicle.has_360_spin || false}, ${vehicle.video_url || null},
+        ${vehicle.location || 'Richmond Hill, ON'},
+        ${vehicle.description || null}, ${vehicle.source_vdp_url || null},
+        ${vehicle.title_status || null}
+      )
+      ON CONFLICT (vin)
+      DO UPDATE SET
+        stock_number = EXCLUDED.stock_number,
+        year = EXCLUDED.year, make = EXCLUDED.make,
+        model = EXCLUDED.model, trim = EXCLUDED.trim,
+        body_style = EXCLUDED.body_style,
+        exterior_color = EXCLUDED.exterior_color,
+        interior_color = EXCLUDED.interior_color,
+        price = EXCLUDED.price, msrp = EXCLUDED.msrp,
+        mileage = EXCLUDED.mileage, drivetrain = EXCLUDED.drivetrain,
+        transmission = EXCLUDED.transmission, engine = EXCLUDED.engine,
+        fuel_type = EXCLUDED.fuel_type,
+        fuel_economy_city = EXCLUDED.fuel_economy_city,
+        fuel_economy_highway = EXCLUDED.fuel_economy_highway,
+        is_ev = EXCLUDED.is_ev,
+        battery_capacity_kwh = EXCLUDED.battery_capacity_kwh,
+        range_miles = EXCLUDED.range_miles, status = EXCLUDED.status,
+        is_certified = EXCLUDED.is_certified,
+        is_new_arrival = EXCLUDED.is_new_arrival,
+        featured = EXCLUDED.featured,
+        inspection_score = EXCLUDED.inspection_score,
+        primary_image_url = EXCLUDED.primary_image_url,
+        image_urls = EXCLUDED.image_urls,
+        has_360_spin = EXCLUDED.has_360_spin,
+        video_url = EXCLUDED.video_url,
+        location = EXCLUDED.location,
+        description = EXCLUDED.description,
+        source_vdp_url = EXCLUDED.source_vdp_url,
+        title_status = EXCLUDED.title_status,
+        updated_at = NOW()
+      WHERE (
+        vehicles.stock_number, vehicles.year, vehicles.make, vehicles.model,
+        vehicles.trim, vehicles.body_style, vehicles.exterior_color,
+        vehicles.interior_color, vehicles.price, vehicles.msrp,
+        vehicles.mileage, vehicles.drivetrain, vehicles.transmission,
+        vehicles.engine, vehicles.fuel_type, vehicles.fuel_economy_city,
+        vehicles.fuel_economy_highway, vehicles.is_ev, vehicles.battery_capacity_kwh,
+        vehicles.range_miles, vehicles.status, vehicles.is_certified,
+        vehicles.is_new_arrival, vehicles.featured, vehicles.inspection_score,
+        vehicles.primary_image_url, vehicles.image_urls, vehicles.has_360_spin,
+        vehicles.video_url, vehicles.location, vehicles.description,
+        vehicles.source_vdp_url, vehicles.title_status
+      ) IS DISTINCT FROM (
+        EXCLUDED.stock_number, EXCLUDED.year, EXCLUDED.make, EXCLUDED.model,
+        EXCLUDED.trim, EXCLUDED.body_style, EXCLUDED.exterior_color,
+        EXCLUDED.interior_color, EXCLUDED.price, EXCLUDED.msrp,
+        EXCLUDED.mileage, EXCLUDED.drivetrain, EXCLUDED.transmission,
+        EXCLUDED.engine, EXCLUDED.fuel_type, EXCLUDED.fuel_economy_city,
+        EXCLUDED.fuel_economy_highway, EXCLUDED.is_ev, EXCLUDED.battery_capacity_kwh,
+        EXCLUDED.range_miles, EXCLUDED.status, EXCLUDED.is_certified,
+        EXCLUDED.is_new_arrival, EXCLUDED.featured, EXCLUDED.inspection_score,
+        EXCLUDED.primary_image_url, EXCLUDED.image_urls, EXCLUDED.has_360_spin,
+        EXCLUDED.video_url, EXCLUDED.location, EXCLUDED.description,
+        EXCLUDED.source_vdp_url, EXCLUDED.title_status
+      )
+      RETURNING id, (xmax = 0) AS inserted
+    `
+    const rows = result as Array<{ id: string; inserted: boolean }>
+    const row = rows?.[0]
+    if (row?.inserted) {
+      acc.inserted++
+      if (row.id) acc.insertedVehicleIds.push(row.id)
+    } else if (row?.id) {
+      acc.updated++
+      acc.updatedVehicleIds.push(row.id)
+    }
+  } catch (error) {
+    console.error(`[HomenetIOL] Error syncing VIN ${vehicle.vin}:`, error)
+    acc.errors.push({
+      vin: vehicle.vin,
+      error: error instanceof Error ? error.message : "Unknown error",
+    })
   }
+}
 
-  // Step 2: Mark all vehicles NOT in the incoming file as SOLD (soft-delete).
-  // We only flip rows that aren't already marked sold, so re-runs are
-  // idempotent and `sold_at` reflects the first time we noticed.
-  //
-  // Two safety guards run BEFORE the bulk UPDATE:
-  //
-  //   (a) Empty-array guard. In PostgreSQL `vin != ALL(ARRAY[])` is
-  //       vacuously TRUE for every row — without this check, an empty
-  //       parse would mark the entire inventory as sold.
-  //
-  //   (b) Inventory-floor guard. A truncated/partial CSV (network blip,
-  //       encoding glitch, mass parse failure) can return e.g. 80 of
-  //       5,000 vehicles. The empty-array guard above doesn't catch
-  //       that — the array isn't empty, it's just suspiciously small.
-  //       If the incoming feed covers less than HOMENET_INVENTORY_FLOOR_PCT
-  //       (default 50%) of currently-live inventory, we skip the bulk
-  //       soft-delete and surface `safetyAborted: true` so the cron
-  //       can avoid pinging IndexNow for sold URLs in degraded mode.
+interface SoftDeleteResult {
+  removed: number
+  soldVehicleIds: string[]
+  safetyAborted: boolean
+  safetyContext?: SyncVehiclesResult['safetyContext']
+  errors: { vin: string; error: string }[]
+}
+
+/** Soft-delete vehicles no longer in the feed, with inventory-floor guard. */
+async function softDeleteSoldVehicles(
+  sql: SqlClient,
+  incomingVins: string[],
+): Promise<SoftDeleteResult> {
+  const errors: { vin: string; error: string }[] = []
+  const soldVehicleIds: string[] = []
+
   if (incomingVins.length === 0) {
     console.warn(
       `[HomenetIOL] Skipping soft-delete step: no incoming vehicles to compare against`,
     )
-  } else {
-    let currentLive: number | null = null
-    try {
-      const liveCountRows = (await sql`
-        SELECT COUNT(*)::int AS live_count
-        FROM vehicles
-        WHERE status IS DISTINCT FROM 'sold'
-      `) as Array<{ live_count: number }>
-      currentLive = liveCountRows?.[0]?.live_count ?? 0
-    } catch (error) {
-      // Non-fatal — without a live count we can't enforce the floor,
-      // so we let the soft-delete proceed (preserves prior behaviour).
-      console.error(
-        `[HomenetIOL] Live-count query failed (proceeding without inventory-floor guard):`,
-        error,
-      )
-    }
+    return { removed: 0, soldVehicleIds, safetyAborted: false, errors }
+  }
 
-    const floorPct = getInventoryFloorPct()
-    const minimumExpected =
-      currentLive !== null && currentLive > 0
-        ? Math.floor(currentLive * (floorPct / 100))
-        : 0
+  let currentLive: number | null = null
+  try {
+    const liveCountRows = (await sql`
+      SELECT COUNT(*)::int AS live_count
+      FROM vehicles
+      WHERE status IS DISTINCT FROM 'sold'
+    `) as Array<{ live_count: number }>
+    currentLive = liveCountRows?.[0]?.live_count ?? 0
+  } catch (error) {
+    console.error(
+      `[HomenetIOL] Live-count query failed (proceeding without inventory-floor guard):`,
+      error,
+    )
+  }
 
-    if (currentLive !== null && currentLive > 0 && incomingVins.length < minimumExpected) {
-      safetyAborted = true
-      safetyContext = {
-        incoming: incomingVins.length,
-        currentLive,
-        floorPct,
-        minimumExpected,
-      }
-      console.error(
-        `[HomenetIOL] SAFETY ABORT: incoming feed has ${incomingVins.length} ` +
-          `vehicles but database has ${currentLive} live (floor: ${minimumExpected} ` +
-          `at ${floorPct}%). Soft-delete SKIPPED to prevent inventory wipe.`,
-      )
-    } else {
-      try {
-        const soldResult = await sql`
-          UPDATE vehicles
-          SET status = 'sold',
-              sold_at = COALESCE(sold_at, NOW()),
-              updated_at = NOW()
-          WHERE vin != ALL(${incomingVins})
-            AND status IS DISTINCT FROM 'sold'
-          RETURNING id
-        `
-        const soldRows = soldResult as Array<{ id: string }>
-        removed = soldRows.length
-        for (const row of soldRows) {
-          if (row.id) soldVehicleIds.push(row.id)
-        }
-        if (removed > 0) {
-          console.info(`[HomenetIOL] Soft-deleted ${removed} vehicles not in incoming file`)
-        }
-      } catch (error) {
-        console.error(`[HomenetIOL] Error soft-deleting old vehicles:`, error)
-        errors.push({
-          vin: "BULK_SOFT_DELETE",
-          error: error instanceof Error ? error.message : "Unknown error",
-        })
-      }
+  const floorPct = getInventoryFloorPct()
+  const minimumExpected =
+    currentLive !== null && currentLive > 0
+      ? Math.floor(currentLive * (floorPct / 100))
+      : 0
+
+  if (currentLive !== null && currentLive > 0 && incomingVins.length < minimumExpected) {
+    console.error(
+      `[HomenetIOL] SAFETY ABORT: incoming feed has ${incomingVins.length} ` +
+        `vehicles but database has ${currentLive} live (floor: ${minimumExpected} ` +
+        `at ${floorPct}%). Soft-delete SKIPPED to prevent inventory wipe.`,
+    )
+    return {
+      removed: 0,
+      soldVehicleIds,
+      safetyAborted: true,
+      safetyContext: { incoming: incomingVins.length, currentLive, floorPct, minimumExpected },
+      errors,
     }
   }
 
+  try {
+    const soldResult = await sql`
+      UPDATE vehicles
+      SET status = 'sold',
+          sold_at = COALESCE(sold_at, NOW()),
+          updated_at = NOW()
+      WHERE vin != ALL(${incomingVins})
+        AND status IS DISTINCT FROM 'sold'
+      RETURNING id
+    `
+    const soldRows = soldResult as Array<{ id: string }>
+    for (const row of soldRows) {
+      if (row.id) soldVehicleIds.push(row.id)
+    }
+    if (soldRows.length > 0) {
+      console.info(`[HomenetIOL] Soft-deleted ${soldRows.length} vehicles not in incoming file`)
+    }
+    return { removed: soldRows.length, soldVehicleIds, safetyAborted: false, errors }
+  } catch (error) {
+    console.error(`[HomenetIOL] Error soft-deleting old vehicles:`, error)
+    errors.push({
+      vin: "BULK_SOFT_DELETE",
+      error: error instanceof Error ? error.message : "Unknown error",
+    })
+    return { removed: 0, soldVehicleIds, safetyAborted: false, errors }
+  }
+}
+
+export async function syncVehiclesToDatabase(
+  sql: SqlClient,
+  vehicles: VehicleData[],
+): Promise<SyncVehiclesResult> {
+  const BATCH_SIZE = 100
+  const acc: UpsertAccumulator = {
+    inserted: 0, updated: 0,
+    insertedVehicleIds: [], updatedVehicleIds: [], errors: [],
+  }
+
+  // Step 1: Upsert all vehicles from the file
+  for (let i = 0; i < vehicles.length; i += BATCH_SIZE) {
+    const batch = vehicles.slice(i, i + BATCH_SIZE)
+    await Promise.all(batch.map((v) => upsertVehicle(sql, v, acc)))
+  }
+
+  // Step 2: Soft-delete vehicles no longer in the feed
+  const incomingVins = vehicles.map(v => v.vin)
+  const sd = await softDeleteSoldVehicles(sql, incomingVins)
+
   return {
-    inserted,
-    updated,
-    removed,
-    insertedVehicleIds,
-    soldVehicleIds,
-    updatedVehicleIds,
-    safetyAborted,
-    safetyContext,
-    errors,
+    inserted: acc.inserted,
+    updated: acc.updated,
+    removed: sd.removed,
+    insertedVehicleIds: acc.insertedVehicleIds,
+    soldVehicleIds: sd.soldVehicleIds,
+    updatedVehicleIds: acc.updatedVehicleIds,
+    safetyAborted: sd.safetyAborted,
+    safetyContext: sd.safetyContext,
+    errors: [...acc.errors, ...sd.errors],
   }
 }
 

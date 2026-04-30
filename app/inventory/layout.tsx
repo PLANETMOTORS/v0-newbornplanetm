@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 
-// TODO(post-launch P2 — see docs/POST_LAUNCH_FIXES.md item #9):
+// Post-launch P2 (see docs/POST_LAUNCH_FIXES.md item #9):
 //   Convert this to `generateMetadata({ searchParams })` and self-canonicalise
 //   the curated filter URLs already listed in lib/sitemap-builders.ts (e.g.
 //   /inventory?fuelType=Electric, /inventory?make=Tesla). Today every variant
