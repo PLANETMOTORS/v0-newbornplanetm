@@ -58,7 +58,7 @@ export function TikTokPixel() {
 
 /** Fire a TikTok Pixel event (no-op if pixel not loaded). */
 export function trackTikTokEvent(event: string, props?: Record<string, unknown>): void {
-  if (typeof window === "undefined") return
-  if (!window.ttq) return
-  window.ttq.track(event, props)
+  if (globalThis.window === undefined) return
+  if (!globalThis.window.ttq) return
+  globalThis.window.ttq.track(event, props)
 }

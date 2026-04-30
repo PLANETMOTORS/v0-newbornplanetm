@@ -58,7 +58,7 @@ export function BingUET() {
 
 /** Fire a Bing UET event (no-op if UET not loaded). */
 export function trackBingEvent(event: string, props?: Record<string, unknown>): void {
-  if (typeof window === "undefined") return
-  if (!window.uetq) return
-  window.uetq.push("event", event, props ?? {})
+  if (globalThis.window === undefined) return
+  if (!globalThis.window.uetq) return
+  globalThis.window.uetq.push("event", event, props ?? {})
 }

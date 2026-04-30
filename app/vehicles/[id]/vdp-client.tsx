@@ -495,9 +495,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       )
                     }
                     return (
-                  <div
+                  <section
                     data-testid="vdp-image-gallery"
-                    role="region"
                     aria-label="Vehicle image gallery — use arrow buttons to navigate"
                     className="relative aspect-[4/3] rounded-xl overflow-hidden group"
                     style={{ backgroundColor: "#e8e8e8" }}
@@ -562,7 +561,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
-                  </div>
+                  </section>
                     )
                   })()}
 

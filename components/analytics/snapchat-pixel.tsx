@@ -72,7 +72,7 @@ export function trackSnapEvent(
   event: string,
   props?: Record<string, unknown>,
 ): void {
-  if (typeof window === "undefined") return
-  if (!window.snaptr) return
-  window.snaptr("track", event, props ?? {})
+  if (globalThis.window === undefined) return
+  if (!globalThis.window.snaptr) return
+  globalThis.window.snaptr("track", event, props ?? {})
 }
