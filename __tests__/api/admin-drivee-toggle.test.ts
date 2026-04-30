@@ -23,9 +23,10 @@ vi.mock("@/lib/supabase/server", () => ({
   })),
 }))
 
-vi.mock("@/lib/admin", () => ({
-  ADMIN_EMAILS: ["admin@planetmotors.ca", "toni@planetmotors.ca"],
-}))
+vi.mock("@/lib/admin", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/admin")>()
+  return { ...actual }
+})
 
 vi.mock("@/lib/drivee-db", () => ({
   invalidateDriveeCache: invalidateSpy,

@@ -134,19 +134,14 @@ export async function GET(request: Request) {
     )
 
     const results: SyncResult[] = []
-    let synced = 0
-    let noMid = 0
-    let errors = 0
-    let collisions = 0
-
     for (const vehicle of unmappedVehicles) {
-      const result = await syncOneVehicle(supabase, vehicle)
-      results.push(result)
-      if (result.status === "synced") synced++
-      else if (result.status === "no_mid") noMid++
-      else if (result.status === "error") errors++
-      else if (result.status === "mid_collision") collisions++
+      results.push(await syncOneVehicle(supabase, vehicle))
     }
+
+    const synced = results.filter((r) => r.status === "synced").length
+    const noMid = results.filter((r) => r.status === "no_mid").length
+    const errors = results.filter((r) => r.status === "error").length
+    const collisions = results.filter((r) => r.status === "mid_collision").length
 
     // Invalidate cache so subsequent requests see new data
     if (synced > 0) invalidateDriveeCache()

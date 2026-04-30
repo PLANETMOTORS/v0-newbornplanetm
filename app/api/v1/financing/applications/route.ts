@@ -46,7 +46,7 @@ type FinancingMath = {
 function computeFinancingMath(vehicleInfo: any, financingTerms: any, tradeIn: any): FinancingMath {
   const price = Number.parseFloat(vehicleInfo.totalPrice) || 0
   const downPayment = Number.parseFloat(vehicleInfo.downPayment) || 0
-  const tradeValue = tradeIn ? (Number.parseFloat(tradeIn.estimatedValue) || 0) : 0
+  const tradeValue = Number.parseFloat(tradeIn?.estimatedValue) || 0
   const lienAmount = tradeIn?.hasLien ? (Number.parseFloat(tradeIn.lienAmount) || 0) : 0
   const netTrade = tradeValue - lienAmount
   const adminFee = Number.parseFloat(financingTerms.adminFee) || 895

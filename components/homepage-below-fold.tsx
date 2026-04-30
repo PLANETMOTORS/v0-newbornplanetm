@@ -216,7 +216,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                   ))}
                 </ul>
                 <Button className={`w-full mt-8 ${plan.highlighted ? "bg-[#1e3a8a] text-white hover:bg-[#172554]" : "bg-white text-[#1A202C] hover:bg-[#eef2f7]"}`} asChild>
-                  <Link href={`/protection-plans#${plan.name.toLowerCase().replace(" ", "-")}`}>Get Started</Link>
+                  <Link href={`/protection-plans#${plan.name.toLowerCase().replaceAll(" ", "-")}`}>Get Started</Link>
                 </Button>
               </div>
             ))}

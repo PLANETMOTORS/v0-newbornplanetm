@@ -15,7 +15,7 @@ export function ProductDetailsSection() {
   // Listen for hash changes to open the right product
   useEffect(() => {
     function handleHash() {
-      const hash = globalThis.location.hash.replace("#product-", "")
+      const hash = globalThis.location.hash.replaceAll("#product-", "")
       if (hash && PROTECTION_PRODUCTS.some((p) => p.slug === hash)) {
         setOpenSlug(hash)
       }

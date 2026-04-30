@@ -28,26 +28,14 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import { authoriseAdminOrError } from "@/lib/admin"
 import { invalidateDriveeCache } from "@/lib/drivee-db"
 
 export const dynamic = "force-dynamic"
 
 interface PatchBody {
   disabled: boolean
-}
-
-async function authoriseAdminOrError(): Promise<NextResponse | null> {
-  const authClient = await createClient()
-  const {
-    data: { user },
-  } = await authClient.auth.getUser()
-  if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-  return null
 }
 
 function parseBody(raw: unknown): { ok: true; body: PatchBody } | { ok: false; error: string } {

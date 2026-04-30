@@ -357,14 +357,14 @@ export default function AdminFinancePage() {
                       <td className="py-3 px-4">
                         <p className="font-medium">${app.requested_amount?.toLocaleString()}</p>
                         <p className="text-sm text-gray-500">
-                          ${app.estimated_payment?.toLocaleString()}/{app.payment_frequency?.replace("_", "-")}
+                          ${app.estimated_payment?.toLocaleString()}/{app.payment_frequency?.replaceAll("_", "-")}
                         </p>
                       </td>
                       <td className="py-3 px-4">
                         <Badge className={statusColors[app.status]}>
                           <span className="flex items-center gap-1">
                             {statusIcons[app.status]}
-                            {app.status?.replace("_", " ")}
+                            {app.status?.replaceAll("_", " ")}
                           </span>
                         </Badge>
                       </td>
@@ -412,7 +412,7 @@ export default function AdminFinancePage() {
             <DialogTitle className="flex items-center gap-2">
               Application {selectedApp?.application_number}
               <Badge className={statusColors[selectedApp?.status || "draft"]}>
-                {selectedApp?.status?.replace("_", " ")}
+                {selectedApp?.status?.replaceAll("_", " ")}
               </Badge>
             </DialogTitle>
             <DialogDescription>
@@ -489,7 +489,7 @@ export default function AdminFinancePage() {
                     </div>
                     <div>
                       <Label className="text-gray-500">Payment Frequency</Label>
-                      <p className="font-medium capitalize">{selectedApp.payment_frequency?.replace("_", "-")}</p>
+                      <p className="font-medium capitalize">{selectedApp.payment_frequency?.replaceAll("_", "-")}</p>
                     </div>
                     <div>
                       <Label className="text-gray-500">Estimated Payment</Label>
