@@ -45,7 +45,7 @@ async function parseNotifyBody(request: NextRequest, contentType: string) {
 
 function parseMakeModel(topic: string | null): { make: string | null; model: string | null } {
   if (!topic) return { make: null, model: null }
-  const parts = topic.replaceAll(/^\/cars\//, "").split("-")
+  const parts = topic.replace(/^\/cars\//, "").split("-")
   return {
     make: parts[0] || null,
     model: parts.length >= 2 ? parts.slice(1).join("-") || null : null,
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     const resendClient = getResendClient()
     if (resendClient) {
       const topicLabel = topic
-        ? topic.replaceAll(/^\/cars\//, "").replaceAll("-", " ")
+        ? topic.replace(/^\/cars\//, "").replaceAll("-", " ")
         : "new inventory"
 
       resendClient.emails
