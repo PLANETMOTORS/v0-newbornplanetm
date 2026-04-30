@@ -80,6 +80,24 @@ describe("AppError subclasses", () => {
     expect(e.context.cause).toBe("string cause")
   })
 
+  it.each([
+    [SanityFetchError, "blog"],
+    [TypesenseFetchError, "search"],
+    [SupabaseFetchError, "select"],
+    [StripeFetchError, "checkout"],
+  ])("%s handles non-Error cause string", (Klass, label) => {
+    const e = new (Klass as new (...a: unknown[]) => AppError)(label, "string cause")
+    expect(e.statusCode).toBe(502)
+    expect(e.context.cause).toBe("string cause")
+    expect(e.cause).toBeUndefined()
+  })
+
+  it("InternalError handles non-Error cause", () => {
+    const e = new InternalError("fail", "raw string")
+    expect(e.context.cause).toBe("raw string")
+    expect(e.cause).toBeUndefined()
+  })
+
   it("Unauthorized + Forbidden default messages", () => {
     expect(new UnauthorizedError().statusCode).toBe(401)
     expect(new ForbiddenError().statusCode).toBe(403)
