@@ -132,6 +132,9 @@ export default function RootLayout({
           <>
             <link rel="preconnect" href={`https://${process.env.NEXT_PUBLIC_IMGIX_DOMAIN}`} crossOrigin="anonymous" />
             <link rel="dns-prefetch" href={`https://${process.env.NEXT_PUBLIC_IMGIX_DOMAIN}`} />
+            {/* photos.homenetiol.com is NOT routed through imgix — still served directly */}
+            <link rel="preconnect" href="https://photos.homenetiol.com" crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href="https://photos.homenetiol.com" />
           </>
         ) : (
           <>
