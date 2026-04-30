@@ -672,8 +672,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold">Overview</h2>
                     <div className="flex gap-4 text-sm text-muted-foreground">
-                      <span>VIN <span className="font-mono text-foreground">{vehicle.vin}</span></span>
-                      <span>Stock # <span className="font-semibold text-foreground">{vehicle.stockNumber}</span></span>
+                      <span>VIN <span className="font-semibold text-foreground tabular-nums">{vehicle.vin}</span></span>
+                      <span>Stock # <span className="font-semibold text-foreground tabular-nums">{vehicle.stockNumber}</span></span>
                     </div>
                   </div>
 
