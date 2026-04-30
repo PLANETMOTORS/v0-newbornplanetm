@@ -58,6 +58,16 @@ const optionalServerSchema = z.object({
   TYPESENSE_API_KEY: z.string().optional(),
   TYPESENSE_HOST: z.string().optional(),
 
+  // IndexNow — Bing/Yandex/etc. instant search-engine notifications.
+  // Same value MUST be served at /<key>.txt at the site root. See
+  // lib/seo/indexnow.ts for the full contract.
+  INDEXNOW_KEY: z
+    .string()
+    .min(8, "INDEXNOW_KEY must be at least 8 characters")
+    .max(128, "INDEXNOW_KEY must be at most 128 characters")
+    .regex(/^[a-zA-Z0-9]+$/, "INDEXNOW_KEY must only contain alphanumeric characters")
+    .optional(),
+
   NODE_ENV: z.enum(["development", "production", "test"]).optional(),
 })
 
@@ -115,6 +125,7 @@ function validateEnv(): Env {
     GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
     TYPESENSE_API_KEY: process.env.TYPESENSE_API_KEY,
     TYPESENSE_HOST: process.env.TYPESENSE_HOST,
+    INDEXNOW_KEY: process.env.INDEXNOW_KEY,
     NODE_ENV: process.env.NODE_ENV,
     // Client
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
