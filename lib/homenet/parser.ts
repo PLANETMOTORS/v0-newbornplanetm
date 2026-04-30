@@ -699,59 +699,65 @@ export function parseHomenetXML(xmlText: string): VehicleData[] {
   return vehicles
 }
 
-function parseVehicleFromXML(xml: string): VehicleData | null {
-  const getValue = (tag: string): string => {
-    const variations = getTagVariations(tag)
-    for (const variant of variations) {
-      const match = new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i").exec(xml)
-      if (match?.[1]) return match[1].trim()
-    }
-    return ""
+/** Extract the text content of an XML tag, trying multiple case/format variations. */
+function getXmlTagValue(xml: string, tag: string): string {
+  const variations = getTagVariations(tag)
+  for (const variant of variations) {
+    const match = new RegExp(`<${variant}[^>]*>([^<]*)</${variant}>`, "i").exec(xml)
+    if (match?.[1]) return match[1].trim()
   }
-  const getNumber = (tag: string): number | undefined => {
-    const val = getValue(tag)
-    const num = Number.parseInt(val.replaceAll(/[^0-9.-]/g, ""), 10)
-    return Number.isNaN(num) ? undefined : num
-  }
-  const getBoolean = (tag: string): boolean => {
-    const val = getValue(tag).toLowerCase()
-    return val === "true" || val === "1" || val === "yes"
-  }
-  const getImages = (): string[] => {
-    const images: string[] = []
-    const imagePatterns = [
-      /<photo[^>]*>([^<]+)<\/photo>/gi,
-      /<image[^>]*>([^<]+)<\/image>/gi,
-      /<imageurl[^>]*>([^<]+)<\/imageurl>/gi,
-      /<img[^>]*src="([^"]+)"/gi,
-    ]
-    for (const pattern of imagePatterns) {
-      let match
-      while ((match = pattern.exec(xml)) !== null) {
-        if (match[1]?.startsWith("http")) images.push(match[1])
-      }
-    }
-    return images
-  }
+  return ""
+}
 
-  const vin = getValue("vin")
-  const stockNumber = getValue("stocknumber") || getValue("stock_number") || getValue("dealerstocknum")
+function getXmlTagNumber(xml: string, tag: string): number | undefined {
+  const val = getXmlTagValue(xml, tag)
+  const num = Number.parseInt(val.replaceAll(/[^0-9.-]/g, ""), 10)
+  return Number.isNaN(num) ? undefined : num
+}
+
+function getXmlTagBoolean(xml: string, tag: string): boolean {
+  const val = getXmlTagValue(xml, tag).toLowerCase()
+  return val === "true" || val === "1" || val === "yes"
+}
+
+const XML_IMAGE_PATTERNS = [
+  /<photo[^>]*>([^<]+)<\/photo>/gi,
+  /<image[^>]*>([^<]+)<\/image>/gi,
+  /<imageurl[^>]*>([^<]+)<\/imageurl>/gi,
+  /<img[^>]*src="([^"]+)"/gi,
+]
+
+function getXmlImages(xml: string): string[] {
+  const images: string[] = []
+  for (const pattern of XML_IMAGE_PATTERNS) {
+    pattern.lastIndex = 0
+    let match
+    while ((match = pattern.exec(xml)) !== null) {
+      if (match[1]?.startsWith("http")) images.push(match[1])
+    }
+  }
+  return images
+}
+
+function parseVehicleFromXML(xml: string): VehicleData | null {
+  const vin = getXmlTagValue(xml, "vin")
+  const stockNumber = getXmlTagValue(xml, "stocknumber") || getXmlTagValue(xml, "stock_number") || getXmlTagValue(xml, "dealerstocknum")
   if (vin?.length !== 17) return null
   if (!stockNumber) return null
 
-  const images = getImages()
-  const priceDollars = getNumber("price") || getNumber("sellingprice") || getNumber("internetprice") || 0
-  const msrpDollars = getNumber("msrp") || getNumber("retailprice")
-  const fuelType = getValue("fueltype") || getValue("fuel_type") || getValue("fuel")
-  const year = getNumber("year") || new Date().getFullYear()
-  const make = getValue("make")
-  const model = getValue("model")
-  const trim = getValue("trim") || getValue("series")
+  const images = getXmlImages(xml)
+  const priceDollars = getXmlTagNumber(xml, "price") || getXmlTagNumber(xml, "sellingprice") || getXmlTagNumber(xml, "internetprice") || 0
+  const msrpDollars = getXmlTagNumber(xml, "msrp") || getXmlTagNumber(xml, "retailprice")
+  const fuelType = getXmlTagValue(xml, "fueltype") || getXmlTagValue(xml, "fuel_type") || getXmlTagValue(xml, "fuel")
+  const year = getXmlTagNumber(xml, "year") || new Date().getFullYear()
+  const make = getXmlTagValue(xml, "make")
+  const model = getXmlTagValue(xml, "model")
+  const trim = getXmlTagValue(xml, "trim") || getXmlTagValue(xml, "series")
   const normalizedVin = vin.toUpperCase()
-  const mileageKm = getNumber("mileage") || getNumber("odometer") || 0
-  const isEv = fuelType?.toLowerCase().includes("electric") || getBoolean("isev")
-  const isFeatured = getBoolean("featured")
-  const isCertified = getBoolean("certified") || getBoolean("cpo")
+  const mileageKm = getXmlTagNumber(xml, "mileage") || getXmlTagNumber(xml, "odometer") || 0
+  const isEv = fuelType?.toLowerCase().includes("electric") || getXmlTagBoolean(xml, "isev")
+  const isFeatured = getXmlTagBoolean(xml, "featured")
+  const isCertified = getXmlTagBoolean(xml, "certified") || getXmlTagBoolean(xml, "cpo")
 
   const trimSuffix = trim ? ` ${trim}` : ""
   const trimSlugSuffix = trim ? `-${trim}` : ""
@@ -770,37 +776,37 @@ function parseVehicleFromXML(xml: string): VehicleData | null {
     make,
     model,
     trim,
-    body_style: getValue("bodystyle") || getValue("body") || getValue("bodytype"),
+    body_style: getXmlTagValue(xml, "bodystyle") || getXmlTagValue(xml, "body") || getXmlTagValue(xml, "bodytype"),
     condition: isCertified ? "certified_used" : "used",
-    exterior_color: getValue("exteriorcolor") || getValue("color") || getValue("extcolor"),
-    interior_color: getValue("interiorcolor") || getValue("intcolor"),
-    doors: getNumber("doors"),
-    drivetrain: getValue("drivetrain") || getValue("drivetype"),
-    transmission: getValue("transmission") || getValue("trans"),
-    engine: getValue("engine") || getValue("enginedescription"),
+    exterior_color: getXmlTagValue(xml, "exteriorcolor") || getXmlTagValue(xml, "color") || getXmlTagValue(xml, "extcolor"),
+    interior_color: getXmlTagValue(xml, "interiorcolor") || getXmlTagValue(xml, "intcolor"),
+    doors: getXmlTagNumber(xml, "doors"),
+    drivetrain: getXmlTagValue(xml, "drivetrain") || getXmlTagValue(xml, "drivetype"),
+    transmission: getXmlTagValue(xml, "transmission") || getXmlTagValue(xml, "trans"),
+    engine: getXmlTagValue(xml, "engine") || getXmlTagValue(xml, "enginedescription"),
     fuel_type: fuelType,
     price_cad: priceDollars || undefined,
     sale_price_cad: undefined,
     msrp_cad: msrpDollars || undefined,
     mileage_km: mileageKm,
-    status: getValue("status") || "available",
+    status: getXmlTagValue(xml, "status") || "available",
     availability_bucket: "live",
     is_certified: isCertified,
     is_featured: isFeatured,
-    is_new_arrival: getBoolean("newarrival"),
+    is_new_arrival: getXmlTagBoolean(xml, "newarrival"),
     is_ev: isEv,
-    fuel_economy_city: getNumber("citympg") || getNumber("fueleconomycity"),
-    fuel_economy_highway: getNumber("highwaympg") || getNumber("fueleconomyhighway"),
-    battery_capacity_kwh: getNumber("batterycapacity"),
-    range_miles: getNumber("range") || getNumber("evrange"),
-    primary_image_url: images[0] || getValue("mainphoto") || getValue("primaryimage"),
+    fuel_economy_city: getXmlTagNumber(xml, "citympg") || getXmlTagNumber(xml, "fueleconomycity"),
+    fuel_economy_highway: getXmlTagNumber(xml, "highwaympg") || getXmlTagNumber(xml, "fueleconomyhighway"),
+    battery_capacity_kwh: getXmlTagNumber(xml, "batterycapacity"),
+    range_miles: getXmlTagNumber(xml, "range") || getXmlTagNumber(xml, "evrange"),
+    primary_image_url: images[0] || getXmlTagValue(xml, "mainphoto") || getXmlTagValue(xml, "primaryimage"),
     image_urls: images,
-    has_360_spin: getBoolean("has360") || getBoolean("spinview"),
-    video_url: getValue("videourl") || getValue("video"),
-    description: getValue("description") || getValue("comments") || undefined,
+    has_360_spin: getXmlTagBoolean(xml, "has360") || getXmlTagBoolean(xml, "spinview"),
+    video_url: getXmlTagValue(xml, "videourl") || getXmlTagValue(xml, "video"),
+    description: getXmlTagValue(xml, "description") || getXmlTagValue(xml, "comments") || undefined,
     options: undefined,
-    location: getValue("location") || getValue("dealerlocation") || "Richmond Hill, ON",
-    inspection_score: getNumber("inspectionscore") || 210,
+    location: getXmlTagValue(xml, "location") || getXmlTagValue(xml, "dealerlocation") || "Richmond Hill, ON",
+    inspection_score: getXmlTagNumber(xml, "inspectionscore") || 210,
     source_vdp_url: undefined,
     title_status: undefined,
     // Legacy compat
