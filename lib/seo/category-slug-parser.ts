@@ -166,7 +166,7 @@ export interface CategoryFilter {
 
 /* --------------------------- Parser ------------------------------- */
 
-const PRICE_RE = /^under-(\d+)k?$/
+const PRICE_RE = /^under-(\d+)k$/
 
 /**
  * Split slug at the `-in-<city>` boundary if and only if the suffix
