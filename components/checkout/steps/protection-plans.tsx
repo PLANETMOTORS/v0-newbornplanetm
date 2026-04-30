@@ -43,7 +43,7 @@ const PLANS = [
     highlight: true,
     duration: "5 years",
     features: [
-      "5-Year Comprehensive Coverage",
+      "5-Year Total Coverage",
       "24/7 Roadside Assistance",
       "Trip Interruption Coverage",
       "Rental Car Reimbursement",
@@ -247,7 +247,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<Pro
           PlanetCare Protection
         </h1>
         <p className="text-muted-foreground">
-          Protect your investment with comprehensive coverage designed for Canadian drivers.
+          Protect your investment with total coverage designed for Canadian drivers.
         </p>
       </div>
 

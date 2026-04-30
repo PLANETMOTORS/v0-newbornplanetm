@@ -54,7 +54,7 @@ const certificationProcess = [
   {
     step: 5,
     title: "Final Certification",
-    description: "Comprehensive report with health score and warranty"
+    description: "In-depth report with health score and warranty"
   }
 ]
 
@@ -152,7 +152,7 @@ export default function EVBatteryPage() {
                 EV Battery Health Certification
               </h1>
               <p className="text-lg text-muted-foreground mb-8 text-pretty">
-                Every electric vehicle at Planet Motors undergoes comprehensive battery health testing. 
+                Every electric vehicle at Planet Motors undergoes rigorous battery health testing. 
                 Know exactly what you&apos;re buying with our transparent certification process.
               </p>
             </div>

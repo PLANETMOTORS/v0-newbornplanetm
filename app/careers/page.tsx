@@ -40,7 +40,7 @@ const openPositions = [
     department: "Customer Service",
     location: "Remote / Hybrid",
     type: "Full-time",
-    description: "Provide exceptional support to customers throughout their buying journey via phone, chat, and email.",
+    description: "Provide personalized support to customers throughout their buying process via phone, chat, and email.",
     requirements: ["Excellent communication skills", "Problem-solving mindset", "Bilingual (English/French) a plus"],
   },
   {
@@ -48,7 +48,7 @@ const openPositions = [
     department: "Service",
     location: "Richmond Hill, ON",
     type: "Full-time",
-    description: "Perform our comprehensive 210-point inspections and ensure every vehicle meets our quality standards.",
+    description: "Perform our rigorous 210-point mechanical inspections and ensure every vehicle meets our quality standards.",
     requirements: ["310S or 310T certification", "EV experience preferred", "Diagnostic tool proficiency"],
   },
   {
@@ -62,7 +62,7 @@ const openPositions = [
 ]
 
 const benefits = [
-  { icon: Heart, title: "Health & Dental", description: "Comprehensive benefits for you and your family" },
+  { icon: Heart, title: "Health & Dental", description: "Full benefits for you and your family" },
   { icon: TrendingUp, title: "RRSP Matching", description: "We match up to 4% of your contributions" },
   { icon: Car, title: "Employee Vehicle Program", description: "Discounts on vehicle purchases and leases" },
   { icon: Zap, title: "EV Charging", description: "Free workplace charging for electric vehicles" },

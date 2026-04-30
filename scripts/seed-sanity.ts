@@ -228,7 +228,7 @@ async function seedBlogPosts() {
       categories: [{ _type: "reference", _ref: "category-ev" }],
       readingTime: 10,
       body: body([
-        ["intro", "Used electric vehicles offer exceptional value in 2025 — but buying one requires different due diligence than a gas vehicle. Battery health is the most critical factor."],
+        ["intro", "Used electric vehicles offer great value in 2025 — but buying one requires different due diligence than a gas vehicle. Battery health is the most critical factor."],
         ["h1", "Federal iZEV Incentive: Up to $5,000", "h2"],
         ["p1", "Canada's iZEV program offers up to $5,000 off eligible new EVs. Used EVs don't qualify for the federal incentive, but Ontario's Electric Vehicle Incentive Program (EVIP) may apply. Check tc.canada.ca for current eligibility."],
         ["h2", "Battery Health: The Most Important Check", "h2"],
@@ -279,7 +279,7 @@ async function seedProtectionPlans() {
       slug: { _type: "slug", current: "premium-coverage" },
       price: 59,
       period: "/month",
-      description: "Comprehensive protection for your vehicle",
+      description: "Full protection for your vehicle",
       highlighted: true,
       features: ["Everything in Basic", "Electrical system coverage", "Air conditioning coverage", "Suspension coverage", "Brake system coverage"],
     },

@@ -225,7 +225,7 @@ export default function ProtectionPlansPage() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { icon: Shield, title: "Comprehensive Coverage", description: "Protection from depreciation, repairs, and unforeseen events with $0 deductible options" },
+                { icon: Shield, title: "Total Coverage", description: "Protection from depreciation, repairs, and unforeseen events with $0 deductible options" },
                 { icon: Clock, title: "Quick Claims", description: "Fast processing with direct payment to any licensed repair facility across Canada" },
                 { icon: Phone, title: "24/7 Support", description: "Round-the-clock roadside assistance and dedicated claims support line" },
                 { icon: Award, title: "Fully Transferable", description: "Coverage transfers to new owners, increasing your vehicle's resale value" },

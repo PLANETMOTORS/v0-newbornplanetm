@@ -5,7 +5,7 @@ export const blogPostsChunk1: Record<string, BlogPostEntry> = {
   "check-battery-health-used-tesla-canada": createBlogPost(
     {
       title: "How to Check Battery Health Before Buying a Used Tesla in Canada",
-      excerpt: "Every pre-owned Tesla undergoes a detailed 50-point battery health assessment. Learn how we ensure long-term range and reliability for every vehicle.",
+      excerpt: "Every pre-owned Tesla undergoes a rigorous 50-point battery health diagnostic. See how we measure degradation and capacity.",
       date: "Apr 09, 2026",
       readTime: "8 min read",
       category: "Electric Vehicles",

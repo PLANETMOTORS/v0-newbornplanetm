@@ -259,7 +259,7 @@ PLANET MOTORS GUARANTEES & POLICIES:
 =============================================
 
 PM CERTIFIED™ 210-POINT INSPECTION:
-Every vehicle undergoes a comprehensive 210-point inspection covering:
+Every vehicle undergoes a rigorous 210-point inspection covering:
 - Engine & transmission performance
 - Brake system & suspension
 - Electrical systems & battery health
