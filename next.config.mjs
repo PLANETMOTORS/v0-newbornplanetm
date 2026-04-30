@@ -232,6 +232,21 @@ const nextConfig = {
           { key: 'Content-Security-Policy', value: mainSiteCSP },
         ],
       },
+      // Public static assets (images, icons, manifests) — cache for 1 day
+      {
+        source: '/:path(.*\\.(?:ico|png|jpg|jpeg|svg|webp|gif|woff2?|json|txt|xml)$)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=43200' },
+        ],
+      },
+      // Hashed static assets — immutable long-cache (Vercel also sets this,
+      // but explicit headers ensure consistent behaviour across CDNs)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
       // Stripe webhook
       {
         source: '/api/webhooks/stripe',
