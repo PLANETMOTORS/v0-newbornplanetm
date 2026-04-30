@@ -8,6 +8,7 @@ import {
   countFramesInStorage,
   countFramesOnFirebase,
   migrateFramesToSupabase,
+  findExistingMidConflict,
   type SyncResult,
 } from "@/lib/drivee-sync"
 import { invalidateDriveeCache } from "@/lib/drivee-db"
@@ -49,6 +50,28 @@ async function syncSingleDriveeVehicle(
     if (!mid) {
       return {
         result: { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" },
+        framesMigrated: 0,
+      }
+    }
+
+    // Collision guard — same logic as the cron route. See lib/drivee-sync.ts
+    // for the full rationale.
+    const conflict = await findExistingMidConflict(supabase, mid, vin)
+    if (conflict.conflict) {
+      console.warn(
+        `[Admin Drivee Sync] MID collision for VIN ${vin}: MID ${mid} is already ` +
+          `mapped to ${conflict.existingVin}. Refusing to store duplicate.`,
+      )
+      return {
+        result: {
+          vin,
+          mid,
+          frameCount: 0,
+          framesInStorage: false,
+          framesMigrated: 0,
+          status: "mid_collision",
+          collisionWith: conflict.existingVin,
+        },
         framesMigrated: 0,
       }
     }

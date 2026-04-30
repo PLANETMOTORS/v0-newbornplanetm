@@ -178,3 +178,62 @@ export async function GET(
 
   return NextResponse.json({ ok: true, mapping: data })
 }
+
+/**
+ * DELETE /api/v1/admin/drivee/{VIN}
+ *
+ * Hard-deletes the drivee_mappings row for that VIN. Cleaner than the
+ * PATCH-disable approach when the MID is genuinely wrong (Pirelly stock-#
+ * fallback collision, photographer typo, etc.) — the row stops existing
+ * entirely and the 360° tab vanishes from the customer VDP.
+ *
+ * What happens on next cron run:
+ *   - Cron sees the VIN in `vehicles` but no row in `drivee_mappings`,
+ *     so it tries to resolve again.
+ *   - If Pirelly returns the same wrong MID via stock# fallback, the new
+ *     `findExistingMidConflict` guard (this PR) rejects it with status
+ *     'mid_collision'. No bad data is recreated.
+ *
+ * Returns 200 with the deleted row, 404 if no row existed, 401 if not
+ * admin, 400 on bad VIN.
+ */
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ vin: string }> },
+): Promise<NextResponse> {
+  const unauthorised = await authoriseAdminOrError()
+  if (unauthorised) return unauthorised
+
+  const { vin } = await params
+  if (!vin || vin.length !== 17) {
+    return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
+  }
+
+  const supabase = createAdminClient()
+
+  // Check the row exists first so we can return a proper 404 + include
+  // the deleted MID in the response (useful for ops audit logs).
+  const { data: existing, error: fetchError } = await supabase
+    .from("drivee_mappings")
+    .select("vin, mid, vehicle_name")
+    .eq("vin", vin)
+    .maybeSingle<{ vin: string; mid: string; vehicle_name: string | null }>()
+
+  if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 })
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  const { error: deleteError } = await supabase
+    .from("drivee_mappings")
+    .delete()
+    .eq("vin", vin)
+
+  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 })
+
+  invalidateDriveeCache()
+
+  return NextResponse.json({
+    ok: true,
+    deleted: existing,
+    message: `Mapping deleted. Customer VDP for ${vin} will no longer show the 360° tab.`,
+  })
+}
