@@ -20,7 +20,7 @@
 import { cache } from 'react'
 import { createStaticClient } from '@/lib/supabase/static'
 import { buildPublicStatusFilter } from '@/lib/vehicles/status-filter'
-import { matchesMake } from '@/lib/seo/make-model-normalizer'
+import { matchesMake, normalizeMake } from '@/lib/seo/make-model-normalizer'
 import type { CategoryFilter } from '@/lib/seo/category-slug-parser'
 
 /** Slim row shape used by category landing pages. */
@@ -179,10 +179,7 @@ export const fetchCategoryVehicles = cache(async (
 
     // Luxury filter: limit to whitelisted premium makes
     if (filter.isLuxury) {
-      vehicles = vehicles.filter((v) => {
-        const slug = (v.make || '').toLowerCase().replace(/\s+/g, '-')
-        return LUXURY_MAKES.has(slug)
-      })
+      vehicles = vehicles.filter((v) => LUXURY_MAKES.has(normalizeMake(v.make)))
     }
 
     // We don't have an "accident-free" column today — every Planet
