@@ -67,13 +67,16 @@ export async function GET(): Promise<NextResponse> {
 
   const supabase = createAdminClient()
 
-  // Pull every active mapping. The dataset is small (one row per VIN, low
-  // hundreds at most) so we can group in JS without paying for a Postgres
-  // window-function round-trip.
+  // Pull EVERY mapping — including frames_in_storage=false rows. The audit's
+  // entire purpose is to surface colliding MIDs across the whole table.
+  // Filtering by frames_in_storage=true would hide already-disabled bad
+  // mappings, defeating the point. Copilot Autofix tried to add that filter
+  // in commit 405ef71a; intentionally NOT included. Dataset is small (one
+  // row per VIN, low hundreds at most) so we group in JS instead of using a
+  // Postgres window function.
   const { data, error } = await supabase
     .from("drivee_mappings")
     .select("vin, mid, vehicle_name, frames_in_storage, verified_at")
-    .eq("frames_in_storage", true)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
