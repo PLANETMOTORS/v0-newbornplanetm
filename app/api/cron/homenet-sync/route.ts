@@ -103,17 +103,18 @@ export async function GET(request: Request) {
     let indexNowOk = false
     if (isIndexNowConfigured()) {
       const baseUrl = getPublicSiteUrl()
-      const changedUrls: string[] = [
+      const changedUrlSet = new Set<string>([
         ...buildVehicleUrls(result.insertedVehicleIds),
         ...buildVehicleUrls(result.soldVehicleIds),
         ...buildVehicleUrls(result.updatedVehicleIds),
-      ]
+      ])
       const hasInventoryChanges =
         result.inserted > 0 || result.updated > 0 || result.removed > 0
       // Always nudge the inventory listing when the sync changed inventory state
       // — sort, filters, pricing, or availability may have changed.
-      if (hasInventoryChanges) changedUrls.push(`${baseUrl}/inventory`)
+      if (hasInventoryChanges) changedUrlSet.add(`${baseUrl}/inventory`)
 
+      const changedUrls = Array.from(changedUrlSet)
       if (changedUrls.length > 0) {
         try {
           const pingResult = await pingIndexNow(changedUrls)
