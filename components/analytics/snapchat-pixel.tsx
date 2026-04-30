@@ -45,7 +45,7 @@ export function SnapchatPixel() {
           a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};
           a.queue=[];var s='script';r=t.createElement(s);r.async=!0;
           r.src=n;var u=t.getElementsByTagName(s)[0];
-          u.parentNode.insertBefore(r,u);})(window,document,
+          u.parentNode.insertBefore(r,u);})(globalThis,document,
           'https://sc-static.net/scevent.min.js');
         snaptr('init', '${SNAPCHAT_PIXEL_ID}');
         snaptr('track', 'PAGE_VIEW');

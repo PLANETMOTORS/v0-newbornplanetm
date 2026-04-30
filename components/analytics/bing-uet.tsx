@@ -50,7 +50,7 @@ export function BingUET() {
             var s=this.readyState;s&&s!=="loaded"&&s!=="complete"||(f(),n.onload=n.onreadystatechange=null)
           },
           i=d.getElementsByTagName(t)[0],i.parentNode.insertBefore(n,i);
-        })(window,document,"script","//bat.bing.com/bat.js","uetq");
+        })(globalThis,document,"script","//bat.bing.com/bat.js","uetq");
       `}
     </Script>
   )

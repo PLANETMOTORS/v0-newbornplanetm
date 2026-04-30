@@ -50,7 +50,7 @@ export function TikTokPixel() {
           var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
           ttq.load('${TIKTOK_PIXEL_ID}');
           ttq.page();
-        }(window, document, 'ttq');
+        }(globalThis, document, 'ttq');
       `}
     </Script>
   )

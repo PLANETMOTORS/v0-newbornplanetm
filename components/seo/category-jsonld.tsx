@@ -17,14 +17,21 @@ import type { CategoryVehicle } from '@/lib/vehicles/fetch-by-filter'
 
 const SITE_URL = getPublicSiteUrl()
 
+function availabilityForStatus(status: string): string {
+  if (status === 'available') return 'https://schema.org/InStock'
+  if (status === 'reserved') return 'https://schema.org/PreOrder'
+  return 'https://schema.org/SoldOut'
+}
+
 interface Props {
-  filter: CategoryFilter
-  vehicles: CategoryVehicle[]
+  readonly filter: CategoryFilter
+  readonly vehicles: CategoryVehicle[]
 }
 
 function vehicleListItem(v: CategoryVehicle, position: number) {
   const url = `${SITE_URL}/vehicles/${v.id}`
-  const name = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ''}`
+  const trimSuffix = v.trim ? ` ${v.trim}` : ''
+  const name = `${v.year} ${v.make} ${v.model}${trimSuffix}`
   return {
     '@type': 'ListItem',
     position,
@@ -48,12 +55,7 @@ function vehicleListItem(v: CategoryVehicle, position: number) {
         url,
         priceCurrency: 'CAD',
         price: v.price,
-        availability:
-          v.status === 'available'
-            ? 'https://schema.org/InStock'
-            : v.status === 'reserved'
-              ? 'https://schema.org/PreOrder'
-              : 'https://schema.org/SoldOut',
+        availability: availabilityForStatus(v.status),
         seller: { '@type': 'AutoDealer', name: 'Planet Motors' },
       },
     },

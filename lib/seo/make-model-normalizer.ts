@@ -91,7 +91,7 @@ const MODEL_ALIASES: Record<string, string> = {
  */
 export function canonicalize(value: string | null | undefined): string {
   if (!value) return ''
-  return value.toLowerCase().replace(/[^a-z0-9]/g, '')
+  return value.toLowerCase().replaceAll(/[^a-z0-9]/g, '')
 }
 
 /**
@@ -108,10 +108,10 @@ export function toUrlSlug(value: string | null | undefined): string {
   return value
     .toLowerCase()
     .trim()
-    .replace(/[\s_/\\&]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
+    .replaceAll(/[\s_/\\&]+/g, '-')
+    .replaceAll(/[^a-z0-9-]/g, '')
+    .replaceAll(/-+/g, '-')
+    .replaceAll(/^-|-$/g, '')
 }
 
 /**
@@ -190,8 +190,8 @@ export function modelVariantsForSlug(slug: string): string[] {
   variants.add(normalized)
   variants.add(canon)
   variants.add(normalized.toUpperCase())
-  variants.add(normalized.replace(/-/g, ''))
-  variants.add(normalized.replace(/-/g, ' '))
+  variants.add(normalized.replaceAll('-', ''))
+  variants.add(normalized.replaceAll('-', ' '))
   // Reverse-look the alias dictionary so HomeNet's spelling is included
   for (const [alias, canonical] of Object.entries(MODEL_ALIASES)) {
     if (canonical === normalized) variants.add(alias)

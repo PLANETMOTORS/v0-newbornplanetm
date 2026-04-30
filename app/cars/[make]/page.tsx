@@ -50,7 +50,7 @@ import { pickFallbackHref } from '@/lib/cars/category-helpers'
 import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from '@/lib/constants/dealership'
 
 interface PageProps {
-  params: Promise<{ make: string }>
+  readonly params: Promise<{ make: string }>
 }
 
 /**

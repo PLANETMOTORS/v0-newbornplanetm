@@ -23,14 +23,41 @@ function getResendClient() {
   return new Resend(apiKey)
 }
 
+function isFormSubmission(contentType: string): boolean {
+  return contentType.includes("application/x-www-form-urlencoded")
+}
+
+function formRedirect(request: NextRequest, path: string) {
+  return NextResponse.redirect(new URL(path, request.url), 303)
+}
+
+async function parseNotifyBody(request: NextRequest, contentType: string) {
+  if (isFormSubmission(contentType)) {
+    const formData = await request.formData()
+    return {
+      email: formData.get("email") as string | null,
+      topic: formData.get("topic") as string | null,
+    }
+  }
+  const body = await request.json()
+  return { email: body.email as string | null, topic: body.topic as string | null }
+}
+
+function parseMakeModel(topic: string | null): { make: string | null; model: string | null } {
+  if (!topic) return { make: null, model: null }
+  const parts = topic.replaceAll(/^\/cars\//, "").split("-")
+  return {
+    make: parts[0] || null,
+    model: parts.length >= 2 ? parts.slice(1).join("-") || null : null,
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // CSRF check for form submissions
     if (!validateOrigin(request)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Rate limit by IP
     const forwarded = request.headers.get("x-forwarded-for") || ""
     const ip = forwarded.split(",")[0]?.trim() || "unknown"
     const limiter = await rateLimit(`notify:${ip}`, 10, 3600)
@@ -41,81 +68,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse body - support both form data and JSON
-    let email: string | null = null
-    let topic: string | null = null
-
     const contentType = request.headers.get("content-type") || ""
-    if (contentType.includes("application/x-www-form-urlencoded")) {
-      const formData = await request.formData()
-      email = formData.get("email") as string | null
-      topic = formData.get("topic") as string | null
-    } else {
-      const body = await request.json()
-      email = body.email
-      topic = body.topic
-    }
+    const { email, topic } = await parseNotifyBody(request, contentType)
 
-    // Validate email
     if (!email || !isEmailLike(email)) {
-      // For form submissions, redirect back with error
-      if (contentType.includes("application/x-www-form-urlencoded")) {
-        return NextResponse.redirect(
-          new URL("/?notify_error=invalid_email", request.url),
-          303
-        )
-      }
+      if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_error=invalid_email")
       return NextResponse.json({ error: "Valid email is required" }, { status: 400 })
     }
 
     const supabase = await createClient()
+    const { make, model } = parseMakeModel(topic)
 
-    // Parse topic to extract make/model if it's a path like /cars/toyota or /cars/toyota-rav4
-    let make: string | null = null
-    let model: string | null = null
-    if (topic) {
-      const cleanTopic = topic.replace(/^\/cars\//, "")
-      const parts = cleanTopic.split("-")
-      if (parts.length >= 1) {
-        make = parts[0] || null
-      }
-      if (parts.length >= 2) {
-        model = parts.slice(1).join("-") || null
-      }
-    }
-
-    // Check for existing alert with same email + make/model to avoid duplicates
     let existingQuery = supabase
       .from("price_alerts")
       .select("id")
       .eq("email", email)
       .eq("is_active", true)
 
-    if (make) {
-      existingQuery = existingQuery.eq("make", make)
-    } else {
-      existingQuery = existingQuery.is("make", null)
-    }
-    if (model) {
-      existingQuery = existingQuery.eq("model", model)
-    } else {
-      existingQuery = existingQuery.is("model", null)
-    }
+    existingQuery = make ? existingQuery.eq("make", make) : existingQuery.is("make", null)
+    existingQuery = model ? existingQuery.eq("model", model) : existingQuery.is("model", null)
 
     const { data: existing } = await existingQuery.maybeSingle()
 
     if (existing) {
-      // Already subscribed - still success from user perspective
-      if (contentType.includes("application/x-www-form-urlencoded")) {
-        return NextResponse.redirect(
-          new URL("/?notify_success=1", request.url),
-          303
-        )
-      }
+      if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_success=1")
       return NextResponse.json({ success: true, message: "Already subscribed" })
     }
 
-    // Insert new alert
     const { error: insertError } = await supabase.from("price_alerts").insert({
       email,
       make,
@@ -127,12 +106,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("Failed to save notification signup:", insertError)
-      if (contentType.includes("application/x-www-form-urlencoded")) {
-        return NextResponse.redirect(
-          new URL("/?notify_error=failed", request.url),
-          303
-        )
-      }
+      if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_error=failed")
       return NextResponse.json({ error: "Failed to save signup" }, { status: 500 })
     }
 
@@ -140,7 +114,7 @@ export async function POST(request: NextRequest) {
     const resendClient = getResendClient()
     if (resendClient) {
       const topicLabel = topic
-        ? topic.replace(/^\/cars\//, "").replace(/-/g, " ")
+        ? topic.replaceAll(/^\/cars\//, "").replaceAll("-", " ")
         : "new inventory"
 
       resendClient.emails
@@ -169,10 +143,7 @@ export async function POST(request: NextRequest) {
         .catch((err) => console.error("Notify confirmation email failed:", err))
     }
 
-    // For form submissions, redirect with success
-    if (contentType.includes("application/x-www-form-urlencoded")) {
-      return NextResponse.redirect(new URL("/?notify_success=1", request.url), 303)
-    }
+    if (isFormSubmission(contentType)) return formRedirect(request, "/?notify_success=1")
 
     return NextResponse.json({ success: true })
   } catch (error) {
