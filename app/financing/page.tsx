@@ -1,5 +1,16 @@
 import { Metadata } from "next"
+import dynamic from "next/dynamic"
+import Link from "next/link"
+import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { FinancialServiceJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import { Button } from "@/components/ui/button"
+import { RateDisclosure } from "@/components/rate-disclosure"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
 import { getPublicSiteUrl } from "@/lib/site-url"
+
+export const revalidate = 3600
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -20,17 +31,12 @@ export const metadata: Metadata = {
   },
 }
 
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { FinancialServiceJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { Button } from "@/components/ui/button"
-import { RateDisclosure } from "@/components/rate-disclosure"
-import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
-
-import { FinanceApplicationForm } from "@/components/finance-application-form"
-import { FinancingCalculator } from "@/components/financing-calculator"
-import { CheckCircle, ArrowRight, Shield, Clock, BadgeCheck, User } from "lucide-react"
-import Link from "next/link"
+const FinanceApplicationForm = dynamic(
+  () => import("@/components/finance-application-form").then((m) => m.FinanceApplicationForm),
+)
+const FinancingCalculator = dynamic(
+  () => import("@/components/financing-calculator").then((m) => m.FinancingCalculator),
+)
 
 // Default lenders fallback - Generic lender partners
 const defaultLenders = [

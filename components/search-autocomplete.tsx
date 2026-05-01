@@ -30,7 +30,7 @@ import type { SmartSuggestion } from "@/lib/typesense/search"
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
-const DEBOUNCE_MS = 200
+const DEBOUNCE_MS = 300
 const MIN_QUERY = 2
 const POPULAR_CACHE_TTL = 15 * 60 * 1000
 
