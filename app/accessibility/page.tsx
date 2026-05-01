@@ -325,7 +325,7 @@ export default function AccessibilityPage() {
                         <td className="px-5 py-3.5">
                           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700">
                             <span className="inline-block h-2 w-2 rounded-full bg-green-700" aria-hidden="true" />
-                            Met
+                            <span>Met</span>
                           </span>
                         </td>
                       </tr>

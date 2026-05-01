@@ -9,7 +9,16 @@
  */
 
 import { z } from "zod"
-import { ADMIN_FEATURES, type AdminFeature, type AccessLevel, type PermissionMap } from "@/lib/admin/permissions"
+import { ADMIN_FEATURES, type PermissionMap } from "@/lib/admin/permissions"
+
+// Re-exports use `export…from` (Sonar S7763) — the named types pass through
+// this module without an intermediate local alias, so consumers can import
+// them either from here or from the canonical permissions module.
+export type {
+  AdminFeature,
+  AccessLevel,
+  PermissionMap,
+} from "@/lib/admin/permissions"
 
 export const ADMIN_ROLES = ["admin", "manager", "viewer"] as const
 export type AdminRole = (typeof ADMIN_ROLES)[number]
@@ -19,8 +28,6 @@ const permissionMapSchema = z.record(
   z.enum(ADMIN_FEATURES as unknown as [string, ...string[]]),
   accessLevelSchema,
 ).optional().nullable()
-
-export type { AdminFeature, AccessLevel, PermissionMap }
 
 const EMAIL_MAX = 254
 const NOTES_MAX = 2_000

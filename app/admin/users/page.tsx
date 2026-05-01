@@ -136,7 +136,7 @@ export default function AdminUsersPage() {
     fetchAdmins()
   }, [fetchAdmins])
 
-  const submitInvite = async (e: React.FormEvent) => {
+  const submitInvite = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!inviteEmail.trim()) return
     setInviting(true)
