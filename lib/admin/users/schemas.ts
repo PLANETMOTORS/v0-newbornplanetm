@@ -35,7 +35,7 @@ const trimmedEmail = z
 export const inviteAdminSchema = z
   .object({
     email: trimmedEmail,
-    role: z.enum(ADMIN_ROLES).default("admin"),
+    role: z.enum(ADMIN_ROLES).default("viewer"),
     notes: z.string().max(NOTES_MAX).optional(),
     permissions: permissionMapSchema,
   })
