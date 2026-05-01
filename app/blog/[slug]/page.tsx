@@ -15,76 +15,13 @@ import { blogPosts } from "@/lib/blog-data"
 import { getBlogPost, getBlogSlugs } from "@/lib/sanity/fetch"
 import type { BlogPost } from "@/lib/sanity/types"
 import { BlogShareButtons } from "@/components/blog/blog-share-buttons"
+import { portableTextToHtml } from "@/lib/blog/portable-text-html"
 
 // Allow slugs not returned by generateStaticParams (new Sanity posts) to be served via ISR
 export const dynamicParams = true
 
-interface PortableTextChild {
-  text?: string
-  marks?: string[]
-}
-
-interface PortableTextBlock {
-  _type: string
-  style?: string
-  listItem?: "bullet" | "number"
-  children?: PortableTextChild[]
-}
-
-/** Convert Sanity Portable Text blocks to an HTML string for dangerouslySetInnerHTML. */
-function portableTextToHtml(blocks: Record<string, unknown>[]): string {
-  if (!Array.isArray(blocks) || blocks.length === 0) return ""
-
-  const lines: string[] = []
-  let inList: "bullet" | "number" | null = null
-
-  for (const raw of blocks) {
-    const block = raw as unknown as PortableTextBlock
-    if (block._type !== "block") continue
-    const text = (block.children ?? []).map((child) => {
-      const t = child.text ?? ""
-      const marks: string[] = child.marks ?? []
-      let out = t.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-      if (marks.includes("strong")) out = `<strong>${out}</strong>`
-      if (marks.includes("em")) out = `<em>${out}</em>`
-      return out
-    }).join("")
-
-    const listItem = block.listItem
-
-    // Close previous list if switching type or leaving list context
-    if (inList && (!listItem || listItem !== inList)) {
-      lines.push(inList === "number" ? "</ol>" : "</ul>")
-      inList = null
-    }
-
-    if (listItem) {
-      // Open new list if needed
-      if (!inList) {
-        lines.push(listItem === "number" ? "<ol>" : "<ul>")
-        inList = listItem
-      }
-      lines.push(`<li>${text}</li>`)
-      continue
-    }
-
-    switch (block.style) {
-      case "h1": lines.push(`<h1>${text}</h1>`); break
-      case "h2": lines.push(`<h2>${text}</h2>`); break
-      case "h3": lines.push(`<h3>${text}</h3>`); break
-      case "h4": lines.push(`<h4>${text}</h4>`); break
-      case "blockquote": lines.push(`<blockquote>${text}</blockquote>`); break
-      default: if (text) lines.push(`<p>${text}</p>`)
-    }
-  }
-
-  // Close any trailing list
-  if (inList) {
-    lines.push(inList === "number" ? "</ol>" : "</ul>")
-  }
-
-  return lines.join("\n")
-}
+// portableTextToHtml lives in `lib/blog/portable-text-html.ts` so the
+// transformation logic is fully unit-testable and Sonar S3776-clean.
 
 const SITE_URL = getPublicSiteUrl()
 

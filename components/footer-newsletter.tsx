@@ -11,7 +11,7 @@ export function FooterNewsletter() {
   const [errorMsg, setErrorMsg] = useState("")
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
       const trimmed = email.trim()
       if (!trimmed) return
