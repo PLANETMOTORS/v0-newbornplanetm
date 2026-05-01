@@ -229,6 +229,7 @@ interface SummaryPanelProps {
   readonly tradeInHstBenefit: number
   readonly downPayment: number
   readonly frequencyLabel: string
+  readonly showFrequency?: boolean
 }
 
 function SummaryPanel({
@@ -242,6 +243,7 @@ function SummaryPanel({
   tradeInHstBenefit,
   downPayment,
   frequencyLabel,
+  showFrequency = true,
 }: SummaryPanelProps) {
   return (
     <Card className="sticky top-24 border-2 border-primary/20 shadow-xl overflow-hidden py-0 gap-0">
@@ -251,9 +253,11 @@ function SummaryPanel({
         </p>
         <h2 className="text-4xl font-black text-primary tabular-nums mt-2">
           {headlineValue}
-          <span className="text-base font-normal text-muted-foreground ml-1">
-            /{frequencyLabel.toLowerCase()}
-          </span>
+          {showFrequency && (
+            <span className="text-base font-normal text-muted-foreground ml-1">
+              /{frequencyLabel.toLowerCase()}
+            </span>
+          )}
         </h2>
       </CardHeader>
 
@@ -547,6 +551,7 @@ export function FinancingCalculator() {
                 hstAmount={affordResult.hstAmount}
                 totalInterest={affordResult.totalInterest}
                 totalLoanAmount={affordResult.totalLoanAmount}
+                showFrequency={false}
                 tradeInValue={tradeInValue}
                 tradeInHstBenefit={tradeInHstBenefit}
                 downPayment={downPayment}
