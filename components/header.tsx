@@ -300,6 +300,10 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Mobile search icon — opens full-screen search overlay */}
+            <div className="md:hidden">
+              <SearchAutocomplete variant="icon" />
+            </div>
             <NavButton
               onSignInClick={() => setSignInPanelOpen(true)}
               onMenuClick={() => {
