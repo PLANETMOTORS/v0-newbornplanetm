@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Keyboard, Mic, Focus, Smartphone, Ban, MousePointerClick, FileText, CircleSlash } from "lucide-react"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
 
 export const metadata: Metadata = {
   title: "Accessibility | Planet Motors",
@@ -269,8 +270,8 @@ export default function AccessibilityPage() {
                   accessibility@planetmotors.ca
                 </a>
                 {" · "}
-                <a href="tel:+14169852277" className="text-[#c9a84c] no-underline">
-                  416-985-2277
+                <a href={`tel:${PHONE_LOCAL_TEL}`} className="text-[#c9a84c] no-underline">
+                  {PHONE_LOCAL}
                 </a>
                 {" · "}
                 Available in alternative formats upon request
