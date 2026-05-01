@@ -82,8 +82,8 @@ export default function imgixLoader({ src, width, quality = 75 }: ImageLoaderPro
 
   // HomenetIOL vehicle images — strip base URL to get relative path for Web Folder source.
   // e.g. https://content.homenetiol.com/2003873/2291843/0x0/abc.jpg → 2003873/2291843/0x0/abc.jpg
-  if (src.includes('homenetiol.com')) {
-    const path = src.replace(/^https?:\/\/(?:content|photos)\.homenetiol\.com\//, '')
+  if (src.includes('content.homenetiol.com')) {
+    const path = src.replace(/^https?:\/\/content\.homenetiol\.com\//, '')
     return buildImgixUrl(path, width, quality)
   }
 
