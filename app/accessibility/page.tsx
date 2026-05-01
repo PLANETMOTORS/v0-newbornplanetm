@@ -3,14 +3,41 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Keyboard, Mic, Focus, Smartphone, Ban, MousePointerClick, FileText, CircleSlash } from "lucide-react"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL, PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, EMAIL_INFO } from "@/lib/constants/dealership"
 
 export const metadata: Metadata = {
-  title: "Accessibility | Planet Motors",
+  title: "Accessibility Statement | Planet Motors",
   description:
     "Planet Motors is built for everyone. Learn how our website meets WCAG 2.2 Level AA accessibility standards, from keyboard navigation to screen reader support.",
   alternates: { canonical: "/accessibility" },
 }
+
+const ACCESSIBILITY_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "Accessibility Statement",
+  url: "https://www.planetmotors.ca/accessibility",
+  accessibilityFeature: [
+    "alternativeText",
+    "highContrastDisplay",
+    "largePrint",
+    "structuralNavigation",
+    "ARIA",
+    "tableOfContents",
+  ],
+  accessibilityHazard: "none",
+  accessibilityAPI: ["ARIA"],
+  accessibilityControl: [
+    "fullKeyboardControl",
+    "fullMouseControl",
+    "fullTouchControl",
+  ],
+  publisher: {
+    "@type": "AutoDealer",
+    name: "Planet Motors Inc.",
+    url: "https://www.planetmotors.ca",
+  },
+} as const
 
 const FEATURES = [
   {
@@ -113,16 +140,18 @@ export default function AccessibilityPage() {
     <div className="min-h-screen bg-[#f9fafb]">
       <Header />
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ACCESSIBILITY_SCHEMA) }}
+      />
+
       <main id="main-content" tabIndex={-1}>
         {/* Hero Header */}
-        <header className="border-b border-[#e2e8f0] bg-[#f1f5f9] px-6 pt-20 pb-16 text-center md:pt-28 md:pb-20">
-          <span className="mb-6 inline-block rounded-full border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.12)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[2.5px] text-[#c9a84c]">
-            WCAG 2.2 Level AA
-          </span>
-          <h1 className="text-3xl font-extrabold leading-tight text-[#0f172a] md:text-5xl">
+        <header className="border-b border-white/10 bg-[#0f172a] px-6 pt-20 pb-16 text-center md:pt-28 md:pb-20">
+          <h1 className="text-3xl font-extrabold leading-tight text-white md:text-5xl">
             Built for <span className="text-[#c9a84c]">Everyone</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-[560px] text-[1.05rem] leading-relaxed text-[#64748b]">
+          <p className="mx-auto mt-4 max-w-[560px] text-[1.05rem] leading-relaxed text-white/70">
             At Planet Motors, accessibility is not something we added later. It has been part of
             every component, every page, and every interaction since the very beginning.
           </p>
@@ -131,7 +160,7 @@ export default function AccessibilityPage() {
         <div className="mx-auto max-w-[780px] px-6">
           {/* Commitment Block */}
           <div className="relative z-10 mt-10 rounded-xl border border-[#e2e8f0] bg-white p-8 md:p-10 mb-12">
-            <p className="text-[1.05rem] leading-[1.8] text-[#0f172a]">
+            <p className="text-[1.05rem] font-bold leading-[1.8] text-[#0f172a]">
               We believe that buying a car should be straightforward and stress-free for everyone.
               Whether you navigate our site with a mouse, a keyboard, a screen reader, or voice
               control, you deserve the same smooth experience. Planet Motors is designed and
@@ -139,22 +168,30 @@ export default function AccessibilityPage() {
               which goes beyond the WCAG 2.0 Level AA standard referenced by Ontario&apos;s
               Accessibility for Ontarians with Disabilities Act (AODA).
             </p>
-            <p className="mt-4 text-[1.05rem] leading-[1.8] text-[#0f172a]">
+            <p className="mt-4 text-[1.05rem] font-bold leading-[1.8] text-[#0f172a]">
               This page walks you through what we have built, the standards we follow, and how to
               reach us if something on our site is not working the way it should.
             </p>
             <div className="mt-7 border-t border-[#e2e8f0] pt-5 text-sm text-[#64748b]">
               <strong className="block text-[0.95rem] text-[#0f172a]">Planet Motors Inc.</strong>
-              OMVIC Licensed Dealer #5482807 · 30 Major Mackenzie Dr E, Richmond Hill, ON
+              <a
+                href="https://www.omvic.on.ca"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#c9a84c] underline underline-offset-2"
+              >
+                OMVIC
+              </a>
+              {" "}Licensed Dealer #5482807 · 30 Major Mackenzie Dr E, Richmond Hill, ON
             </div>
           </div>
 
           {/* What We've Built */}
           <section className="mb-14">
             <h2 className="text-[1.55rem] font-extrabold leading-tight text-[#0f172a] mb-2">
-              What We&apos;ve Built
+              What We Have Built
             </h2>
-            <p className="text-[0.95rem] text-[#64748b] leading-relaxed mb-7">
+            <p className="text-[0.95rem] font-bold text-[#0f172a] leading-relaxed mb-7">
               These are not planned improvements. They are live features running in production today.
               Every item below has been engineered directly into our codebase.
             </p>
@@ -171,7 +208,7 @@ export default function AccessibilityPage() {
                     </div>
                     <h3 className="text-base font-bold text-[#0f172a]">{f.title}</h3>
                   </div>
-                  <p className="text-[0.92rem] leading-relaxed text-[#64748b]">{f.description}</p>
+                  <p className="text-[0.92rem] font-bold leading-relaxed text-[#0f172a]">{f.description}</p>
                   <span className="mt-2.5 inline-block rounded-md bg-[rgba(201,168,76,0.12)] px-2.5 py-0.5 text-[0.78rem] font-semibold tracking-wide text-[#c9a84c]">
                     {f.wcag}
                   </span>
@@ -185,7 +222,7 @@ export default function AccessibilityPage() {
             <h2 className="text-[1.55rem] font-extrabold leading-tight text-[#0f172a] mb-2">
               Standards We Meet
             </h2>
-            <p className="text-[0.95rem] text-[#64748b] leading-relaxed mb-7">
+            <p className="text-[0.95rem] font-bold text-[#0f172a] leading-relaxed mb-7">
               We build to WCAG 2.2 Level AA, which is a higher standard than the WCAG 2.0 Level AA
               referenced by Ontario&apos;s AODA. Below is a summary of the specific criteria our site
               addresses today.
@@ -229,9 +266,17 @@ export default function AccessibilityPage() {
             <h2 className="text-[1.55rem] font-extrabold leading-tight text-[#0f172a] mb-2">
               Our Commitment Under AODA
             </h2>
-            <p className="text-[0.95rem] text-[#64748b] leading-relaxed mb-7">
-              Planet Motors is committed to complying with the Accessibility for Ontarians with
-              Disabilities Act (AODA) and its Customer Service Standards. We treat every customer
+            <p className="text-[0.95rem] font-bold text-[#0f172a] leading-relaxed mb-7">
+              Planet Motors is committed to complying with the{" "}
+              <a
+                href="https://www.aoda.ca"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#c9a84c] underline underline-offset-2 font-bold"
+              >
+                Accessibility for Ontarians with Disabilities Act (AODA)
+              </a>
+              {" "}and its Customer Service Standards. We treat every customer
               with dignity, respect, and equal opportunity regardless of ability.
             </p>
 
@@ -242,7 +287,7 @@ export default function AccessibilityPage() {
                   className="rounded-xl border border-[#e2e8f0] bg-white p-7"
                 >
                   <h3 className="mb-2 text-base font-bold text-[#0f172a]">{p.title}</h3>
-                  <p className="text-[0.92rem] leading-relaxed text-[#64748b]">{p.body}</p>
+                  <p className="text-[0.92rem] font-bold leading-relaxed text-[#0f172a]">{p.body}</p>
                 </div>
               ))}
             </div>
@@ -254,20 +299,24 @@ export default function AccessibilityPage() {
               <h2 className="text-2xl font-extrabold text-[#0f172a] mb-3">
                 Something Not Working for You?
               </h2>
-              <p className="mx-auto mb-6 max-w-[520px] text-[0.95rem] leading-relaxed text-[#64748b]">
+              <p className="mx-auto mb-6 max-w-[520px] text-[0.95rem] font-bold leading-relaxed text-[#0f172a]">
                 If you run into any barrier on our website or at our dealership, or if you have a
                 suggestion for how we can do better, we genuinely want to hear from you. Every piece
                 of feedback is reviewed and acted on.
               </p>
               <a
-                href="mailto:accessibility@planetmotors.ca"
+                href={`mailto:${EMAIL_INFO}`}
                 className="inline-block rounded-lg bg-[#c9a84c] px-8 py-3.5 text-[0.9rem] font-bold text-[#0f172a] transition-colors hover:bg-[#e8c96d] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
               >
-                Email Our Accessibility Team
+                Email Us
               </a>
               <div className="mt-5 text-[0.85rem] text-[#94a3b8]">
-                <a href="mailto:accessibility@planetmotors.ca" className="text-[#c9a84c] no-underline">
-                  accessibility@planetmotors.ca
+                <a href={`mailto:${EMAIL_INFO}`} className="text-[#c9a84c] no-underline">
+                  {EMAIL_INFO}
+                </a>
+                {" · "}
+                <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-[#c9a84c] no-underline">
+                  {PHONE_TOLL_FREE}
                 </a>
                 {" · "}
                 <a href={`tel:${PHONE_LOCAL_TEL}`} className="text-[#c9a84c] no-underline">
@@ -283,7 +332,7 @@ export default function AccessibilityPage() {
         {/* Footer Note */}
         <div className="pb-12 pt-8 text-center text-[0.82rem] leading-relaxed text-[#94a3b8]">
           <p>
-            This page was last updated May 2026.
+            Accessibility Statement v1.0, Effective May 2026, Last reviewed May 2026.
             <br />
             Planet Motors Inc. · OMVIC #5482807 · 30 Major Mackenzie Dr E, Richmond Hill, ON
             <br />
