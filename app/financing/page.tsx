@@ -33,11 +33,9 @@ export const metadata: Metadata = {
 
 const FinanceApplicationForm = dynamic(
   () => import("@/components/finance-application-form").then((m) => m.FinanceApplicationForm),
-  { ssr: false },
 )
 const FinancingCalculator = dynamic(
   () => import("@/components/financing-calculator").then((m) => m.FinancingCalculator),
-  { ssr: false },
 )
 
 // Default lenders fallback - Generic lender partners
