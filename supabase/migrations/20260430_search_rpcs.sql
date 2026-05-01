@@ -75,33 +75,24 @@ AS $$
   ),
 
   -- ── Price bucket counts ──
+  price_thresholds(threshold, label, href) AS (
+    VALUES
+      (20000, 'Under $20,000', '/inventory?maxPrice=20000'),
+      (30000, 'Under $30,000', '/inventory?maxPrice=30000'),
+      (40000, 'Under $40,000', '/inventory?maxPrice=40000'),
+      (50000, 'Under $50,000', '/inventory?maxPrice=50000')
+  ),
   price_buckets AS (
     SELECT
-      bucket.label,
+      pt.label,
       'price'                     AS type,
       COUNT(*)                    AS cnt,
-      bucket.href
-    FROM vehicles v
-    CROSS JOIN LATERAL (
-      SELECT
-        CASE
-          WHEN v.price < 20000 THEN 'Under $20,000'
-          WHEN v.price < 30000 THEN 'Under $30,000'
-          WHEN v.price < 40000 THEN 'Under $40,000'
-          WHEN v.price < 50000 THEN 'Under $50,000'
-          ELSE NULL
-        END AS label,
-        CASE
-          WHEN v.price < 20000 THEN '/inventory?maxPrice=20000'
-          WHEN v.price < 30000 THEN '/inventory?maxPrice=30000'
-          WHEN v.price < 40000 THEN '/inventory?maxPrice=40000'
-          WHEN v.price < 50000 THEN '/inventory?maxPrice=50000'
-          ELSE NULL
-        END AS href
-    ) bucket
-    WHERE v.status IN ('available', 'in_transit')
-      AND bucket.label IS NOT NULL
-    GROUP BY bucket.label, bucket.href
+      pt.href
+    FROM price_thresholds pt
+    JOIN vehicles v
+      ON v.price < pt.threshold
+      AND v.status IN ('available', 'in_transit')
+    GROUP BY pt.label, pt.href, pt.threshold
     HAVING COUNT(*) >= 3
   ),
 

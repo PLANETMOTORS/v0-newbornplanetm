@@ -529,6 +529,13 @@ export function SearchAutocomplete({
                 inputRef.current?.focus()
               }
             }}
+            onKeyDown={(e) => {
+              if (!isActive && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault()
+                inputRef.current?.focus()
+              }
+            }}
+            role="presentation"
           >
             {/* Search icon */}
             <svg
