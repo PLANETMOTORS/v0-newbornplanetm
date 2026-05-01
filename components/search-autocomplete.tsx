@@ -179,6 +179,9 @@ export function SearchAutocomplete({
         group.items.map((item) => ({ ...item, group: group.group })),
       )
     }
+    if (query.length >= MIN_QUERY_LENGTH) {
+      return [] // no results state — don't expose invisible popular items
+    }
     return popular.map((item) => ({ ...item, group: "popular" }))
   }, [query, results, popular])
 
@@ -288,6 +291,17 @@ export function SearchAutocomplete({
   // ── Keyboard navigation ──
   function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     const len = flatItems.length
+
+    if (e.key === "Enter") {
+      e.preventDefault()
+      if (activeIndex >= 0 && activeIndex < len) {
+        navigateTo(flatItems[activeIndex].href)
+      } else if (query.trim().length >= MIN_QUERY_LENGTH) {
+        navigateTo(`/inventory?q=${encodeURIComponent(query.trim())}`)
+      }
+      return
+    }
+
     if (len === 0) return
 
     switch (e.key) {
@@ -298,14 +312,6 @@ export function SearchAutocomplete({
       case "ArrowUp":
         e.preventDefault()
         setActiveIndex((prev) => (prev > 0 ? prev - 1 : len - 1))
-        break
-      case "Enter":
-        e.preventDefault()
-        if (activeIndex >= 0 && activeIndex < len) {
-          navigateTo(flatItems[activeIndex].href)
-        } else if (query.trim().length >= MIN_QUERY_LENGTH) {
-          navigateTo(`/inventory?q=${encodeURIComponent(query.trim())}`)
-        }
         break
       default:
         break
