@@ -181,7 +181,18 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     const adminClient = createClient(supabaseUrl, serviceRoleKey)
 
-    // 1. Insert lead into the `leads` table
+    // 1. Insert lead into the `leads` table.
+    //
+    // CRITICAL: launch-day incident on 2026-04-30 — the `leads` table
+    // didn't exist in production, the INSERT silently errored, and two
+    // real customer pre-approvals (José Clauberto Dos Santos Leal) were
+    // lost. The notification email still fired, masking the failure.
+    //
+    // We now ALWAYS surface a persist failure to the caller (the
+    // marketing site can show a real error and Sentry/Vercel logs
+    // capture it). The notification email is still attempted in a
+    // best-effort fire-and-forget AFTER persistence succeeds, so a
+    // mailing-service outage doesn't lose data.
     const { data: lead, error: leadError } = await adminClient
       .from("leads")
       .insert({
@@ -198,10 +209,27 @@ Deno.serve(async (req: Request) => {
       .single()
 
     if (leadError) {
-      log.error("Lead insert failed", { error: leadError.message })
-    } else {
-      log.info("Lead inserted", { leadId: lead?.id })
+      log.error("Lead insert failed", { error: leadError.message, code: leadError.code })
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: "LEAD_PERSIST_FAILED",
+            message:
+              "We received your information but couldn't save it. Please try again or call (416) 555-0100.",
+          },
+          debug:
+            Deno.env.get("DENO_ENV") === "development"
+              ? { dbError: leadError.message, dbCode: leadError.code }
+              : undefined,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" },
+        },
+      )
     }
+    log.info("Lead inserted", { leadId: lead?.id })
 
     // 2. Fire ADF XML to AutoRaptor (fire-and-forget)
     const adfParams: AdfParams = {

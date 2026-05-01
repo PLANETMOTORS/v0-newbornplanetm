@@ -88,8 +88,23 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (leadError) {
-      console.error('Lead insert error:', leadError.message)
-      // Non-blocking — continue even if leads table has issues
+      // CRITICAL: launch-day incident on 2026-04-30 — INSERT silently
+      // failed when the `leads` table didn't exist in production and
+      // two real customer leads were lost. We now FAIL HARD on persist
+      // errors so the form can surface a retry to the customer and
+      // Sentry/Vercel logs capture the failure.
+      console.error('Lead insert error:', leadError.message, leadError.code)
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'LEAD_PERSIST_FAILED',
+            message:
+              "We received your information but couldn't save it. Please try again or call (416) 555-0100.",
+          },
+        },
+        { status: 500 },
+      )
     }
 
     // 2. Fire ADF XML to AutoRaptor (fire-and-forget)
