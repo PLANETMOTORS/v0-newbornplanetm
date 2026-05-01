@@ -201,7 +201,7 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
     : {
         title: sanityPost!.title ?? "",
         excerpt: sanityPost!.excerpt ?? "",
-        image: sanityPost!.coverImage ?? "/images/blog/1.png",
+        image: sanityPost!.coverImage ?? "/images/blog/blog-1.png",
         date: sanityPost!.publishedAt ? new Date(sanityPost!.publishedAt).toLocaleDateString("en-CA") : "",
         content: sanityPost!.body ? portableTextToHtml(sanityPost!.body) : `<p>${sanityPost!.excerpt ?? ""}</p>`,
         relatedPosts: [],
