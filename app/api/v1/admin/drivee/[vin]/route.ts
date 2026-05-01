@@ -63,7 +63,7 @@ export async function PATCH(
   if (unauthorised) return unauthorised
 
   const { vin } = await params
-  if (!vin || vin.length !== 17) {
+  if (vin?.length !== 17) {
     return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
   }
 
@@ -150,7 +150,7 @@ export async function GET(
   if (unauthorised) return unauthorised
 
   const { vin } = await params
-  if (!vin || vin.length !== 17) {
+  if (vin?.length !== 17) {
     return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
   }
 
@@ -193,7 +193,7 @@ export async function DELETE(
   if (unauthorised) return unauthorised
 
   const { vin } = await params
-  if (!vin || vin.length !== 17) {
+  if (vin?.length !== 17) {
     return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
   }
 
