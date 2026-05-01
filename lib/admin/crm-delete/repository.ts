@@ -67,7 +67,7 @@ export async function deleteCrmRow(
     if (error) return err(dbError(error.message, error.code))
     if (!data) return err({ kind: "not-found" })
     return ok({ id: data.id as string })
-  } catch (caught) {
-    return err({ kind: "exception", message: describe(caught) })
+  } catch (error_) {
+    return err({ kind: "exception", message: describe(error_) })
   }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -108,6 +108,17 @@ export default function AdminTradeInsPage() {
 
   useEffect(() => {
     fetchQuotes()
+  }, [])
+
+  const handleQuoteDeleted = useCallback((deletedId: string) => {
+    setQuotes((prev) => prev.filter((q) => q.id !== deletedId))
+    setSelectedQuote((prev) => {
+      if (prev?.id === deletedId) {
+        setIsDetailOpen(false)
+        return null
+      }
+      return prev
+    })
   }, [])
 
   const filteredQuotes = quotes.filter(quote => {
@@ -310,13 +321,7 @@ export default function AdminTradeInsPage() {
                           endpoint={`/api/v1/admin/trade-ins/${quote.id}`}
                           id={quote.id}
                           label={`trade-in quote ${quote.quote_id?.slice(0, 8)}`}
-                          onDeleted={(deletedId) => {
-                            setQuotes((prev) => prev.filter((q) => q.id !== deletedId))
-                            if (selectedQuote?.id === deletedId) {
-                              setSelectedQuote(null)
-                              setIsDetailOpen(false)
-                            }
-                          }}
+                          onDeleted={handleQuoteDeleted}
                         />
                       </div>
                     </TableCell>

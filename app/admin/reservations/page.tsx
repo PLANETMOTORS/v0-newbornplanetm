@@ -99,6 +99,11 @@ export default function AdminReservationsPage() {
 
   useEffect(() => { fetchReservations() }, [fetchReservations])
 
+  const handleReservationDeleted = useCallback((deletedId: string) => {
+    setReservations((prev) => prev.filter((r) => r.id !== deletedId))
+    setSelectedRes((prev) => (prev?.id === deletedId ? null : prev))
+  }, [])
+
   const updateStatus = async (resId: string, newStatus: string) => {
     try {
       const res = await fetch("/api/v1/admin/reservations", {
@@ -236,10 +241,7 @@ export default function AdminReservationsPage() {
                             endpoint={`/api/v1/admin/reservations/${res.id}`}
                             id={res.id}
                             label={`reservation by ${res.customer_name || res.customer_email}`}
-                            onDeleted={(deletedId) => {
-                              setReservations((prev) => prev.filter((r) => r.id !== deletedId))
-                              if (selectedRes?.id === deletedId) setSelectedRes(null)
-                            }}
+                            onDeleted={handleReservationDeleted}
                           />
                         </div>
                       </div>

@@ -80,8 +80,8 @@ export function DeleteRowButton({
           throw new Error(msg)
         }
         onDeleted(id)
-      } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Delete failed")
+      } catch (error_) {
+        setError(error_ instanceof Error ? error_.message : "Delete failed")
       } finally {
         setPending(false)
       }
