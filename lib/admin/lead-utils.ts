@@ -1,4 +1,4 @@
-import { Bot, Car, CalendarCheck, Clock, DollarSign, MessageSquare } from "lucide-react"
+import { Bot, Car, CalendarCheck, Clock, DollarSign, Mail, MessageSquare } from "lucide-react"
 
 export function timeAgo(dateStr: string): string {
   const now = new Date()
@@ -18,6 +18,7 @@ export function sourceIcon(source: string) {
     case "reservation": return CalendarCheck
     case "trade_in": return Car
     case "test_drive": return Clock
+    case "newsletter": return Mail
     default: return MessageSquare
   }
 }

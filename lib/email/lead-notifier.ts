@@ -72,6 +72,7 @@ export type KnownLeadSource =
   | "test_drive"
   | "vdp_inquiry"
   | "chat"
+  | "newsletter"
 
 export interface LeadPayload {
   /** Lead source identifier — accepts both the known sources above and any custom string. */
