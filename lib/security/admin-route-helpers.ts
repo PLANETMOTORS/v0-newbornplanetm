@@ -30,16 +30,34 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
-import { isActiveAdmin } from "@/lib/admin/users/repository"
+import { getAdminByEmail } from "@/lib/admin/users/repository"
+import {
+  type AccessLevel,
+  type AdminFeature,
+  type PermissionMap,
+  hasAccess,
+  resolvePermissions,
+} from "@/lib/admin/permissions"
 import type { Result } from "@/lib/result"
 import { ok, err } from "@/lib/result"
 import type { AdminRole } from "@/lib/admin/users/schemas"
 
 export interface AdminContext {
   readonly email: string
+  /**
+   * Authoritative admin role. For env-list members this is always "admin"
+   * (they bypass the database). For DB-listed admins this reflects their
+   * row's role column ("admin" | "manager" | "viewer").
+   */
   readonly role: AdminRole
   /** "env" = listed in ADMIN_EMAILS env var; "db" = found in admin_users table. */
   readonly source: "env" | "db"
+  /**
+   * Effective permission map for this admin (preset for the role merged
+   * with any per-user overrides from `admin_users.permissions`). Always
+   * present so callers can use `hasAccess(ctx.permissions, ...)` directly.
+   */
+  readonly permissions: PermissionMap
 }
 
 /**
@@ -50,6 +68,17 @@ export interface AdminContext {
  * The DB is consulted first so newly-invited admins gain access without
  * a redeploy. Env-list members default to role="admin".
  */
+function unauthorizedResponse(): NextResponse {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+}
+
+function forbiddenResponse(message: string): NextResponse {
+  return NextResponse.json(
+    { error: { code: "FORBIDDEN", message } },
+    { status: 403 },
+  )
+}
+
 export async function requireAdmin(): Promise<Result<AdminContext, NextResponse>> {
   const authClient = await createClient()
   const {
@@ -57,16 +86,61 @@ export async function requireAdmin(): Promise<Result<AdminContext, NextResponse>
   } = await authClient.auth.getUser()
   const email = user?.email
   if (!email) {
-    return err(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
+    return err(unauthorizedResponse())
   }
-  const dbActive = await isActiveAdmin(email).catch(() => false)
-  if (dbActive) {
-    return ok({ email, role: "admin", source: "db" })
+
+  // DB lookup is authoritative for both gating AND role resolution.
+  // We do NOT collapse the role to "admin" the way the previous helper
+  // did — `manager` and `viewer` rows preserve their actual access level
+  // so requirePermission() can enforce them at the route layer.
+  const dbResult = await getAdminByEmail(email).catch(() => null)
+  const dbRow = dbResult?.ok ? dbResult.value : null
+  if (dbRow && dbRow.is_active) {
+    return ok({
+      email,
+      role: dbRow.role,
+      source: "db",
+      permissions: resolvePermissions(dbRow.role, dbRow.permissions),
+    })
   }
+
   if (ADMIN_EMAILS.includes(email)) {
-    return ok({ email, role: "admin", source: "env" })
+    return ok({
+      email,
+      role: "admin",
+      source: "env",
+      permissions: resolvePermissions("admin", null),
+    })
   }
-  return err(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
+  return err(unauthorizedResponse())
+}
+
+/**
+ * Gate an admin endpoint by feature + access level.
+ *
+ *   const auth = await requirePermission("leads", "full")
+ *   if (!auth.ok) return auth.error
+ *   // … caller is guaranteed admin AND has at least "full" leads access
+ *
+ * Returns 401 for unauthenticated callers, 403 for authenticated admins
+ * who lack the required level. The required level defaults to "read".
+ */
+export async function requirePermission(
+  feature: AdminFeature,
+  required: AccessLevel = "read",
+): Promise<Result<AdminContext, NextResponse>> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth
+  if (!hasAccess(auth.value.permissions, feature, required)) {
+    return err(
+      forbiddenResponse(
+        `${required} access to "${feature}" required (current: ${
+          auth.value.permissions[feature] ?? "none"
+        })`,
+      ),
+    )
+  }
+  return auth
 }
 
 function formatZodIssues(error: z.ZodError): string {

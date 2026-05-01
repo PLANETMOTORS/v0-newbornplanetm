@@ -9,7 +9,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import {
-  requireAdmin,
+  requirePermission,
   parseJsonBody,
 } from "@/lib/security/admin-route-helpers"
 import {
@@ -83,7 +83,9 @@ export async function PATCH(
   request: NextRequest,
   ctx: Params,
 ): Promise<NextResponse> {
-  const auth = await requireAdmin()
+  // Editing roles / permissions / activation is a destructive op on
+  // the admin roster: requires "full" admin_users access.
+  const auth = await requirePermission("admin_users", "full")
   if (!auth.ok) return auth.error
 
   const idOrErr = await resolveId(ctx.params)
@@ -115,7 +117,9 @@ export async function DELETE(
   _request: NextRequest,
   ctx: Params,
 ): Promise<NextResponse> {
-  const auth = await requireAdmin()
+  // Hard-deleting an admin row is the most destructive op in the system —
+  // requires "full" admin_users access plus self-protection.
+  const auth = await requirePermission("admin_users", "full")
   if (!auth.ok) return auth.error
 
   const idOrErr = await resolveId(ctx.params)

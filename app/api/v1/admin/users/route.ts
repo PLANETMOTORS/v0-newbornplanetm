@@ -8,7 +8,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import {
-  requireAdmin,
+  requirePermission,
   parseJsonBody,
 } from "@/lib/security/admin-route-helpers"
 import {
@@ -50,7 +50,10 @@ function repoErrorToResponse(error: AdminUserRepoError): NextResponse {
 }
 
 export async function GET(): Promise<NextResponse> {
-  const auth = await requireAdmin()
+  // Listing admins is read-only but still privileged — managers/viewers
+  // need at least "read" on the admin_users feature; viewers in the
+  // default preset have "none" so they're rejected here.
+  const auth = await requirePermission("admin_users", "read")
   if (!auth.ok) return auth.error
 
   const result = await listAdmins()
@@ -59,7 +62,10 @@ export async function GET(): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const auth = await requireAdmin()
+  // Inviting a new admin is a destructive operation on the admin roster.
+  // Hard-gated to "full" admin_users access so managers cannot escalate
+  // their own org by inviting accomplices.
+  const auth = await requirePermission("admin_users", "full")
   if (!auth.ok) return auth.error
 
   const parsed = await parseJsonBody<typeof inviteAdminSchema>(
@@ -75,6 +81,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   logger.info("[admin-users] invited", {
     invitedEmail: body.email,
     invitedBy: auth.value.email,
+    invitedByRole: auth.value.role,
     role: body.role,
   })
   return NextResponse.json({ admin: result.value }, { status: 201 })
