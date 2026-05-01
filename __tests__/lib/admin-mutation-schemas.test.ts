@@ -19,12 +19,13 @@ describe("constant lists", () => {
       new Set(["pending", "paid", "failed", "refunded"])
     )
   })
-  it("LEAD_STATUSES contains the canonical 6", () => {
+  it("LEAD_STATUSES contains the canonical 7", () => {
     expect(new Set(LEAD_STATUSES)).toEqual(
       new Set([
         "new",
         "contacted",
         "qualified",
+        "negotiating",
         "converted",
         "lost",
         "archived",
