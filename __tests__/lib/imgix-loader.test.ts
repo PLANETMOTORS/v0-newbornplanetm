@@ -70,7 +70,7 @@ describe("imgixLoader with NEXT_PUBLIC_IMGIX_DOMAIN configured", () => {
     expect(result).toContain("https://test.imgix.net/cars/foo.jpg")
     expect(result).toContain("w=400")
     expect(result).toContain("auto=format%2Ccompress")
-    expect(result).toContain("chromasub=444")
+    expect(result).not.toContain("chromasub")
   })
 
   it("handles local path without leading slash", () => {
@@ -85,7 +85,7 @@ describe("imgixLoader with NEXT_PUBLIC_IMGIX_DOMAIN configured", () => {
     })
     // Web Folder source: base URL stripped, only relative path sent to imgix
     expect(result).toBe(
-      "https://test.imgix.net/2003873/2291843/0x0/abc.jpg?w=600&q=72&auto=format%2Ccompress&fit=max&cs=srgb&chromasub=444&dpr=1"
+      "https://test.imgix.net/2003873/2291843/0x0/abc.jpg?w=600&q=72&auto=format%2Ccompress&fit=max&cs=srgb&dpr=1"
     )
     // Must NOT contain the full HomenetIOL domain in the path
     expect(result).not.toContain("content.homenetiol.com")

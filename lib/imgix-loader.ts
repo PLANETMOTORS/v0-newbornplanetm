@@ -43,8 +43,6 @@ const buildImgixParams = (width: number, quality: number): URLSearchParams => {
     fit: 'max',
     // cs=srgb: Consistent color space across all formats
     cs: 'srgb',
-    // chromasub=444: Higher color quality for vehicle photos (no chroma subsampling)
-    chromasub: '444',
     // dpr=1: Prevent automatic DPR scaling (Next.js handles srcset)
     dpr: '1',
   })
