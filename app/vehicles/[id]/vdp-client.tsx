@@ -1176,7 +1176,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </DialogContent>
                   </Dialog>
 
-                  {/* CARFAX — driven by /api/v1/vehicles/[vin]/carfax.
+                  {/* CARFAX — driven by /api/v1/carfax/[vin].
                       Renders real badges + a tokenized VhrReportUrl, falling
                       back gracefully when no report exists for this VIN. */}
                   <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />

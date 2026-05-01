@@ -61,7 +61,7 @@ const COMPACT_LINK_BUTTON_CLASSES =
   "text-primary p-0 h-auto"
 const PANEL_LINK_BUTTON_CLASSES = "text-primary"
 
-export function CarfaxSection({ vin, variant = "panel", className }: CarfaxSectionProps) {
+export function CarfaxSection({ vin, variant = "panel", className }: Readonly<CarfaxSectionProps>) {
   const [state, setState] = useState<FetchState>({ status: "loading" })
 
   useEffect(() => {
@@ -72,7 +72,7 @@ export function CarfaxSection({ vin, variant = "panel", className }: CarfaxSecti
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`/api/v1/vehicles/${encodeURIComponent(vin)}/carfax`, {
+        const res = await fetch(`/api/v1/carfax/${encodeURIComponent(vin)}`, {
           method: "GET",
           headers: { accept: "application/json" },
         })
@@ -86,7 +86,7 @@ export function CarfaxSection({ vin, variant = "panel", className }: CarfaxSecti
           setState({ status: "disabled" })
           return
         }
-        if (!data.summary || !data.summary.hasReport) {
+        if (!data.summary?.hasReport) {
           setState({ status: "no-report", summary: data.summary })
           return
         }
@@ -206,7 +206,7 @@ export function CarfaxSection({ vin, variant = "panel", className }: CarfaxSecti
  * Compact button-style link for inline use (e.g. inside an existing
  * inspection-card row that already has its own border + label).
  */
-export function CarfaxInlineLink({ vin }: { vin: string | null }) {
+export function CarfaxInlineLink({ vin }: Readonly<{ vin: string | null }>) {
   const [state, setState] = useState<FetchState>({ status: "loading" })
 
   useEffect(() => {
@@ -217,7 +217,7 @@ export function CarfaxInlineLink({ vin }: { vin: string | null }) {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`/api/v1/vehicles/${encodeURIComponent(vin)}/carfax`, {
+        const res = await fetch(`/api/v1/carfax/${encodeURIComponent(vin)}`, {
           method: "GET",
           headers: { accept: "application/json" },
         })
@@ -231,7 +231,7 @@ export function CarfaxInlineLink({ vin }: { vin: string | null }) {
           setState({ status: "disabled" })
           return
         }
-        if (!data.summary || !data.summary.hasReport) {
+        if (!data.summary?.hasReport) {
           setState({ status: "no-report", summary: data.summary })
           return
         }

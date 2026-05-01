@@ -1,5 +1,5 @@
 /**
- * POST /api/v1/admin/vehicles/[vin]/carfax-refetch
+ * POST /api/v1/admin/carfax/[vin]/refetch
  *
  * Admin-gated force-refresh of the Carfax cache for a single VIN.
  * Bypasses the 24h TTL and the public route's rate limit.

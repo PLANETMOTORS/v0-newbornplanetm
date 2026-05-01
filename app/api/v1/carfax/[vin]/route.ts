@@ -1,5 +1,5 @@
 /**
- * GET /api/v1/vehicles/[vin]/carfax
+ * GET /api/v1/carfax/[vin]
  *
  * Returns the Carfax Canada badge summary for a single VIN.
  * Composed of three layers:

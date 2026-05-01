@@ -1,5 +1,5 @@
 /**
- * Route-level coverage for GET /api/v1/vehicles/[vin]/carfax.
+ * Route-level coverage for GET /api/v1/carfax/[vin].
  *
  * Mocks every IO dependency (rate-limit, cache, live fetch, env) so we
  * can prove the layered cache → live → stale-fallback sequencing without
@@ -86,7 +86,7 @@ const STALE_SUMMARY = {
 }
 
 function makeReq(vin: string, search = ""): NextRequest {
-  return new NextRequest(`http://localhost/api/v1/vehicles/${vin}/carfax${search}`, {
+  return new NextRequest(`http://localhost/api/v1/carfax/${vin}${search}`, {
     method: "GET",
     headers: { "x-forwarded-for": "1.2.3.4" },
   })
@@ -104,9 +104,9 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe("GET /api/v1/vehicles/[vin]/carfax", () => {
+describe("GET /api/v1/carfax/[vin]", () => {
   it("returns 400 for an invalid VIN (no rate-limit / cache call)", async () => {
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq("BAD-VIN"), ctx("BAD-VIN"))
     expect(res.status).toBe(400)
     expect(getCachedSummaryMock).not.toHaveBeenCalled()
@@ -114,14 +114,14 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
 
   it("returns 429 when rate-limited", async () => {
     rateLimitMock.mockResolvedValueOnce({ success: false, remaining: 0 })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(429)
   })
 
   it("returns enabled:false when the env is missing", async () => {
     readCarfaxEnvMock.mockReturnValueOnce(null)
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -131,7 +131,7 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
 
   it("serves the cache hit on a fresh row (no live fetch)", async () => {
     getCachedSummaryMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -144,7 +144,7 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
     getCachedSummaryMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
     fetchBadgesMock.mockResolvedValueOnce({ ok: true, value: { ...FRESH_SUMMARY, reportNumber: 9999 } })
     upsertSummaryMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN, "?force=true"), ctx(VALID_VIN))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -157,7 +157,7 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
     getCachedSummaryMock.mockResolvedValueOnce({ ok: true, value: null })
     fetchBadgesMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
     upsertSummaryMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -169,7 +169,7 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
     getCachedSummaryMock.mockResolvedValueOnce({ ok: true, value: STALE_SUMMARY })
     fetchBadgesMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
     upsertSummaryMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -182,7 +182,7 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
       ok: false,
       error: { kind: "badges-http-error", status: 502, body: "bad gateway" },
     })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -195,7 +195,7 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
       ok: false,
       error: { kind: "network", message: "ECONNRESET" },
     })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(502)
     const body = await res.json()
@@ -209,7 +209,7 @@ describe("GET /api/v1/vehicles/[vin]/carfax", () => {
       ok: false,
       error: { kind: "db-error", message: "rls" },
     })
-    const { GET } = await import("@/app/api/v1/vehicles/[vin]/carfax/route")
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
     const res = await GET(makeReq(VALID_VIN), ctx(VALID_VIN))
     expect(res.status).toBe(200)
     const body = await res.json()
