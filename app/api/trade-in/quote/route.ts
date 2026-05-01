@@ -206,7 +206,7 @@ export async function POST(req: Request) {
       message: "This is an estimated value. Final offer subject to in-person inspection.",
       // `persistError` surfaced for server logs / observability; never blocks
       // the customer-facing response since the email was already sent.
-      ...(persistError ? { _persistError: persistError } : {}),
+      ...(persistError ? { _persistWarning: "Quote saved via email; database sync pending." } : {}),
     })
   } catch (error) {
     console.error("Trade-in quote error:", error)
