@@ -13,23 +13,35 @@ import { Separator } from "@/components/ui/separator"
 import sanitizeHtml from "sanitize-html"
 import { blogPosts } from "@/lib/blog-data"
 import { getBlogPost, getBlogSlugs } from "@/lib/sanity/fetch"
+import type { BlogPost } from "@/lib/sanity/types"
 import { BlogShareButtons } from "@/components/blog/blog-share-buttons"
 
 // Allow slugs not returned by generateStaticParams (new Sanity posts) to be served via ISR
 export const dynamicParams = true
 
+interface PortableTextChild {
+  text?: string
+  marks?: string[]
+}
+
+interface PortableTextBlock {
+  _type: string
+  style?: string
+  listItem?: "bullet" | "number"
+  children?: PortableTextChild[]
+}
+
 /** Convert Sanity Portable Text blocks to an HTML string for dangerouslySetInnerHTML. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function portableTextToHtml(blocks: any[]): string {
+function portableTextToHtml(blocks: Record<string, unknown>[]): string {
   if (!Array.isArray(blocks) || blocks.length === 0) return ""
 
   const lines: string[] = []
   let inList: "bullet" | "number" | null = null
 
-  for (const block of blocks) {
+  for (const raw of blocks) {
+    const block = raw as unknown as PortableTextBlock
     if (block._type !== "block") continue
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const text = (block.children ?? []).map((child: any) => {
+    const text = (block.children ?? []).map((child) => {
       const t = child.text ?? ""
       const marks: string[] = child.marks ?? []
       let out = t.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
@@ -38,7 +50,7 @@ function portableTextToHtml(blocks: any[]): string {
       return out
     }).join("")
 
-    const listItem = block.listItem as "bullet" | "number" | undefined
+    const listItem = block.listItem
 
     // Close previous list if switching type or leaving list context
     if (inList && (!listItem || listItem !== inList)) {
@@ -181,15 +193,17 @@ interface MergedPost {
   category: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mergePostData(sanityPost: any, staticPost: (typeof blogPosts)[string] | undefined): MergedPost {
+function mergePostData(sanityPost: BlogPost | null, staticPost: (typeof blogPosts)[string] | undefined): MergedPost {
   const sanityHasBody = sanityPost?.body && sanityPost.body.length > 1
   const dateOpts: Intl.DateTimeFormatOptions | undefined = staticPost
     ? { year: "numeric", month: "short", day: "2-digit" }
     : undefined
 
-  const hasUsableBody = sanityPost?.body && (sanityHasBody || !staticPost)
-  const sanityContent = hasUsableBody ? portableTextToHtml(sanityPost.body) : undefined
+  const bodyBlocks = sanityPost?.body
+  const hasUsableBody = bodyBlocks && (sanityHasBody || !staticPost)
+  const sanityContent = hasUsableBody
+    ? portableTextToHtml(bodyBlocks)
+    : undefined
 
   return {
     title: sanityPost?.title ?? staticPost?.title ?? "",

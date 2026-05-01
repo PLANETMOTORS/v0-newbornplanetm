@@ -211,16 +211,15 @@ export default function AccessibilityPage() {
                   control, you deserve the same smooth experience. Planet Motors is designed and
                   engineered to meet the Web Content Accessibility Guidelines (WCAG) 2.2 at Level AA,
                   which goes beyond the WCAG 2.0 Level AA standard referenced by Ontario&apos;s
-                  Accessibility for Ontarians with Disabilities Act (
-                  <a
+                  Accessibility for Ontarians with Disabilities Act
+                  (<a
                     href="https://www.aoda.ca"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
                   >
                     AODA
-                  </a>
-                  ).
+                  </a>).
                 </p>
                 <p className="mt-4 text-base leading-relaxed text-muted-foreground">
                   This page walks you through what we have built, the standards we follow, and how to
@@ -236,8 +235,8 @@ export default function AccessibilityPage() {
                     className="font-medium text-primary underline underline-offset-2 hover:text-primary/80"
                   >
                     OMVIC
-                  </a>
-                  {" "}Licensed Dealer #5482807 · 30 Major Mackenzie Dr E, Richmond Hill, ON
+                  </a>{" "}
+                  Licensed Dealer #5482807 · 30 Major Mackenzie Dr E, Richmond Hill, ON
                 </div>
               </CardContent>
             </Card>
@@ -353,8 +352,8 @@ export default function AccessibilityPage() {
                   className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
                 >
                   Accessibility for Ontarians with Disabilities Act (AODA)
-                </a>
-                {" "}and its Customer Service Standards. We treat every customer
+                </a>{" "}
+                and its Customer Service Standards. We treat every customer
                 with dignity, respect, and equal opportunity regardless of ability.
               </p>
             </div>
