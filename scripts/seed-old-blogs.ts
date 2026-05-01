@@ -59,6 +59,7 @@ function block(key: string, text: string, style: "normal" | "h2" | "h3" = "norma
     _type: "block",
     _key: key,
     style,
+    markDefs: [],
     children: [{ _type: "span", _key: `${key}-s`, text, marks: [] }],
   }
 }
