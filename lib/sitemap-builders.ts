@@ -2,6 +2,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/config'
 import { buildPublicStatusFilter } from '@/lib/vehicles/status-filter'
 import { blogPosts } from '@/lib/blog-data'
+import { getBlogSlugs } from '@/lib/sanity/fetch'
 import { enumerateCategorySlugs } from '@/lib/seo/category-slug-parser'
 
 export interface SitemapEntry {
@@ -249,13 +250,13 @@ export async function buildVehiclesSitemap(baseUrl: string, currentDate: string)
   }
 }
 
-export function buildBlogSitemap(baseUrl: string, currentDate: string): SitemapEntry[] {
-  // Static ESM import keeps the sitemap in lockstep with the blog source
-  // of truth (`lib/blog-data`) without the cost of a dynamic `require()`
-  // on every request.
-  const slugs = Object.keys(blogPosts)
+export async function buildBlogSitemap(baseUrl: string, currentDate: string): Promise<SitemapEntry[]> {
+  // Merge static blog slugs with Sanity CMS slugs for full coverage
+  const staticSlugs = Object.keys(blogPosts)
+  const sanitySlugs = await getBlogSlugs()
+  const allSlugs = [...new Set([...staticSlugs, ...sanitySlugs.map(s => s.slug)])]
 
-  return slugs.map(slug => ({
+  return allSlugs.map(slug => ({
     url: `${baseUrl}/blog/${slug}`,
     lastModified: currentDate,
     changeFrequency: 'weekly',

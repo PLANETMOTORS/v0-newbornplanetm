@@ -25,17 +25,23 @@ export default async function BlogPage() {
   // Fetch from Sanity CMS (returns [] when dataset is empty — static fallback kicks in)
   const { posts: sanityPosts } = await getBlogPosts(1, 100)
 
+  // Build slug→image lookup from static data for posts missing Sanity cover images
+  const staticImageBySlug = new Map(blogPostsMeta.map((m) => [m.slug, m.image]))
+
   // Normalise Sanity posts to the shared shape; fall back to static data
   const allPosts: NormalisedPost[] = sanityPosts.length > 0
-    ? sanityPosts.map((p) => ({
-        slug: typeof p.slug === "object" ? (p.slug as { current: string }).current : p.slug ?? "",
-        title: p.title ?? "",
-        excerpt: p.excerpt ?? "",
-        date: p.publishedAt ? new Date(p.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" }) : "",
-        readTime: "5 min read",
-        category: p.categories?.[0] ?? "General",
-        image: p.coverImage ?? "/images/blog/1.png",
-      }))
+    ? sanityPosts.map((p) => {
+        const slug = typeof p.slug === "object" ? (p.slug as { current: string }).current : p.slug ?? ""
+        return {
+          slug,
+          title: p.title ?? "",
+          excerpt: p.excerpt ?? "",
+          date: p.publishedAt ? new Date(p.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" }) : "",
+          readTime: "5 min read",
+          category: p.categories?.[0] ?? "General",
+          image: p.coverImage ?? staticImageBySlug.get(slug) ?? "/images/blog/blog-1.png",
+        }
+      })
     : blogPostsMeta
 
   const featuredPost = [...allPosts]
