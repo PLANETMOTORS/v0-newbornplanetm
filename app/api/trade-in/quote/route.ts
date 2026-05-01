@@ -5,6 +5,8 @@ import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 import { trackLead } from "@/lib/meta-capi-helpers"
 import { rateLimit } from "@/lib/redis"
 import { getClientIp } from "@/lib/security/client-ip"
+import { tradeInToAdfProspect } from "@/lib/adf/adapters"
+import { forwardLeadToAutoRaptor } from "@/lib/adf/forwarder"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -130,6 +132,26 @@ export async function POST(req: Request) {
         tradeInValue: estimate.averageEstimate,
       })
     }
+
+    // Forward to AutoRaptor as ADF XML (no-op if AUTORAPTOR_LEAD_EMAIL unset).
+    // Non-blocking — never fails the customer-facing flow.
+    void forwardLeadToAutoRaptor(
+      tradeInToAdfProspect({
+        quoteId,
+        customerName,
+        customerEmail,
+        customerPhone,
+        vehicleYear: Number.parseInt(year),
+        vehicleMake: make,
+        vehicleModel: model,
+        mileage: Number.parseInt(mileage),
+        condition,
+        vin,
+        offerAmount: estimate.averageEstimate,
+        offerLow: estimate.lowEstimate,
+        offerHigh: estimate.highEstimate,
+      }),
+    ).catch((err) => console.error("[trade-in] ADF forward error:", err))
 
     // Fire Meta CAPI Lead event (non-blocking)
     trackLead(req, {
