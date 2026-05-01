@@ -18,7 +18,7 @@ describe("imgix", () => {
     expect(url).toContain("auto=format%2Ccompress")
     expect(url).toContain("q=85")
     expect(url).toContain("cs=srgb")
-    expect(url).toContain("chromasub=444")
+    expect(url).not.toContain("chromasub")
   })
 
   it("merges custom params with defaults", async () => {

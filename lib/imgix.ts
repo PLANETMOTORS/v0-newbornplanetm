@@ -11,7 +11,6 @@ interface ImgixParams {
   crop?: string
   dpr?: number
   cs?: string
-  chromasub?: string
 }
 
 const IMGIX_DOMAIN = process.env.NEXT_PUBLIC_IMGIX_DOMAIN || "planetmotors.imgix.net"
@@ -21,7 +20,6 @@ export function imgix(path: string, params: ImgixParams = {}): string {
     auto: "format,compress", // AVIF-first: serves AVIF/WebP/JPEG based on Accept header
     q: 85,
     cs: "srgb", // Consistent color space
-    chromasub: "444", // No chroma subsampling for elite 4K quality
   }
 
   const mergedParams = { ...defaultParams, ...params }
@@ -40,7 +38,7 @@ export const imgixPresets = {
   card: { w: 600, h: 400, fit: "crop", q: 72 }, // Inventory cards
   standard: { w: 1200, h: 800, q: 80 },
   hero: { w: 1920, h: 1080, q: 85 },
-  "4k": { w: 3840, h: 2160, q: 90, chromasub: "444" }, // Elite 4K gallery
+  "4k": { w: 3840, h: 2160, q: 90 }, // Elite 4K gallery
   spin: { w: 1920, h: 1080, q: 82 }, // Optimized for 360 spins (36 frames)
 } as const
 
