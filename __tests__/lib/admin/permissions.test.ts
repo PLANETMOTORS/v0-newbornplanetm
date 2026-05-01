@@ -101,9 +101,14 @@ describe("featureForRoute", () => {
     expect(featureForRoute("/admin/users")).toBe("admin_users")
   })
 
-  it("maps prefixed routes", () => {
+  it("maps prefixed routes with path separator", () => {
     expect(featureForRoute("/admin/leads/123")).toBe("leads")
     expect(featureForRoute("/admin/finance/detail")).toBe("finance_apps")
+  })
+
+  it("does not falsely match routes sharing a prefix", () => {
+    expect(featureForRoute("/admin/orders-pending")).toBeNull()
+    expect(featureForRoute("/admin/leads-report")).toBeNull()
   })
 
   it("returns null for unknown routes", () => {

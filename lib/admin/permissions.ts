@@ -136,7 +136,7 @@ export function featureForRoute(pathname: string): AdminFeature | null {
   if (pathname in ROUTE_TO_FEATURE) return ROUTE_TO_FEATURE[pathname]
   // Prefix match (e.g. /admin/leads/123 → leads)
   for (const [route, feature] of Object.entries(ROUTE_TO_FEATURE)) {
-    if (route !== "/admin" && pathname.startsWith(route)) return feature
+    if (route !== "/admin" && pathname.startsWith(route + "/")) return feature
   }
   return null
 }
