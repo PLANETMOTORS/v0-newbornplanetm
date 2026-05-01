@@ -16,6 +16,13 @@ vi.mock('@/lib/supabase/config', () => ({
   getSupabaseAnonKey: vi.fn(() => 'test-key'),
 }))
 
+vi.mock('@/lib/sanity/fetch', () => ({
+  getBlogSlugs: vi.fn(() => Promise.resolve([
+    { slug: 'sanity-only-post' },
+    { slug: 'check-battery-health-used-tesla-canada' },
+  ])),
+}))
+
 import { buildVehiclesSitemap, buildPagesSitemap, buildBlogSitemap, buildVehicleImages } from '@/lib/sitemap-builders'
 
 describe('buildVehiclesSitemap', () => {
@@ -157,8 +164,8 @@ describe('buildBlogSitemap', () => {
     expect(buildBlogSitemap.length).toBe(2)
   })
 
-  it('emits one entry per blog post with /blog/<slug> URLs', () => {
-    const result = buildBlogSitemap('https://example.com', '2025-09-09')
+  it('emits one entry per blog post with /blog/<slug> URLs', async () => {
+    const result = await buildBlogSitemap('https://example.com', '2025-09-09')
     expect(Array.isArray(result)).toBe(true)
     expect(result.length).toBeGreaterThan(0)
     for (const entry of result) {
@@ -167,6 +174,19 @@ describe('buildBlogSitemap', () => {
       expect(entry.changeFrequency).toBe('weekly')
       expect(entry.priority).toBe(0.6)
     }
+  })
+
+  it('includes Sanity-only slugs not in static data', async () => {
+    const result = await buildBlogSitemap('https://example.com', '2025-09-09')
+    const urls = result.map(e => e.url)
+    expect(urls).toContain('https://example.com/blog/sanity-only-post')
+  })
+
+  it('de-duplicates slugs present in both static and Sanity', async () => {
+    const result = await buildBlogSitemap('https://example.com', '2025-09-09')
+    const urls = result.map(e => e.url)
+    const batteryUrls = urls.filter(u => u.includes('check-battery-health-used-tesla-canada'))
+    expect(batteryUrls).toHaveLength(1)
   })
 })
 
