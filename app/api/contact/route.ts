@@ -5,6 +5,8 @@ import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 import { trackLead } from "@/lib/meta-capi-helpers"
 import { createLead } from "@/lib/anna/lead-capture"
+import { inquiryToAdfProspect } from "@/lib/adf/adapters"
+import { forwardLeadToAutoRaptor } from "@/lib/adf/forwarder"
 
 export async function POST(request: Request) {
   try {
@@ -41,15 +43,35 @@ export async function POST(request: Request) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Invalid Canadian postal code", 400)
     }
 
-    // Save lead to Supabase (non-blocking — don't fail the form if this fails)
+    // Save lead to Supabase (non-blocking — don't fail the form if this fails),
+    // then forward the same lead to AutoRaptor as ADF/XML email.
+    const customerName = `${firstName} ${lastName}`
+    const inquirySubject = subject || "General Inquiry"
+
     createLead({
       source: "contact_form",
-      customerName: `${firstName} ${lastName}`,
+      customerName,
       customerEmail: email,
       customerPhone: phone,
-      subject: subject || "General Inquiry",
+      subject: inquirySubject,
       message,
-    }).catch(err => console.error("Lead capture from contact form failed:", err))
+    })
+      .then((leadId) =>
+        forwardLeadToAutoRaptor(
+          inquiryToAdfProspect({
+            inquiryId: leadId ?? `contact-${Date.now().toString(36)}`,
+            customerName,
+            customerEmail: email,
+            customerPhone: phone,
+            message: `${inquirySubject}\n\n${message}\n\n(postal: ${postalCode})`,
+          }),
+        ).catch((cause) =>
+          console.error("[contact] ADF forward failed:", cause),
+        ),
+      )
+      .catch((err) =>
+        console.error("Lead capture from contact form failed:", err),
+      )
 
     // Send email notification
     await sendNotificationEmail({

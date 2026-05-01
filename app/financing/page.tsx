@@ -360,6 +360,36 @@ export default async function FinancingPage() {
         </div>
       </section>
 
+      {/* Legal Disclaimer — O.A.C. compliance */}
+      <section className="py-8 border-t border-border">
+        <div className="mx-auto max-w-4xl px-6 lg:px-8">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            <strong>Disclaimer:</strong> All payment and affordability estimates
+            provided by this calculator are for illustrative purposes only and
+            are subject to credit approval (O.A.C. — On Approved Credit). Actual
+            financing rates, terms, and monthly payments may vary based on
+            individual creditworthiness, lender requirements, and vehicle
+            selection. Rates starting from {RATE_FLOOR_DISPLAY} APR are available
+            to qualified buyers. HST (13%) is included in all calculations.
+            Applicable licensing, registration, and OMVIC fees are not included.
+            Planet Motors is an{" "}
+            <a href="https://www.omvic.on.ca" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+              OMVIC
+            </a>
+            -registered dealer. Please{" "}
+            <a href="/contact" className="underline hover:text-foreground">
+              contact us
+            </a>
+            {" "}or visit our{" "}
+            <a href="/terms" className="underline hover:text-foreground">
+              Terms&nbsp;&amp;&nbsp;Conditions
+            </a>
+            {" "}for full financing details.
+          </p>
+          <RateDisclosure compact className="mt-3" />
+        </div>
+      </section>
+
       {/* FAQ — visible to users & matches FAQPage schema */}
       <section className="py-16 lg:py-24 bg-card">
         <div className="mx-auto max-w-3xl px-6 lg:px-8">

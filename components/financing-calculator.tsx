@@ -312,8 +312,12 @@ function SummaryPanel({
           </a>
         </Button>
 
-        <p className="text-[11px] text-muted-foreground text-center mt-3">
-          Estimate only. Actual rates depend on credit approval (O.A.C.).
+        <p className="text-[11px] text-muted-foreground text-center mt-3 leading-relaxed">
+          For illustrative purposes only. All payment and affordability
+          estimates are subject to credit approval (O.A.C.) and may vary based
+          on individual creditworthiness, lender terms, and vehicle selection.
+          HST (13%) is included in calculations. Applicable licensing,
+          registration, and OMVIC fees are not included.
         </p>
       </CardContent>
     </Card>

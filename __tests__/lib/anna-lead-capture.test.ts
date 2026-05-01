@@ -25,6 +25,12 @@ vi.mock("@/lib/email", () => ({
   sendNotificationEmail: vi.fn().mockResolvedValue({ success: true }),
 }))
 
+vi.mock("@/lib/adf/forwarder", () => ({
+  forwardLeadToAutoRaptor: vi
+    .fn()
+    .mockResolvedValue({ ok: true, status: "sent", messageId: "mock-id" }),
+}))
+
 beforeEach(() => {
   vi.clearAllMocks()
   vi.resetModules()
@@ -108,6 +114,61 @@ describe("createLead", () => {
       customerName: "Chat Visitor",
       customerEmail: "unknown@chat",
     }))
+  })
+
+  it("forwards identified leads to AutoRaptor as ADF/XML", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-adf-1" }, error: null })
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    await createLead({
+      source: "chat",
+      customerName: "Bilal Ahmad",
+      customerEmail: "bilal@example.com",
+      customerPhone: "+14165551234",
+      subject: "Interested in 2024 RAV4 Hybrid",
+      vehicleInfo: "VIN ABC123",
+    })
+    // Allow microtask for the void-fire to flush
+    await new Promise((r) => setTimeout(r, 10))
+    const { forwardLeadToAutoRaptor } = await import("@/lib/adf/forwarder")
+    expect(forwardLeadToAutoRaptor).toHaveBeenCalledTimes(1)
+    const arg = (forwardLeadToAutoRaptor as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(arg.id).toBe("lead-adf-1")
+    expect(arg.customer.email).toBe("bilal@example.com")
+    expect(arg.customer.firstName).toBe("Bilal")
+    expect(arg.customer.lastName).toBe("Ahmad")
+    expect(arg.source).toBe("Vehicle Inquiry")
+    expect(arg.comments).toContain("VIN ABC123")
+  })
+
+  it("skips AutoRaptor forwarding for anonymous chats with no email", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-anon" }, error: null })
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    await createLead({ source: "chat", subject: "anon" })
+    await new Promise((r) => setTimeout(r, 10))
+    const { forwardLeadToAutoRaptor } = await import("@/lib/adf/forwarder")
+    expect(forwardLeadToAutoRaptor).not.toHaveBeenCalled()
+  })
+
+  it("logs but swallows AutoRaptor forwarder rejection", async () => {
+    mockSingle.mockResolvedValueOnce({ data: { id: "lead-fail" }, error: null })
+    const { forwardLeadToAutoRaptor } = await import("@/lib/adf/forwarder")
+    ;(forwardLeadToAutoRaptor as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error("autoraptor down"),
+    )
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const { createLead } = await import("@/lib/anna/lead-capture")
+    const id = await createLead({
+      source: "chat",
+      customerEmail: "x@y.com",
+      subject: "test",
+    })
+    expect(id).toBe("lead-fail")
+    await new Promise((r) => setTimeout(r, 10))
+    expect(errSpy).toHaveBeenCalledWith(
+      "[anna] ADF forward failed:",
+      expect.any(Error),
+    )
+    errSpy.mockRestore()
   })
 })
 
