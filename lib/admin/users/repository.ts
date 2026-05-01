@@ -13,6 +13,7 @@ import type {
   AdminUserRow,
   InviteAdminRequest,
   UpdateAdminRequest,
+  PermissionMap,
 } from "./schemas"
 
 export type AdminUserRepoError =
@@ -98,6 +99,7 @@ export async function inviteAdmin(
         role: input.role,
         invited_by: invitedBy,
         notes: input.notes ?? null,
+        permissions: input.permissions ?? null,
         is_active: true,
       })
       .select("*")
@@ -123,10 +125,11 @@ export async function updateAdmin(
 ): Promise<Result<AdminUserRow, AdminUserRepoError>> {
   try {
     const client = factory()
-    const patch: { role?: AdminRole; is_active?: boolean; notes?: string | null } = {}
+    const patch: { role?: AdminRole; is_active?: boolean; notes?: string | null; permissions?: Partial<PermissionMap> | null } = {}
     if (input.role !== undefined) patch.role = input.role
     if (input.is_active !== undefined) patch.is_active = input.is_active
     if (input.notes !== undefined) patch.notes = input.notes
+    if (input.permissions !== undefined) patch.permissions = input.permissions
     const { data, error } = await client
       .from("admin_users")
       .update(patch)
