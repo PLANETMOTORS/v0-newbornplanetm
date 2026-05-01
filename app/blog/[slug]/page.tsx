@@ -23,8 +23,12 @@ export const dynamicParams = true
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function portableTextToHtml(blocks: any[]): string {
   if (!Array.isArray(blocks) || blocks.length === 0) return ""
-  return blocks.map((block) => {
-    if (block._type !== "block") return ""
+
+  const lines: string[] = []
+  let inList: "bullet" | "number" | null = null
+
+  for (const block of blocks) {
+    if (block._type !== "block") continue
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const text = (block.children ?? []).map((child: any) => {
       const t = child.text ?? ""
@@ -34,15 +38,41 @@ function portableTextToHtml(blocks: any[]): string {
       if (marks.includes("em")) out = `<em>${out}</em>`
       return out
     }).join("")
-    switch (block.style) {
-      case "h1": return `<h1>${text}</h1>`
-      case "h2": return `<h2>${text}</h2>`
-      case "h3": return `<h3>${text}</h3>`
-      case "h4": return `<h4>${text}</h4>`
-      case "blockquote": return `<blockquote>${text}</blockquote>`
-      default: return text ? `<p>${text}</p>` : ""
+
+    const listItem = block.listItem as "bullet" | "number" | undefined
+
+    // Close previous list if switching type or leaving list context
+    if (inList && (!listItem || listItem !== inList)) {
+      lines.push(inList === "number" ? "</ol>" : "</ul>")
+      inList = null
     }
-  }).join("\n")
+
+    if (listItem) {
+      // Open new list if needed
+      if (!inList) {
+        lines.push(listItem === "number" ? "<ol>" : "<ul>")
+        inList = listItem
+      }
+      lines.push(`<li>${text}</li>`)
+      continue
+    }
+
+    switch (block.style) {
+      case "h1": lines.push(`<h1>${text}</h1>`); break
+      case "h2": lines.push(`<h2>${text}</h2>`); break
+      case "h3": lines.push(`<h3>${text}</h3>`); break
+      case "h4": lines.push(`<h4>${text}</h4>`); break
+      case "blockquote": lines.push(`<blockquote>${text}</blockquote>`); break
+      default: if (text) lines.push(`<p>${text}</p>`)
+    }
+  }
+
+  // Close any trailing list
+  if (inList) {
+    lines.push(inList === "number" ? "</ol>" : "</ul>")
+  }
+
+  return lines.join("\n")
 }
 
 const SITE_URL = getPublicSiteUrl()
@@ -151,7 +181,10 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
     notFound()
   }
 
-  // Merge: prefer Sanity fields, fill gaps from static data
+  // Merge: prefer Sanity fields, fall back to static data.
+  // Sanity body (Portable Text) takes precedence when it has real content
+  // (more than 1 block), so edits in Sanity Studio flow to the site.
+  const sanityHasBody = sanityPost?.body && sanityPost.body.length > 1
   const post = staticPost
     ? {
         ...staticPost,
@@ -159,7 +192,7 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
         excerpt: sanityPost?.excerpt ?? staticPost.excerpt,
         image: sanityPost?.coverImage ?? staticPost.image,
         date: sanityPost?.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" }) : staticPost.date,
-        content: staticPost.content, // full HTML content always from static (rich content)
+        content: sanityHasBody ? portableTextToHtml(sanityPost!.body!) : staticPost.content,
         relatedPosts: staticPost.relatedPosts,
         readTime: staticPost.readTime,
         author: staticPost.author,
