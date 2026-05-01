@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { timeAgo, sourceIcon, leadStatusVariant as statusVariant } from "@/lib/admin/lead-utils"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface Lead {
   id: string
@@ -99,6 +100,13 @@ export default function AdminLeadsPage() {
   }, [statusFilter, sourceFilter, search, page])
 
   useEffect(() => { fetchLeads() }, [fetchLeads])
+
+  const handleLeadDeleted = useCallback((leadId: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId))
+    setStats((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }))
+    setTotal((prev) => Math.max(0, prev - 1))
+    setSelectedLead((prev) => (prev?.id === leadId ? null : prev))
+  }, [])
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
@@ -205,36 +213,46 @@ export default function AdminLeadsPage() {
                   {leads.map(lead => {
                     const Icon = sourceIcon(lead.source)
                     return (
-                      <button
-                        type="button"
+                      <div
                         key={lead.id}
-                        className={`w-full text-left p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
-                        onClick={() => setSelectedLead(lead)}
+                        className={`flex items-start gap-2 p-4 hover:bg-gray-50 transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                              <Icon className="w-4 h-4 text-blue-600" />
+                        <button
+                          type="button"
+                          className="flex-1 text-left cursor-pointer"
+                          onClick={() => setSelectedLead(lead)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                                <Icon className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email || "Unknown"}</p>
+                                <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
+                                {lead.vehicle_info && (
+                                  <p className="text-xs text-gray-400 truncate">{lead.vehicle_info}</p>
+                                )}
+                              </div>
                             </div>
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email || "Unknown"}</p>
-                              <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
-                              {lead.vehicle_info && (
-                                <p className="text-xs text-gray-400 truncate">{lead.vehicle_info}</p>
+                            <div className="text-right shrink-0 ml-2">
+                              <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
+                              {lead.priority && lead.priority !== "medium" && (
+                                <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>
+                                  {lead.priority}
+                                </span>
                               )}
+                              <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
                             </div>
                           </div>
-                          <div className="text-right shrink-0 ml-2">
-                            <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
-                            {lead.priority && lead.priority !== "medium" && (
-                              <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>
-                                {lead.priority}
-                              </span>
-                            )}
-                            <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
-                          </div>
-                        </div>
-                      </button>
+                        </button>
+                        <DeleteRowButton
+                          endpoint={`/api/v1/admin/leads/${lead.id}`}
+                          id={lead.id}
+                          label={`lead from ${lead.customer_name || lead.customer_email || "Unknown"}`}
+                          onDeleted={handleLeadDeleted}
+                        />
+                      </div>
                     )
                   })}
                 </div>
