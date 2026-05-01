@@ -63,7 +63,11 @@ export const badgesResponseSchema = z
   .object({
     ResponseData: z
       .object({
-        Badges: z.array(badgeRowSchema).min(1),
+        // Carfax wraps the per-VIN row inside an array; in practice it
+        // always has exactly one entry, but we accept an empty array so
+        // the adapter's empty-fallback in envelopeToSummary() can handle
+        // unexpected upstream responses without throwing a Zod error.
+        Badges: z.array(badgeRowSchema),
         Language: z.union([z.literal("en"), z.literal("fr")]),
         LogoUrl: z.string().url(),
       })

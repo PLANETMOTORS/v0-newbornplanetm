@@ -84,3 +84,24 @@ export const hasOneOwnerBadge = (s: CarfaxBadgeSummary): boolean =>
   hasBadgeNamed(s, "OneOwner")
 export const hasLowKilometerBadge = (s: CarfaxBadgeSummary): boolean =>
   hasBadgeNamed(s, "LowKilometer")
+
+/**
+ * Human-readable label used as `alt` text for a Carfax badge image.
+ * Carfax returns internal identifiers like "AccidentFree"; WCAG requires
+ * the alt attribute be a meaningful description, not the raw id. Falls
+ * back to splitting CamelCase for any badge name not yet mapped.
+ */
+const BADGE_LABELS: Readonly<Record<string, string>> = {
+  AccidentFree: "Accident free",
+  OneOwner: "One owner",
+  LowKilometer: "Low kilometres",
+  ServiceRecords: "Service records",
+  PersonalUse: "Personal use",
+}
+
+export function badgeAccessibleLabel(name: string): string {
+  const mapped = BADGE_LABELS[name]
+  if (mapped) return `Carfax badge: ${mapped}`
+  const split = name.replace(/([A-Z])/g, " $1").trim()
+  return `Carfax badge: ${split}`
+}

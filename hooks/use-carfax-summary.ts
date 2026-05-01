@@ -53,7 +53,13 @@ function responseToState(data: ApiResponse): CarfaxFetchState {
 }
 
 export function useCarfaxSummary(vin: string | null): CarfaxFetchState {
-  const [state, setState] = useState<CarfaxFetchState>({ status: "loading" })
+  // Lazy initial state: when vin is null we go straight to "disabled"
+  // so the consumer never renders a flash of skeleton UI for vehicles
+  // that lack a VIN. The effect below also handles vin transitioning
+  // to/from null after mount.
+  const [state, setState] = useState<CarfaxFetchState>(() =>
+    vin ? { status: "loading" } : { status: "disabled" },
+  )
 
   useEffect(() => {
     if (!vin) {
