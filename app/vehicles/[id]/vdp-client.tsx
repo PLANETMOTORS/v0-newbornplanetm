@@ -19,7 +19,7 @@ import {
   FileText, Zap, DollarSign, CreditCard,
   Phone, Star, TrendingUp, Users,
   Battery, LockKeyhole, Truck, ArrowRight, Play,
-  Download, ExternalLink, Check, Expand,
+  Download, Check, Expand,
   Key, RotateCw, Pause
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
@@ -39,6 +39,7 @@ import { trackProductView, trackPhoneClick } from "@/components/analytics/google
 import { safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { CarfaxSection, CarfaxInlineLink } from "@/components/vdp/carfax-section"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 
@@ -729,15 +730,10 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
                     <div className="flex flex-wrap gap-3">
-                      <Card className="flex-1 min-w-[140px]">
-                        <CardContent className="p-3 flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-pink-500" />
-                          <div>
-                            <p className="font-semibold text-sm">No accidents</p>
-                            <p className="text-xs text-muted-foreground">Reported by Carfax</p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      {/* Per-VIN Carfax claims — only renders factual claims
+                          for badges Carfax actually issued for THIS VIN, not
+                          a hardcoded "No accidents" headline. OMVIC compliance. */}
+                      <CarfaxSection vin={vehicle.vin ?? null} variant="headline" className="flex-1 min-w-[200px]" />
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Gauge className="w-5 h-5 text-muted-foreground" />
@@ -1203,19 +1199,10 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </DialogContent>
                   </Dialog>
 
-                  {/* CARFAX */}
-                  <Card>
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <Badge variant="outline" className="border-red-500 text-red-600 text-base px-3 py-1">
-                        CARFAX
-                      </Badge>
-                      <Button variant="link" className="text-primary" asChild>
-                        <Link href={`https://www.carfax.ca/vehicle/${vehicle.vin}`} target="_blank">
-                          View report <ExternalLink className="w-4 h-4 ml-1" />
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  {/* CARFAX panel — driven by /api/v1/carfax/[vin]; renders
+                      real badges + a tokenized VhrReportUrl. */}
+                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
+
 
                   {/* EV Battery Health - Show for EVs/PHEVs */}
                   {(vehicle.fuelType === "Electric" || vehicle.fuelType === "PHEV") && (
@@ -1801,14 +1788,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     />
                   </div>
 
-                  {/* CARFAX */}
+                  {/* CARFAX inline link — same per-VIN tokenized URL as the
+                      panel above; no copy-paste deep link to carfax.ca. */}
                   <div className="flex items-center justify-between mt-4 pt-4 border-t">
                     <Badge variant="outline" className="border-red-500 text-red-600">CARFAX</Badge>
-                    <Button variant="link" className="text-primary p-0 h-auto" asChild>
-                      <Link href={`https://www.carfax.ca/vehicle/${vehicle.vin}`} target="_blank">
-                        View report <ExternalLink className="w-3 h-3 ml-1" />
-                      </Link>
-                    </Button>
+                    <CarfaxInlineLink vin={vehicle.vin ?? null} />
                   </div>
 
                   {/* Delivery Calculator */}
