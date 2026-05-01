@@ -2,11 +2,10 @@
  * POST /api/v1/admin/cleanup/test-data
  *
  * One-shot ops endpoint to delete test rows that accumulated during
- * pre-launch QA. Targets the four tables most polluted by test sessions:
+ * pre-launch QA. Targets the three tables most polluted by test sessions:
  *   - leads
  *   - reservations
  *   - trade_in_quotes
- *   - finance_application_drafts (if present)
  *
  * Two modes:
  *   1. By explicit ID list:
