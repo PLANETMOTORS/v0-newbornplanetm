@@ -3,10 +3,12 @@
  * CRM delete routes.
  */
 
+import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
 import { logger } from "@/lib/logger"
-import type { CrmDeleteError, CrmTable } from "./repository"
+import { deleteCrmRow, type CrmDeleteError, type CrmTable } from "./repository"
 
 export const idParamSchema = z
   .object({ id: z.string().uuid("id must be a uuid") })
@@ -48,4 +50,34 @@ export async function parseIdParam(
     )
   }
   return parsed.data.id
+}
+
+/**
+ * Shared DELETE handler factory for the CRM tables. Each route file
+ * just calls `createCrmDeleteHandler("leads")` and re-exports the
+ * resulting function as `DELETE`. Keeps every endpoint identical so
+ * Sonar's duplicate-line detector stays happy and so adding a fifth
+ * CRM table is a one-line change.
+ */
+export function createCrmDeleteHandler(table: CrmTable) {
+  return async function DELETE(
+    _request: NextRequest,
+    ctx: { params: Promise<{ id: string }> },
+  ): Promise<NextResponse> {
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
+
+    const idOrResp = await parseIdParam(ctx.params)
+    if (typeof idOrResp !== "string") return idOrResp
+
+    const result = await deleteCrmRow(table, idOrResp)
+    if (!result.ok) return crmDeleteErrorToResponse(result.error, table)
+
+    logger.info("[admin-crm-delete] row removed", {
+      table,
+      by: auth.value.email,
+      id: idOrResp,
+    })
+    return NextResponse.json({ deletedId: result.value.id })
+  }
 }
