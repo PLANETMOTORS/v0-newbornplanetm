@@ -59,6 +59,48 @@ export type BodyValidator<T> =
   | ((raw: unknown) => Promise<{ ok: true; body: T } | { ok: false; error: string }>)
 
 /**
+ * Reusable string-array validator for admin endpoints whose body
+ * shape is "non-empty array of strings within bounds".
+ *
+ * Error codes (rather than fixed messages) let each caller render a
+ * field-specific user-facing error without re-implementing the same
+ * Array.isArray + length + element-type checks inline. That repetition
+ * is what SonarCloud flags as duplicated code.
+ */
+export type StringArrayErrorCode =
+  | "not-array"
+  | "too-short"
+  | "too-long"
+  | "non-string"
+
+export type StringArrayResult =
+  | { ok: true; values: string[] }
+  | { ok: false; code: StringArrayErrorCode; index?: number }
+
+export interface StringArrayBounds {
+  minLength?: number
+  maxLength?: number
+}
+
+export function validateStringArray(
+  value: unknown,
+  bounds: StringArrayBounds = {},
+): StringArrayResult {
+  if (!Array.isArray(value)) {
+    return { ok: false, code: "not-array" }
+  }
+  const min = bounds.minLength ?? 0
+  const max = bounds.maxLength ?? Number.MAX_SAFE_INTEGER
+  if (value.length < min) return { ok: false, code: "too-short" }
+  if (value.length > max) return { ok: false, code: "too-long" }
+  const badIndex = value.findIndex((item) => typeof item !== "string")
+  if (badIndex !== -1) {
+    return { ok: false, code: "non-string", index: badIndex }
+  }
+  return { ok: true, values: value as string[] }
+}
+
+/**
  * Parse JSON from the request and run it through the supplied
  * validator. Returns 400 with a clear error on parse failure or
  * validation failure.

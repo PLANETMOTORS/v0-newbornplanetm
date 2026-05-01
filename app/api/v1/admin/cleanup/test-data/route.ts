@@ -35,6 +35,7 @@ import { logger } from "@/lib/logger"
 import {
   requireAdmin,
   parseJsonBody,
+  validateStringArray,
 } from "@/lib/security/admin-route-helpers"
 
 export const dynamic = "force-dynamic"
@@ -110,18 +111,22 @@ function parseByIdBody(
       error: `table must be one of ${CLEANABLE_TABLES.join("|")}`,
     }
   }
-  if (!Array.isArray(raw.ids) || raw.ids.length === 0) {
-    return { ok: false, error: "ids[] required and non-empty" }
-  }
-  if (raw.ids.length > MAX_IDS_PER_CALL) {
-    return { ok: false, error: `Max ${MAX_IDS_PER_CALL} ids per call` }
-  }
-  if (!raw.ids.every((id): id is string => typeof id === "string")) {
-    return { ok: false, error: "ids must be strings" }
+  const ids = validateStringArray(raw.ids, {
+    minLength: 1,
+    maxLength: MAX_IDS_PER_CALL,
+  })
+  if (!ids.ok) {
+    const message =
+      ids.code === "too-long"
+        ? `Max ${MAX_IDS_PER_CALL} ids per call`
+        : ids.code === "non-string"
+          ? "ids must be strings"
+          : "ids[] required and non-empty"
+    return { ok: false, error: message }
   }
   return {
     ok: true,
-    body: { mode: "by-id", table: raw.table, ids: raw.ids },
+    body: { mode: "by-id", table: raw.table, ids: ids.values },
   }
 }
 

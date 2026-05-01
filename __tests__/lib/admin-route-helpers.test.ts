@@ -22,7 +22,7 @@ vi.mock("@/lib/admin", () => ({
   ADMIN_EMAILS: ["toni@planetmotors.ca", "ops@planetmotors.ca"],
 }))
 
-const { requireAdmin, parseJsonBody } = await import(
+const { requireAdmin, parseJsonBody, validateStringArray } = await import(
   "@/lib/security/admin-route-helpers"
 )
 
@@ -136,5 +136,72 @@ describe("parseJsonBody", () => {
       const body = await result.response.json()
       expect(body.error).toBe("Body must be an object")
     }
+  })
+})
+
+describe("validateStringArray", () => {
+  it("accepts a non-empty string array", () => {
+    const result = validateStringArray(["a", "b", "c"])
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.values).toEqual(["a", "b", "c"])
+  })
+
+  it("accepts an empty array when minLength is 0 (default)", () => {
+    const result = validateStringArray([])
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.values).toEqual([])
+  })
+
+  it("returns not-array when value is undefined", () => {
+    const result = validateStringArray(undefined)
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe("not-array")
+  })
+
+  it("returns not-array when value is null", () => {
+    const result = validateStringArray(null)
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe("not-array")
+  })
+
+  it("returns not-array when value is an object literal", () => {
+    const result = validateStringArray({ 0: "a", length: 1 })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe("not-array")
+  })
+
+  it("returns too-short when length is below minLength", () => {
+    const result = validateStringArray([], { minLength: 1 })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe("too-short")
+  })
+
+  it("returns too-long when length is above maxLength", () => {
+    const result = validateStringArray(["a", "b", "c"], { maxLength: 2 })
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe("too-long")
+  })
+
+  it("returns non-string with the offending index", () => {
+    const result = validateStringArray(["a", 7, "c"], { minLength: 1 })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.code).toBe("non-string")
+      expect(result.index).toBe(1)
+    }
+  })
+
+  it("treats null elements as non-string", () => {
+    const result = validateStringArray(["a", null], { minLength: 1 })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.code).toBe("non-string")
+      expect(result.index).toBe(1)
+    }
+  })
+
+  it("respects both bounds together (range satisfied)", () => {
+    const result = validateStringArray(["x"], { minLength: 1, maxLength: 5 })
+    expect(result.ok).toBe(true)
   })
 })
