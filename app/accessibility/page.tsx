@@ -6,7 +6,7 @@ import { Keyboard, Mic, Focus, Smartphone, Ban, MousePointerClick, FileText, Cir
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, EMAIL_INFO } from "@/lib/constants/dealership"
 
 export const metadata: Metadata = {
-  title: "Accessibility | Planet Motors",
+  title: "Accessibility Statement | Planet Motors",
   description:
     "Planet Motors is built for everyone. Learn how our website meets WCAG 2.2 Level AA accessibility standards, from keyboard navigation to screen reader support.",
   alternates: { canonical: "/accessibility" },
@@ -24,7 +24,6 @@ const ACCESSIBILITY_SCHEMA = {
     "structuralNavigation",
     "ARIA",
     "tableOfContents",
-    "captions",
   ],
   accessibilityHazard: "none",
   accessibilityAPI: ["ARIA"],
@@ -32,8 +31,12 @@ const ACCESSIBILITY_SCHEMA = {
     "fullKeyboardControl",
     "fullMouseControl",
     "fullTouchControl",
-    "fullVoiceControl",
   ],
+  publisher: {
+    "@type": "AutoDealer",
+    name: "Planet Motors Inc.",
+    url: "https://www.planetmotors.ca",
+  },
 } as const
 
 const FEATURES = [
@@ -329,7 +332,7 @@ export default function AccessibilityPage() {
         {/* Footer Note */}
         <div className="pb-12 pt-8 text-center text-[0.82rem] leading-relaxed text-[#94a3b8]">
           <p>
-            Statement v2.0, Effective May 1, 2026.
+            Accessibility Statement v1.0, Effective May 2026, Last reviewed May 2026.
             <br />
             Planet Motors Inc. · OMVIC #5482807 · 30 Major Mackenzie Dr E, Richmond Hill, ON
             <br />
