@@ -61,6 +61,10 @@ export const LEAD_STATUSES = [
   "new",
   "contacted",
   "qualified",
+  // 'negotiating' was missing from the schema while present in the admin UI
+  // (app/admin/leads/page.tsx renders a button for it). Clicking it returned
+  // a silent 400 — see fix/trade-in-persist-and-lead-status.
+  "negotiating",
   "converted",
   "lost",
   "archived",

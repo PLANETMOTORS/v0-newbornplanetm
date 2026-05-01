@@ -5,6 +5,7 @@ import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
 import { trackLead } from "@/lib/meta-capi-helpers"
 import { rateLimit } from "@/lib/redis"
 import { getClientIp } from "@/lib/security/client-ip"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -117,8 +118,52 @@ export async function POST(req: Request) {
 
     // Generate quote ID
     const quoteId = `TQ-${Date.now()}-${randomBytes(3).toString("hex").toUpperCase()}`
+    const validUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
-    // Send notification email to admin
+    // ── Persist to trade_in_quotes table ────────────────────────────────
+    // Critical for /admin/trade-ins to surface the lead. Without this insert
+    // the customer received an email confirmation but the dealer never saw
+    // the lead in the admin UI (Analytics: 0 trade-ins). Reproduced live on
+    // 2026-04-30 by Jenny Iagoudakis (2008 BMW E60 M5, TQ-1777577854248-...).
+    //
+    // We use the service-role admin client so the insert succeeds even
+    // when the customer is unauthenticated. The `Anyone can insert quotes`
+    // RLS policy in scripts/create-trade-in-quotes-table.sql also permits
+    // anon inserts, but service-role bypasses RLS for clarity + reliability.
+    let persistError: string | null = null
+    try {
+      const supabase = createAdminClient()
+      const { error: insertError } = await supabase
+        .from("trade_in_quotes")
+        .insert({
+          quote_id: quoteId,
+          vehicle_year: Number.parseInt(year),
+          vehicle_make: make,
+          vehicle_model: model,
+          mileage: Number.parseInt(mileage),
+          condition,
+          vin: vin || null,
+          customer_name: customerName || null,
+          customer_email: customerEmail || null,
+          customer_phone: customerPhone || null,
+          offer_amount: estimate.averageEstimate,
+          offer_low: estimate.lowEstimate,
+          offer_high: estimate.highEstimate,
+          status: "pending",
+          valid_until: validUntil,
+          source: "instant_quote",
+        })
+      if (insertError) {
+        persistError = insertError.message
+        console.error("[trade-in] DB insert failed:", insertError)
+      }
+    } catch (err) {
+      persistError = err instanceof Error ? err.message : "Unknown error"
+      console.error("[trade-in] DB insert exception:", err)
+    }
+
+    // Send notification email to admin (regardless of DB persist outcome —
+    // we don't want to lose the lead if Postgres is briefly down)
     if (customerEmail) {
       await sendNotificationEmail({
         type: 'trade_in_quote',
@@ -157,8 +202,11 @@ export async function POST(req: Request) {
         average: estimate.averageEstimate,
         currency: "CAD",
       },
-      validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+      validUntil,
       message: "This is an estimated value. Final offer subject to in-person inspection.",
+      // `persistError` surfaced for server logs / observability; never blocks
+      // the customer-facing response since the email was already sent.
+      ...(persistError ? { _persistError: persistError } : {}),
     })
   } catch (error) {
     console.error("Trade-in quote error:", error)
