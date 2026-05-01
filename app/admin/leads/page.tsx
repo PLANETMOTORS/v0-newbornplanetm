@@ -47,12 +47,13 @@ const SOURCE_LABELS: Record<string, string> = {
   reservation: "Reservation",
   test_drive: "Test Drive",
   walk_in: "Walk-In",
+  newsletter: "Newsletter",
   referral: "Referral",
   other: "Other",
 }
 
 const STATUS_OPTIONS = ["all", "new", "contacted", "qualified", "negotiating", "converted", "lost", "archived"]
-const SOURCE_OPTIONS = ["all", "contact_form", "chat", "finance_app", "trade_in", "reservation", "test_drive"]
+const SOURCE_OPTIONS = ["all", "contact_form", "chat", "finance_app", "trade_in", "reservation", "test_drive", "newsletter"]
 
 function priorityColor(priority: string): string {
   switch (priority) {

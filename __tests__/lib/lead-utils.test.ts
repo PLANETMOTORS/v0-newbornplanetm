@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest"
 import { timeAgo, sourceIcon, leadStatusVariant } from "@/lib/admin/lead-utils"
-import { Bot, Car, CalendarCheck, Clock, DollarSign, MessageSquare } from "lucide-react"
+import { Bot, Car, CalendarCheck, Clock, DollarSign, Mail, MessageSquare } from "lucide-react"
 
 describe("timeAgo", () => {
   beforeAll(() => {
@@ -34,6 +34,7 @@ describe("sourceIcon", () => {
     ["reservation", CalendarCheck],
     ["trade_in", Car],
     ["test_drive", Clock],
+    ["newsletter", Mail],
     ["unknown", MessageSquare],
   ])("maps %s to the right icon", (source, expected) => {
     expect(sourceIcon(source)).toBe(expected)
