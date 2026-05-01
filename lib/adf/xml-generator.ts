@@ -46,7 +46,7 @@ function buildContact(contact: ADFContact): string {
   const parts: string[] = []
   if (contact.firstName) parts.push(tag("name", contact.firstName, { part: "first" }))
   if (contact.lastName) parts.push(tag("name", contact.lastName, { part: "last" }))
-  if (contact.fullName && contact.firstName === undefined && contact.lastName === undefined) {
+  if (contact.fullName && !contact.firstName && !contact.lastName) {
     parts.push(tag("name", contact.fullName, { part: "full" }))
   }
   if (contact.email) parts.push(tag("email", contact.email))
@@ -65,8 +65,8 @@ function buildVehicle(vehicle: ADFVehicle): string {
     tag("trim", vehicle.trim),
     tag("vin", vehicle.vin),
     tag("stock", vehicle.stockNumber),
-    vehicle.mileage !== undefined ? tag("odometer", vehicle.mileage, { units: "km" }) : "",
-    vehicle.price !== undefined ? tag("price", vehicle.price, { type: "asking" }) : "",
+    tag("odometer", vehicle.mileage, { units: "km" }),
+    tag("price", vehicle.price, { type: "asking" }),
   ]
     .filter(Boolean)
     .join("")
@@ -84,11 +84,9 @@ function buildTradeIn(trade: ADFTradeIn): string {
     tag("model", trade.model),
     tag("trim", trade.trim),
     tag("vin", trade.vin),
-    trade.mileage !== undefined ? tag("odometer", trade.mileage, { units: "km" }) : "",
+    tag("odometer", trade.mileage, { units: "km" }),
     tag("condition", trade.condition),
-    trade.offerAmount !== undefined
-      ? tag("price", trade.offerAmount, { type: "appraisal" })
-      : "",
+    tag("price", trade.offerAmount, { type: "appraisal" }),
   ]
     .filter(Boolean)
     .join("")

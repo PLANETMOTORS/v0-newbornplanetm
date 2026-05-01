@@ -184,34 +184,28 @@ interface MergedPost {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mergePostData(sanityPost: any, staticPost: (typeof blogPosts)[string] | undefined): MergedPost {
   const sanityHasBody = sanityPost?.body && sanityPost.body.length > 1
+  const dateOpts: Intl.DateTimeFormatOptions | undefined = staticPost
+    ? { year: "numeric", month: "short", day: "2-digit" }
+    : undefined
 
-  if (staticPost) {
-    return {
-      ...staticPost,
-      title: sanityPost?.title ?? staticPost.title,
-      excerpt: sanityPost?.excerpt ?? staticPost.excerpt,
-      image: sanityPost?.coverImage ?? staticPost.image,
-      date: sanityPost?.publishedAt
-        ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" })
-        : staticPost.date,
-      content: sanityHasBody ? portableTextToHtml(sanityPost.body) : staticPost.content,
-      relatedPosts: staticPost.relatedPosts,
-      readTime: staticPost.readTime,
-      author: staticPost.author,
-      category: staticPost.category,
-    }
-  }
+  const sanityContent = sanityHasBody
+    ? portableTextToHtml(sanityPost.body)
+    : sanityPost?.body
+      ? portableTextToHtml(sanityPost.body)
+      : undefined
 
   return {
-    title: sanityPost.title ?? "",
-    excerpt: sanityPost.excerpt ?? "",
-    image: sanityPost.coverImage ?? "/images/blog/blog-1.png",
-    date: sanityPost.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "",
-    content: sanityPost.body ? portableTextToHtml(sanityPost.body) : `<p>${sanityPost.excerpt ?? ""}</p>`,
-    relatedPosts: [],
-    readTime: "5 min read",
-    author: "Planet Motors Team",
-    category: "General",
+    title: sanityPost?.title ?? staticPost?.title ?? "",
+    excerpt: sanityPost?.excerpt ?? staticPost?.excerpt ?? "",
+    image: sanityPost?.coverImage ?? staticPost?.image ?? "/images/blog/blog-1.png",
+    date: sanityPost?.publishedAt
+      ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", dateOpts)
+      : staticPost?.date ?? "",
+    content: sanityContent ?? staticPost?.content ?? `<p>${sanityPost?.excerpt ?? ""}</p>`,
+    relatedPosts: staticPost?.relatedPosts ?? [],
+    readTime: staticPost?.readTime ?? "5 min read",
+    author: staticPost?.author ?? "Planet Motors Team",
+    category: staticPost?.category ?? "General",
   }
 }
 
