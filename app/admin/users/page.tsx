@@ -85,9 +85,9 @@ export default function AdminUsersPage() {
       const data = (await res.json()) as { admins: AdminUserRow[] }
       setAdmins(data.admins ?? [])
       setError(null)
-    } catch (caught) {
+    } catch (error_) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to load admins",
+        error_ instanceof Error ? error_.message : "Failed to load admins",
       )
     } finally {
       setLoading(false)
@@ -98,7 +98,7 @@ export default function AdminUsersPage() {
     fetchAdmins()
   }, [fetchAdmins])
 
-  const submitInvite = async (e: React.FormEvent) => {
+  const submitInvite = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!inviteEmail.trim()) return
     setInviting(true)
@@ -126,8 +126,8 @@ export default function AdminUsersPage() {
       setInviteNotes("")
       setInviteRole("admin")
       await fetchAdmins()
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Invite failed")
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Invite failed")
     } finally {
       setInviting(false)
     }
@@ -156,8 +156,8 @@ export default function AdminUsersPage() {
       }
       await fetchAdmins()
       setError(null)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Update failed")
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Update failed")
     } finally {
       setPendingId(null)
     }
@@ -185,8 +185,8 @@ export default function AdminUsersPage() {
       }
       await fetchAdmins()
       setError(null)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Delete failed")
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Delete failed")
     } finally {
       setPendingId(null)
     }
@@ -285,15 +285,17 @@ export default function AdminUsersPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {loading && (
             <p className="text-sm text-gray-500 py-6 text-center">
               Loading admins...
             </p>
-          ) : admins.length === 0 ? (
+          )}
+          {!loading && admins.length === 0 && (
             <p className="text-sm text-gray-500 py-6 text-center">
               No admins on file. Invite the first one above.
             </p>
-          ) : (
+          )}
+          {!loading && admins.length > 0 && (
             <div className="divide-y" data-testid="admin-roster">
               {admins.map((row) => {
                 const self = isSelf(row)

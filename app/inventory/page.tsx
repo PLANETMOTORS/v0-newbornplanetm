@@ -902,7 +902,11 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {/* Vehicle Grid — content-visibility virtualizes off-screen cards */}
           {!showSkeleton && !showError && (<>
           <div aria-live="polite" className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
-            {sortedVehicles.map((vehicle, vehicleIndex) => (
+            {sortedVehicles.map((vehicle, vehicleIndex) => {
+              const imageLoadingProps = vehicleIndex < 3
+                ? { priority: true } as const
+                : { loading: "lazy" } as const
+              return (
               <div
                 key={vehicle.id}
                 style={{
@@ -929,11 +933,10 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       src={vehicle.image}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} for sale, ${vehicle.mileage.toLocaleString()} km, Planet Motors`}
                       fill
-                      {...(vehicleIndex < 3 ? { priority: true } : { loading: "lazy" as const })}
+                      {...imageLoadingProps}
                       className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       onError={(e) => {
-                        // Hide broken image — gradient + icon shows through
                         (e.target as HTMLImageElement).style.display = "none"
                       }}
                     />
@@ -1129,7 +1132,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 </CardContent>
               </Card>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* No Results */}

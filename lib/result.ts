@@ -58,8 +58,8 @@ export function mapErr<T, E, F>(r: Result<T, E>, f: (error: E) => F): Result<T, 
 export async function fromPromise<T>(p: Promise<T>): Promise<Result<T, Error>> {
   try {
     return ok(await p)
-  } catch (caught) {
-    return err(caught instanceof Error ? caught : new Error(String(caught)))
+  } catch (error_) {
+    return err(error_ instanceof Error ? error_ : new Error(String(error_)))
   }
 }
 
@@ -70,8 +70,8 @@ export async function fromPromise<T>(p: Promise<T>): Promise<Result<T, Error>> {
 export function fromTry<T>(fn: () => T): Result<T, Error> {
   try {
     return ok(fn())
-  } catch (caught) {
-    return err(caught instanceof Error ? caught : new Error(String(caught)))
+  } catch (error_) {
+    return err(error_ instanceof Error ? error_ : new Error(String(error_)))
   }
 }
 

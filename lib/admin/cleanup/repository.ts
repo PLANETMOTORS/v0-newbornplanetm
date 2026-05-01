@@ -93,8 +93,8 @@ export async function deleteByIds(
       .in("id", ids as string[])
     if (error) return err(`${table}: ${error.message}`)
     return ok(count ?? 0)
-  } catch (caught) {
-    const message = caught instanceof Error ? caught.message : "delete threw"
+  } catch (error_) {
+    const message = error_ instanceof Error ? error_.message : "delete threw"
     return err(`${table}: ${message}`)
   }
 }

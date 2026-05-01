@@ -232,23 +232,25 @@ export function HomepageFeaturedVehicles() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVehicles.map((vehicle, vehicleIndex) => (
+          {filteredVehicles.map((vehicle, vehicleIndex) => {
+            const imageLoadingProps = vehicleIndex < 3
+              ? { priority: true } as const
+              : { loading: "lazy" } as const
+            return (
             <div
               key={vehicle.id}
               className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
             >
               <div className="relative aspect-4/3 bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] overflow-hidden">
-                {/* Vehicle image or gradient fallback */}
                 {vehicle.imageUrl ? (
                   <Image
                     src={vehicle.imageUrl}
                     alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     fill
-                    {...(vehicleIndex < 3 ? { priority: true } : { loading: "lazy" as const })}
+                    {...imageLoadingProps}
                     className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={(e) => {
-                      // Hide broken image, fallback gradient + icon shows through
                       (e.target as HTMLImageElement).style.display = "none"
                     }}
                   />
@@ -304,7 +306,8 @@ export function HomepageFeaturedVehicles() {
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="text-center mt-10">

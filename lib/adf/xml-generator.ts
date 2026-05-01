@@ -21,7 +21,7 @@ import type {
  * Escape user-supplied text before embedding in XML.
  * Order matters: ampersand first to avoid double-escaping.
  */
-export function escapeXml(value: unknown): string {
+export function escapeXml(value: string | number | boolean | undefined | null): string {
   if (value === undefined || value === null) return ""
   return String(value)
     .replaceAll("&", "&amp;")
@@ -31,7 +31,7 @@ export function escapeXml(value: unknown): string {
     .replaceAll("'", "&apos;")
 }
 
-function tag(name: string, value: unknown, attrs?: Record<string, string>): string {
+function tag(name: string, value: string | number | boolean | undefined | null, attrs?: Record<string, string>): string {
   const escaped = escapeXml(value)
   if (escaped === "") return ""
   const attrStr = attrs
@@ -46,7 +46,7 @@ function buildContact(contact: ADFContact): string {
   const parts: string[] = []
   if (contact.firstName) parts.push(tag("name", contact.firstName, { part: "first" }))
   if (contact.lastName) parts.push(tag("name", contact.lastName, { part: "last" }))
-  if (contact.fullName && !contact.firstName && !contact.lastName) {
+  if (contact.fullName && contact.firstName === undefined && contact.lastName === undefined) {
     parts.push(tag("name", contact.fullName, { part: "full" }))
   }
   if (contact.email) parts.push(tag("email", contact.email))
@@ -92,7 +92,7 @@ function buildTradeIn(trade: ADFTradeIn): string {
   ]
     .filter(Boolean)
     .join("")
-  if (!inner) return ""
+  if (inner === "") return ""
   return `<vehicle interest="trade-in">${inner}</vehicle>`
 }
 

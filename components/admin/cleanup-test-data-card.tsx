@@ -100,10 +100,10 @@ export function CleanupTestDataCard() {
     try {
       const summary = await callCleanup(true)
       setStep({ kind: "preview", summary })
-    } catch (caught) {
+    } catch (error_) {
       setStep({
         kind: "error",
-        message: caught instanceof Error ? caught.message : "Preview failed",
+        message: error_ instanceof Error ? error_.message : "Preview failed",
       })
     }
   }, [])
@@ -114,10 +114,10 @@ export function CleanupTestDataCard() {
     try {
       const summary = await callCleanup(false)
       setStep({ kind: "deleted", summary })
-    } catch (caught) {
+    } catch (error_) {
       setStep({
         kind: "error",
-        message: caught instanceof Error ? caught.message : "Delete failed",
+        message: error_ instanceof Error ? error_.message : "Delete failed",
       })
     }
   }, [step])

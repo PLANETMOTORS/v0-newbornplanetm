@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
@@ -170,10 +169,55 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
+interface MergedPost {
+  title: string
+  excerpt: string
+  image: string
+  date: string
+  content: string
+  relatedPosts: string[]
+  readTime: string
+  author: string
+  category: string
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mergePostData(sanityPost: any, staticPost: (typeof blogPosts)[string] | undefined): MergedPost {
+  const sanityHasBody = sanityPost?.body && sanityPost.body.length > 1
+
+  if (staticPost) {
+    return {
+      ...staticPost,
+      title: sanityPost?.title ?? staticPost.title,
+      excerpt: sanityPost?.excerpt ?? staticPost.excerpt,
+      image: sanityPost?.coverImage ?? staticPost.image,
+      date: sanityPost?.publishedAt
+        ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" })
+        : staticPost.date,
+      content: sanityHasBody ? portableTextToHtml(sanityPost.body) : staticPost.content,
+      relatedPosts: staticPost.relatedPosts,
+      readTime: staticPost.readTime,
+      author: staticPost.author,
+      category: staticPost.category,
+    }
+  }
+
+  return {
+    title: sanityPost.title ?? "",
+    excerpt: sanityPost.excerpt ?? "",
+    image: sanityPost.coverImage ?? "/images/blog/blog-1.png",
+    date: sanityPost.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA") : "",
+    content: sanityPost.body ? portableTextToHtml(sanityPost.body) : `<p>${sanityPost.excerpt ?? ""}</p>`,
+    relatedPosts: [],
+    readTime: "5 min read",
+    author: "Planet Motors Team",
+    category: "General",
+  }
+}
+
 export default async function BlogPostPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
   const { slug } = await params
 
-  // Try Sanity CMS first; fall back to static blog-data.ts
   const sanityPost = await getBlogPost(slug)
   const staticPost = blogPosts[slug]
 
@@ -181,35 +225,7 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
     notFound()
   }
 
-  // Merge: prefer Sanity fields, fall back to static data.
-  // Sanity body (Portable Text) takes precedence when it has real content
-  // (more than 1 block), so edits in Sanity Studio flow to the site.
-  const sanityHasBody = sanityPost?.body && sanityPost.body.length > 1
-  const post = staticPost
-    ? {
-        ...staticPost,
-        title: sanityPost?.title ?? staticPost.title,
-        excerpt: sanityPost?.excerpt ?? staticPost.excerpt,
-        image: sanityPost?.coverImage ?? staticPost.image,
-        date: sanityPost?.publishedAt ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" }) : staticPost.date,
-        content: sanityHasBody ? portableTextToHtml(sanityPost!.body!) : staticPost.content,
-        relatedPosts: staticPost.relatedPosts,
-        readTime: staticPost.readTime,
-        author: staticPost.author,
-        category: staticPost.category,
-      }
-    : {
-        title: sanityPost!.title ?? "",
-        excerpt: sanityPost!.excerpt ?? "",
-        image: sanityPost!.coverImage ?? "/images/blog/blog-1.png",
-        date: sanityPost!.publishedAt ? new Date(sanityPost!.publishedAt).toLocaleDateString("en-CA") : "",
-        content: sanityPost!.body ? portableTextToHtml(sanityPost!.body) : `<p>${sanityPost!.excerpt ?? ""}</p>`,
-        relatedPosts: [],
-        readTime: "5 min read",
-        author: "Planet Motors Team",
-        category: "General",
-      }
-
+  const post = mergePostData(sanityPost, staticPost)
   const relatedPosts = getRelatedPosts(post.relatedPosts)
 
   return (

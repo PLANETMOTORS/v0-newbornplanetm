@@ -110,8 +110,7 @@ export default function AccessibilityPage() {
               className="font-semibold text-[#c9a84c] underline decoration-[#c9a84c] decoration-1 underline-offset-[3px] transition-colors hover:text-[#0f172a]"
             >
               AODA
-            </a>
-            .
+            </a>.
           </p>
         </div>
 
