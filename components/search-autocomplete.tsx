@@ -475,145 +475,169 @@ interface DropdownProps {
   readonly navigateTo: (href: string) => void
 }
 
-function renderDropdownContent(props: DropdownProps): React.ReactNode {
-  const {
-    showPopular,
-    showLoading,
-    showResults,
-    showNoResults,
-    popular,
-    groups,
-    query,
-    activeIndex,
-    optionIdPrefix,
-    navigateTo,
-  } = props
+function PopularDropdown({
+  popular,
+  activeIndex,
+  optionIdPrefix,
+  navigateTo,
+}: Readonly<Pick<DropdownProps, "popular" | "activeIndex" | "optionIdPrefix" | "navigateTo">>) {
+  return (
+    <div className="py-2">
+      <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+        <TrendingUp className="h-3 w-3" aria-hidden="true" />
+        Popular
+      </p>
+      {popular.map((item, i) => (
+        <button
+          key={item.label}
+          id={`${optionIdPrefix}-${i}`}
+          role="option"
+          aria-selected={activeIndex === i}
+          data-index={i}
+          type="button"
+          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors min-h-[44px] ${
+            activeIndex === i
+              ? "bg-[#f0f4ff] text-[#1e3a8a]"
+              : "text-gray-700 hover:bg-[#f0f4ff] hover:text-[#1e3a8a]"
+          }`}
+          onClick={() => navigateTo(item.href)}
+        >
+          <TrendingUp className="h-3.5 w-3.5 text-gray-400 shrink-0" aria-hidden="true" />
+          <span className="flex-1 truncate">{item.label}</span>
+          {item.count > 0 && (
+            <span className="text-xs text-gray-400">{item.count}</span>
+          )}
+          <TypeBadge type={item.type} />
+        </button>
+      ))}
+    </div>
+  )
+}
 
-  let globalIdx = 0
-
-  if (showPopular) {
-    return (
-      <div className="py-2">
-        <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-          <TrendingUp className="h-3 w-3" aria-hidden="true" />
-          Popular
-        </p>
-        {popular.map((item, i) => (
-          <button
-            key={item.label}
-            id={`${optionIdPrefix}-${i}`}
-            role="option"
-            aria-selected={activeIndex === i}
-            data-index={i}
-            type="button"
-            className={`w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors min-h-[44px] ${
-              activeIndex === i
-                ? "bg-[#f0f4ff] text-[#1e3a8a]"
-                : "text-gray-700 hover:bg-[#f0f4ff] hover:text-[#1e3a8a]"
-            }`}
-            onClick={() => navigateTo(item.href)}
-          >
-            <TrendingUp className="h-3.5 w-3.5 text-gray-400 shrink-0" aria-hidden="true" />
-            <span className="flex-1 truncate">{item.label}</span>
-            {item.count > 0 && (
-              <span className="text-xs text-gray-400">{item.count}</span>
-            )}
-            <TypeBadge type={item.type} />
-          </button>
-        ))}
-      </div>
-    )
-  }
-
-  if (showLoading) {
-    return (
-      <div className="py-3">
-        <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-          Searching...
-        </p>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-3 px-3 py-2.5 animate-pulse">
-            <div className="h-4 w-4 rounded bg-gray-200 shrink-0" />
-            <div className="h-3 rounded bg-gray-200 flex-1" />
-            <div className="h-4 w-12 rounded bg-gray-100" />
-          </div>
-        ))}
-      </div>
-    )
-  }
-
-  if (showResults) {
-    return (
-      <div className="py-2">
-        {groups.map((group) => (
-          <div key={group.heading}>
-            <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#1e3a8a]/60">
-              {group.heading}
-            </p>
-            {group.items.map((item) => {
-              const idx = globalIdx++
-              return (
-                <button
-                  key={`${group.heading}-${item.label}`}
-                  id={`${optionIdPrefix}-${idx}`}
-                  role="option"
-                  aria-selected={activeIndex === idx}
-                  data-testid="search-result-item"
-                  data-index={idx}
-                  type="button"
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors min-h-[44px] ${
-                    activeIndex === idx
-                      ? "bg-[#f0f4ff] text-[#1e3a8a]"
-                      : "text-gray-700 hover:bg-[#f0f4ff] hover:text-[#1e3a8a]"
-                  }`}
-                  onClick={() => navigateTo(item.href)}
-                >
-                  <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" aria-hidden="true" />
-                  <span className="flex-1 truncate">{item.label}</span>
-                  {item.field && (
-                    <span className="text-[10px] capitalize text-gray-400 border border-gray-200 rounded px-1.5 py-0.5">
-                      {item.field === "make_model" ? "model" : item.field}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        ))}
-
-        <div className="border-t border-gray-100 px-3 py-2.5">
-          <button
-            type="button"
-            className="w-full text-left text-sm font-semibold text-[#1e3a8a] hover:underline min-h-[44px] flex items-center"
-            onClick={() =>
-              navigateTo(`/inventory?q=${encodeURIComponent(query.trim())}`)
-            }
-          >
-            See all results for &ldquo;{query.trim()}&rdquo; &rarr;
-          </button>
+function LoadingDropdown() {
+  return (
+    <div className="py-3">
+      <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+        Searching...
+      </p>
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-center gap-3 px-3 py-2.5 animate-pulse">
+          <div className="h-4 w-4 rounded bg-gray-200 shrink-0" />
+          <div className="h-3 rounded bg-gray-200 flex-1" />
+          <div className="h-4 w-12 rounded bg-gray-100" />
         </div>
-      </div>
-    )
-  }
+      ))}
+    </div>
+  )
+}
 
-  if (showNoResults) {
-    return (
-      <div className="py-8 text-center">
-        <p className="text-sm text-gray-500 mb-3">
-          No vehicles matching &ldquo;{query.trim()}&rdquo;
-        </p>
+function buildIndexMap(groups: readonly SearchGroup[]): Map<string, number> {
+  const map = new Map<string, number>()
+  let idx = 0
+  for (const group of groups) {
+    for (const item of group.items) {
+      map.set(`${group.heading}-${item.label}`, idx++)
+    }
+  }
+  return map
+}
+
+function ResultsDropdown({
+  groups,
+  query,
+  activeIndex,
+  optionIdPrefix,
+  navigateTo,
+}: Readonly<Pick<DropdownProps, "groups" | "query" | "activeIndex" | "optionIdPrefix" | "navigateTo">>) {
+  const indexMap = buildIndexMap(groups)
+  return (
+    <div className="py-2">
+      {groups.map((group) => (
+        <div key={group.heading}>
+          <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#1e3a8a]/60">
+            {group.heading}
+          </p>
+          {group.items.map((item) => {
+            const key = `${group.heading}-${item.label}`
+            const idx = indexMap.get(key) ?? -1
+            return (
+              <button
+                key={key}
+                id={`${optionIdPrefix}-${idx}`}
+                role="option"
+                aria-selected={activeIndex === idx}
+                data-testid="search-result-item"
+                data-index={idx}
+                type="button"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors min-h-[44px] ${
+                  activeIndex === idx
+                    ? "bg-[#f0f4ff] text-[#1e3a8a]"
+                    : "text-gray-700 hover:bg-[#f0f4ff] hover:text-[#1e3a8a]"
+                }`}
+                onClick={() => navigateTo(item.href)}
+              >
+                <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" aria-hidden="true" />
+                <span className="flex-1 truncate">{item.label}</span>
+                {item.field && (
+                  <span className="text-[10px] capitalize text-gray-400 border border-gray-200 rounded px-1.5 py-0.5">
+                    {item.field === "make_model" ? "model" : item.field}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      ))}
+
+      <div className="border-t border-gray-100 px-3 py-2.5">
         <button
           type="button"
-          className="text-sm font-semibold text-[#1e3a8a] hover:underline min-h-[44px]"
+          className="w-full text-left text-sm font-semibold text-[#1e3a8a] hover:underline min-h-[44px] flex items-center"
           onClick={() =>
             navigateTo(`/inventory?q=${encodeURIComponent(query.trim())}`)
           }
         >
-          Search inventory anyway &rarr;
+          See all results for &ldquo;{query.trim()}&rdquo; &rarr;
         </button>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
+function NoResultsDropdown({
+  query,
+  navigateTo,
+}: Readonly<Pick<DropdownProps, "query" | "navigateTo">>) {
+  return (
+    <div className="py-8 text-center">
+      <p className="text-sm text-gray-500 mb-3">
+        No vehicles matching &ldquo;{query.trim()}&rdquo;
+      </p>
+      <button
+        type="button"
+        className="text-sm font-semibold text-[#1e3a8a] hover:underline min-h-[44px]"
+        onClick={() =>
+          navigateTo(`/inventory?q=${encodeURIComponent(query.trim())}`)
+        }
+      >
+        Search inventory anyway &rarr;
+      </button>
+    </div>
+  )
+}
+
+function renderDropdownContent(props: DropdownProps): React.ReactNode {
+  if (props.showPopular) {
+    return <PopularDropdown {...props} />
+  }
+  if (props.showLoading) {
+    return <LoadingDropdown />
+  }
+  if (props.showResults) {
+    return <ResultsDropdown {...props} />
+  }
+  if (props.showNoResults) {
+    return <NoResultsDropdown {...props} />
+  }
   return null
 }

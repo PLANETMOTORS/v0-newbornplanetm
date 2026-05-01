@@ -12,7 +12,6 @@ import { NextResponse } from "next/server"
 import { getPopularSearches } from "@/lib/search/data"
 
 export const revalidate = 900 // ISR: 15 minutes
-export const dynamic = "force-dynamic"
 
 export async function GET() {
   try {

@@ -50,12 +50,8 @@ export async function getPopularSearches(): Promise<readonly PopularSearch[]> {
 
     if (redis) {
       const cached = await redis.get<string>(POPULAR_KEY)
-      if (cached) {
-        const parsed: PopularSearch[] =
-          typeof cached === "string"
-            ? JSON.parse(cached)
-            : (cached as unknown as PopularSearch[])
-        return parsed
+      if (typeof cached === "string") {
+        return JSON.parse(cached) as PopularSearch[]
       }
     }
 
@@ -68,7 +64,7 @@ export async function getPopularSearches(): Promise<readonly PopularSearch[]> {
       return []
     }
 
-    const results: PopularSearch[] = (data ?? []) as PopularSearch[]
+    const results = (data ?? []) as PopularSearch[]
 
     if (redis) {
       await redis.set(POPULAR_KEY, JSON.stringify(results), { ex: POPULAR_TTL })
@@ -90,7 +86,7 @@ export async function invalidatePopularSearchCache(): Promise<void> {
   } catch (err) {
     logger.warn(
       "[search/data] Cache invalidation failed:",
-      (err as Error).message,
+      err instanceof Error ? err.message : String(err),
     )
   }
 }
