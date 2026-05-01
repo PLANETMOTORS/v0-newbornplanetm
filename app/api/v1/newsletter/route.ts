@@ -129,15 +129,15 @@ export async function POST(request: NextRequest) {
     const adminClient = createAdminClient()
 
     // Check for duplicate
-    const { data: existing } = await adminClient
+    const { data: existingRows } = await adminClient
       .from("leads")
       .select("id")
       .eq("customer_email", email)
       .eq("source", "newsletter")
       .eq("status", "new")
-      .maybeSingle()
+      .limit(1)
 
-    if (existing) {
+    if (existingRows && existingRows.length > 0) {
       return NextResponse.json({ success: true, message: "Already subscribed" })
     }
 
