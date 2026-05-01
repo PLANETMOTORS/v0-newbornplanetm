@@ -195,4 +195,31 @@ describe("GET /api/v1/carfax/[vin]", () => {
     const body = await res.json()
     expect(body.source).toBe("live")
   })
+
+  it("ignores unknown query params (utm_source, etc) and still parses force", async () => {
+    getCachedSummaryMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
+    fetchBadgesMock.mockResolvedValueOnce({
+      ok: true,
+      value: { ...FRESH_SUMMARY, reportNumber: 42 },
+    })
+    upsertSummaryMock.mockResolvedValueOnce({ ok: true, value: FRESH_SUMMARY })
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
+    const res = await GET(
+      makeReq(FIXTURE_VIN, "?force=true&utm_source=newsletter&fbclid=abc"),
+      ctx(FIXTURE_VIN),
+    )
+    // Pre-fix this returned 400 INVALID_QUERY because the strict Zod
+    // schema rejected the unknown utm_source/fbclid keys.
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.source).toBe("live")
+  })
+
+  it("rejects an invalid force value with 400 INVALID_QUERY", async () => {
+    const { GET } = await import("@/app/api/v1/carfax/[vin]/route")
+    const res = await GET(makeReq(FIXTURE_VIN, "?force=maybe"), ctx(FIXTURE_VIN))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error.code).toBe("INVALID_QUERY")
+  })
 })

@@ -35,7 +35,7 @@ export async function POST(
     logger.error("[carfax-refetch] live fetch failed", {
       vin,
       kind: live.error.kind,
-      by: auth.value.email,
+      role: auth.value.role,
     })
     return errorResponse("CARFAX_FETCH_FAILED", "Carfax fetch failed", 502, {
       kind: live.error.kind,
@@ -48,17 +48,17 @@ export async function POST(
       vin,
       kind: persisted.error.kind,
       message: persisted.error.message,
+      role: auth.value.role,
     })
     return errorResponse(
       "CARFAX_PERSIST_FAILED",
-      persisted.error.message,
+      "Failed to persist Carfax data",
       500,
     )
   }
 
   logger.info("[carfax-refetch] ok", {
     vin,
-    by: auth.value.email,
     role: auth.value.role,
     hasReport: live.value.hasReport,
   })

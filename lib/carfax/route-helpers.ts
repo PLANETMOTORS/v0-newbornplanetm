@@ -68,3 +68,29 @@ export function gateVinAndEnv(rawVin: string): VinAndEnvResult {
   }
   return { ok: true, value: { vin, env } }
 }
+
+/**
+ * Parse the optional `force` query parameter from the public Carfax
+ * route URL. Reads only `force` so unrelated query strings (utm_source,
+ * fbclid, …) pass through without rejecting the request.
+ *
+ *   force=true | force=1   → { ok: true, force: true  }
+ *   force=false| force=0   → { ok: true, force: false }
+ *   force absent           → { ok: true, force: false }
+ *   force=anything else    → { ok: false }              (handler emits 400)
+ *
+ * Lives here, not in the route handler, so the rate-limited route file
+ * stays free of request-parsing logic.
+ */
+const VALID_FORCE_VALUES = new Set(["true", "false", "1", "0"])
+
+export type ForceQueryResult =
+  | { ok: true; force: boolean }
+  | { ok: false }
+
+export function parseForceQuery(rawUrl: string): ForceQueryResult {
+  const raw = new URL(rawUrl).searchParams.get("force")
+  if (raw === null) return { ok: true, force: false }
+  if (!VALID_FORCE_VALUES.has(raw)) return { ok: false }
+  return { ok: true, force: raw === "true" || raw === "1" }
+}

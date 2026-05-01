@@ -10,8 +10,14 @@
 --      24 h trigger a background refresh; the admin "Re-fetch" button
 --      forces an immediate update regardless of TTL.
 --
--- RLS: anyone can SELECT (no PII, just badge data); only service-role
--- writes (the server uses lib/supabase/admin.ts which bypasses RLS).
+-- RLS: locked. Reads MUST go through GET /api/v1/carfax/[vin], a public
+-- rate-limited route. The server uses lib/supabase/admin.ts
+-- (service-role key) which bypasses RLS for both reads and writes; the
+-- public anon key is denied by `using (false)` so a browser cannot dump
+-- the table directly. This protects the tokenized `vhrReportUrl` and
+-- honours the Carfax Canada API agreement (consumption via server-side
+-- Carfax API authentication only, not bulk-readable to anonymous
+-- clients).
 
 create table if not exists public.carfax_cache (
   vin             text         primary key,
@@ -49,11 +55,18 @@ create trigger carfax_cache_set_updated_at
 
 alter table public.carfax_cache enable row level security;
 
+-- Drop the previous wide-open policy if it ever shipped.
 drop policy if exists carfax_cache_read_anyone on public.carfax_cache;
-create policy carfax_cache_read_anyone
+
+-- Block ALL access from non-service roles. The service-role key bypasses
+-- RLS, so the server still reads/writes freely; anon and authenticated
+-- (browser) clients get nothing back from a direct SELECT.
+drop policy if exists carfax_cache_no_anon_read on public.carfax_cache;
+create policy carfax_cache_no_anon_read
   on public.carfax_cache
   for select
-  using (true);
+  to anon, authenticated
+  using (false);
 
 comment on table public.carfax_cache is
-  'Per-VIN cache of the Carfax Canada Badging API response. Rows are written by the server using the service role and read by the VDP, admin, and API endpoints.';
+  'Per-VIN cache of the Carfax Canada Badging API response. Reads and writes are restricted to the service role; browser clients must go through GET /api/v1/carfax/[vin] which is rate-limited.';

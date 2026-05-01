@@ -18,7 +18,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
 import { rateLimit } from "@/lib/redis"
 import { logger } from "@/lib/logger"
 import { fetchBadges } from "@/lib/carfax/client"
@@ -30,18 +29,13 @@ import {
 import {
   errorResponse,
   gateVinAndEnv,
+  parseForceQuery,
 } from "@/lib/carfax/route-helpers"
 import type { CarfaxBadgeSummary } from "@/lib/carfax/schemas"
 
 interface RouteContext {
   params: Promise<{ vin: string }>
 }
-
-const querySchema = z
-  .object({
-    force: z.union([z.literal("true"), z.literal("false"), z.literal("1"), z.literal("0")]).optional(),
-  })
-  .strict()
 
 function clientIp(request: NextRequest): string {
   const fwd = request.headers.get("x-forwarded-for")
@@ -79,13 +73,11 @@ export async function GET(
 ): Promise<NextResponse> {
   const { vin: rawVin } = await ctx.params
 
-  const queryRaw = Object.fromEntries(new URL(request.url).searchParams.entries())
-  const queryParsed = querySchema.safeParse(queryRaw)
-  if (!queryParsed.success) {
+  const forceParsed = parseForceQuery(request.url)
+  if (!forceParsed.ok) {
     return errorResponse("INVALID_QUERY", "force must be true|false|1|0", 400)
   }
-  const force =
-    queryParsed.data.force === "true" || queryParsed.data.force === "1"
+  const { force } = forceParsed
 
   const limit = await rateLimit(`carfax:${clientIp(request)}`, 30, 60)
   if (!limit.success) {

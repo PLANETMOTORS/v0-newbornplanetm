@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExternalLink } from "lucide-react"
 import {
+  badgeAccessibleLabel,
   hasAccidentFreeBadge,
   hasLowKilometerBadge,
   hasOneOwnerBadge,
@@ -68,7 +69,7 @@ export function CarfaxSection({
     return (
       <Card className={className} data-testid="carfax-no-report">
         <CardContent className="p-4 flex items-center justify-between">
-          <Badge variant="outline" className="border-red-500 text-red-600 text-base px-3 py-1">
+          <Badge variant="outline" className="border-brand-red text-brand-red text-base px-3 py-1">
             CARFAX
           </Badge>
           <span className="text-xs text-muted-foreground">
@@ -90,7 +91,7 @@ export function CarfaxSection({
     return (
       <Card className={className} data-testid="carfax-headline">
         <CardContent className="p-3 flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-red-500 text-red-600 text-xs">
+          <Badge variant="outline" className="border-brand-red text-brand-red text-xs">
             CARFAX
           </Badge>
           {claims.map((c) => (
@@ -107,7 +108,7 @@ export function CarfaxSection({
     <Card className={className} data-testid="carfax-panel">
       <CardContent className="p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <Badge variant="outline" className="border-red-500 text-red-600 text-base px-3 py-1">
+          <Badge variant="outline" className="border-brand-red text-brand-red text-base px-3 py-1">
             CARFAX
           </Badge>
           {summary.vhrReportUrl && (
@@ -125,7 +126,7 @@ export function CarfaxSection({
               <Image
                 key={b.name}
                 src={b.imageUrl}
-                alt={b.name}
+                alt={badgeAccessibleLabel(b.name)}
                 width={120}
                 height={36}
                 className="h-9 w-auto"
