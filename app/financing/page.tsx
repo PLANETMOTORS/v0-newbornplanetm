@@ -345,11 +345,11 @@ export default async function FinancingPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b"><td className="py-2">$20,000</td><td className="text-right py-2">$365</td><td className="text-right py-2">$168</td></tr>
-                  <tr className="border-b"><td className="py-2">$30,000</td><td className="text-right py-2">$548</td><td className="text-right py-2">$253</td></tr>
-                  <tr className="border-b"><td className="py-2">$40,000</td><td className="text-right py-2">$730</td><td className="text-right py-2">$337</td></tr>
-                  <tr className="border-b"><td className="py-2">$50,000</td><td className="text-right py-2">$913</td><td className="text-right py-2">$421</td></tr>
-                  <tr><td className="py-2">$60,000</td><td className="text-right py-2">$1,095</td><td className="text-right py-2">$506</td></tr>
+                  <tr className="border-b"><td className="py-2">$20,000</td><td className="text-right py-2">$378</td><td className="text-right py-2">$174</td></tr>
+                  <tr className="border-b"><td className="py-2">$30,000</td><td className="text-right py-2">$566</td><td className="text-right py-2">$261</td></tr>
+                  <tr className="border-b"><td className="py-2">$40,000</td><td className="text-right py-2">$755</td><td className="text-right py-2">$348</td></tr>
+                  <tr className="border-b"><td className="py-2">$50,000</td><td className="text-right py-2">$944</td><td className="text-right py-2">$435</td></tr>
+                  <tr><td className="py-2">$60,000</td><td className="text-right py-2">$1,133</td><td className="text-right py-2">$522</td></tr>
                 </tbody>
               </table>
               <p className="text-xs text-muted-foreground mt-4">

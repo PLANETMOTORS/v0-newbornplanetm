@@ -226,7 +226,6 @@ interface SummaryPanelProps {
   readonly totalInterest: number
   readonly totalLoanAmount: number
   readonly tradeInValue: number
-  readonly tradeInHstBenefit: number
   readonly downPayment: number
   readonly frequencyLabel: string
   readonly showFrequency?: boolean
@@ -240,7 +239,6 @@ function SummaryPanel({
   totalInterest,
   totalLoanAmount,
   tradeInValue,
-  tradeInHstBenefit,
   downPayment,
   frequencyLabel,
   showFrequency = true,
@@ -277,11 +275,9 @@ function SummaryPanel({
           </div>
           {tradeInValue > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                Trade-in (+ ${fmt(tradeInHstBenefit)} HST benefit)
-              </span>
+              <span className="text-muted-foreground">Trade-in Value</span>
               <span className="font-semibold text-green-600 tabular-nums">
-                -${fmt(tradeInValue + tradeInHstBenefit)}
+                -${fmt(tradeInValue)}
               </span>
             </div>
           )}
@@ -515,7 +511,6 @@ export function FinancingCalculator() {
                 totalInterest={paymentResult.totalInterest}
                 totalLoanAmount={paymentResult.totalLoanAmount}
                 tradeInValue={tradeInValue}
-                tradeInHstBenefit={tradeInHstBenefit}
                 downPayment={downPayment}
                 frequencyLabel={frequencyLabel}
               />
@@ -553,7 +548,6 @@ export function FinancingCalculator() {
                 totalLoanAmount={affordResult.totalLoanAmount}
                 showFrequency={false}
                 tradeInValue={tradeInValue}
-                tradeInHstBenefit={tradeInHstBenefit}
                 downPayment={downPayment}
                 frequencyLabel={frequencyLabel}
               />
