@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Keyboard, Mic, Focus, Smartphone, Ban, MousePointerClick, FileText, CircleSlash } from "lucide-react"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL, PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, EMAIL_INFO } from "@/lib/constants/dealership"
 
 export const metadata: Metadata = {
   title: "Accessibility | Planet Motors",
@@ -145,9 +145,6 @@ export default function AccessibilityPage() {
       <main id="main-content" tabIndex={-1}>
         {/* Hero Header */}
         <header className="border-b border-white/10 bg-[#0f172a] px-6 pt-20 pb-16 text-center md:pt-28 md:pb-20">
-          <span className="mb-6 inline-block rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.15)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[2.5px] text-[#c9a84c]">
-            WCAG 2.2 Level AA
-          </span>
           <h1 className="text-3xl font-extrabold leading-tight text-white md:text-5xl">
             Built for <span className="text-[#c9a84c]">Everyone</span>
           </h1>
@@ -305,14 +302,18 @@ export default function AccessibilityPage() {
                 of feedback is reviewed and acted on.
               </p>
               <a
-                href="mailto:accessibility@planetmotors.ca"
+                href={`mailto:${EMAIL_INFO}`}
                 className="inline-block rounded-lg bg-[#c9a84c] px-8 py-3.5 text-[0.9rem] font-bold text-[#0f172a] transition-colors hover:bg-[#e8c96d] focus-visible:outline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
               >
-                Email Our Accessibility Team
+                Email Us
               </a>
               <div className="mt-5 text-[0.85rem] text-[#94a3b8]">
-                <a href="mailto:accessibility@planetmotors.ca" className="text-[#c9a84c] no-underline">
-                  accessibility@planetmotors.ca
+                <a href={`mailto:${EMAIL_INFO}`} className="text-[#c9a84c] no-underline">
+                  {EMAIL_INFO}
+                </a>
+                {" · "}
+                <a href={`tel:${PHONE_TOLL_FREE_TEL}`} className="text-[#c9a84c] no-underline">
+                  {PHONE_TOLL_FREE}
                 </a>
                 {" · "}
                 <a href={`tel:${PHONE_LOCAL_TEL}`} className="text-[#c9a84c] no-underline">
