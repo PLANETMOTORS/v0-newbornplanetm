@@ -300,6 +300,9 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="md:hidden">
+              <SearchAutocomplete variant="icon" />
+            </div>
             <NavButton
               onSignInClick={() => setSignInPanelOpen(true)}
               onMenuClick={() => {
