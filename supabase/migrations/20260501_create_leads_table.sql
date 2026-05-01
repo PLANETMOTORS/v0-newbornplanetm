@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.leads (
                     CHECK (source IN (
                       'contact_form','chat','phone','finance_app',
                       'trade_in','reservation','test_drive','walk_in',
-                      'referral','other'
+                      'newsletter','referral','other'
                     )),
   status          VARCHAR(30)   NOT NULL DEFAULT 'new'
                     CHECK (status IN (

@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS public.leads (
   id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
   source          VARCHAR(50)   NOT NULL DEFAULT 'other'
-                    CHECK (source IN ('contact_form','chat','phone','finance_app','trade_in','reservation','test_drive','walk_in','referral','other')),
+                    CHECK (source IN ('contact_form','chat','phone','finance_app','trade_in','reservation','test_drive','walk_in','newsletter','referral','other')),
   status          VARCHAR(30)   NOT NULL DEFAULT 'new'
                     CHECK (status IN ('new','contacted','qualified','negotiating','converted','lost','archived')),
   priority        VARCHAR(10)   NOT NULL DEFAULT 'medium'
