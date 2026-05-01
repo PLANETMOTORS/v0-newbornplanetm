@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import Link from "next/link"
 import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 import { Button } from "@/components/ui/button"
@@ -27,6 +27,7 @@ export function CookieConsentBanner() {
   const [analytics, setAnalytics] = useState(true)
   const [marketing, setMarketing] = useState(true)
   const [ready, setReady] = useState(false)
+  const [, startTransition] = useTransition()
 
   // Defer rendering past the LCP observation window
   useEffect(() => {
@@ -125,7 +126,7 @@ export function CookieConsentBanner() {
             <Button
               variant="outline"
               size="sm"
-              onClick={rejectAll}
+              onClick={() => startTransition(rejectAll)}
               className="flex-1 sm:flex-none"
             >
               Reject All
@@ -134,7 +135,7 @@ export function CookieConsentBanner() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => savePreferences({ analytics, marketing })}
+                onClick={() => startTransition(() => savePreferences({ analytics, marketing }))}
                 className="flex-1 sm:flex-none"
               >
                 Save Preferences
@@ -142,7 +143,7 @@ export function CookieConsentBanner() {
             )}
             <Button
               size="sm"
-              onClick={acceptAll}
+              onClick={() => startTransition(acceptAll)}
               className="flex-1 sm:flex-none"
             >
               Accept All

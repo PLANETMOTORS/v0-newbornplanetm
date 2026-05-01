@@ -232,7 +232,7 @@ export function HomepageFeaturedVehicles() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVehicles.map((vehicle) => (
+          {filteredVehicles.map((vehicle, vehicleIndex) => (
             <div
               key={vehicle.id}
               className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
@@ -244,7 +244,7 @@ export function HomepageFeaturedVehicles() {
                     src={vehicle.imageUrl}
                     alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     fill
-                    loading="lazy"
+                    {...(vehicleIndex < 3 ? { priority: true } : { loading: "lazy" as const })}
                     className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={(e) => {

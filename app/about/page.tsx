@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
 import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, PHONE_TOLL_FREE, PHONE_LOCAL, EMAIL_INFO, DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 
+export const revalidate = 86400
+
 const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
