@@ -9,21 +9,22 @@
  *
  * Two modes:
  *   1. By explicit ID list:
- *      body: { table: "leads", ids: ["uuid1", "uuid2"] }
+ *      body: { mode: "by-id", table: "leads", ids: ["uuid1", "uuid2"] }
  *
  *   2. By name/email pattern (matches typical test fixtures):
  *      body: { mode: "test-pattern", dryRun?: boolean }
- *      → deletes anything whose customer_name OR email matches:
- *          - "Devin*"  (Devin Test, devin.test@...)
- *          - "Toni Sultzberg" (developer's seed account)
- *          - "Thigg Egg"
- *          - "aaa*"
- *          - "*test*@*"
+ *      → matches rows whose customer_name OR email contains typical test data,
+ *        including names such as:
+ *          - "Devin Test" / "Devin"
+ *          - "Toni Sultzberg" (developer seed account)
+ *          - "Thigg Egg" / "Thigg" / "Egg"
  *
  * dryRun=true returns the matching rows without deleting — safer first step.
  *
  * Response:
- *   200: { ok, deleted: { leads: N, reservations: N, ... }, byTable: {...} }
+ *   200 (mode="by-id"): returns the by-id cleanup result JSON for the requested table/ids
+ *   200 (mode="test-pattern"): returns the test-pattern cleanup result JSON; with dryRun=true,
+ *   the response contains the matched rows without deleting them
  *   400: invalid body
  *   401: not admin
  */
