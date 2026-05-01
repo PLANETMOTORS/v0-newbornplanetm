@@ -29,20 +29,12 @@ import {
 import {
   errorResponse,
   gateVinAndEnv,
+  parseForceQuery,
 } from "@/lib/carfax/route-helpers"
 import type { CarfaxBadgeSummary } from "@/lib/carfax/schemas"
 
 interface RouteContext {
   params: Promise<{ vin: string }>
-}
-
-const VALID_FORCE_VALUES = new Set(["true", "false", "1", "0"])
-
-function parseForce(request: NextRequest): { ok: true; force: boolean } | { ok: false } {
-  const raw = new URL(request.url).searchParams.get("force")
-  if (raw === null) return { ok: true, force: false }
-  if (!VALID_FORCE_VALUES.has(raw)) return { ok: false }
-  return { ok: true, force: raw === "true" || raw === "1" }
 }
 
 function clientIp(request: NextRequest): string {
@@ -81,7 +73,7 @@ export async function GET(
 ): Promise<NextResponse> {
   const { vin: rawVin } = await ctx.params
 
-  const forceParsed = parseForce(request)
+  const forceParsed = parseForceQuery(request.url)
   if (!forceParsed.ok) {
     return errorResponse("INVALID_QUERY", "force must be true|false|1|0", 400)
   }

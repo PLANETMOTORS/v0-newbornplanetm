@@ -10,13 +10,14 @@
 --      24 h trigger a background refresh; the admin "Re-fetch" button
 --      forces an immediate update regardless of TTL.
 --
--- RLS: locked. Reads MUST go through GET /api/v1/carfax/[vin] which is
--- rate-limited and authenticated. The server uses lib/supabase/admin.ts
+-- RLS: locked. Reads MUST go through GET /api/v1/carfax/[vin], a public
+-- rate-limited route. The server uses lib/supabase/admin.ts
 -- (service-role key) which bypasses RLS for both reads and writes; the
 -- public anon key is denied by `using (false)` so a browser cannot dump
 -- the table directly. This protects the tokenized `vhrReportUrl` and
--- honours the Carfax Canada API agreement (consumption via authenticated
--- server only, not bulk-readable to anonymous clients).
+-- honours the Carfax Canada API agreement (consumption via server-side
+-- Carfax API authentication only, not bulk-readable to anonymous
+-- clients).
 
 create table if not exists public.carfax_cache (
   vin             text         primary key,
