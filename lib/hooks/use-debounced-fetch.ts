@@ -47,10 +47,17 @@ export function useDebouncedFetch<T>({
     abortRef.current = controller
 
     const timer = globalThis.setTimeout(async () => {
-      const result = await fetcher(query, controller.signal)
-      if (!controller.signal.aborted) {
-        setData(result)
-        setIsLoading(false)
+      try {
+        const result = await fetcher(query, controller.signal)
+        if (!controller.signal.aborted) {
+          setData(result)
+          setIsLoading(false)
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setData(null)
+          setIsLoading(false)
+        }
       }
     }, delayMs)
 

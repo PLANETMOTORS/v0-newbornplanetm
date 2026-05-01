@@ -246,17 +246,19 @@ export function SearchAutocomplete({
     return () => globalThis.document.removeEventListener("keydown", handleEscape)
   }, [isOpen, closeSearch])
 
-  // ── Body scroll lock ──
+  // ── Body scroll lock (mobile overlay only) ──
   useEffect(() => {
-    if (isOpen) {
+    if (variant === "icon" && isOpen) {
       globalThis.document.body.style.overflow = "hidden"
-    } else {
+    } else if (variant === "icon") {
       globalThis.document.body.style.overflow = ""
     }
     return () => {
-      globalThis.document.body.style.overflow = ""
+      if (variant === "icon") {
+        globalThis.document.body.style.overflow = ""
+      }
     }
-  }, [isOpen])
+  }, [isOpen, variant])
 
   // ── Scroll active option into view ──
   useEffect(() => {
