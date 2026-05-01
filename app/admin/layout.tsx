@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
@@ -12,6 +12,12 @@ import {
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import {
+  type PermissionMap,
+  ROUTE_TO_FEATURE,
+  resolvePermissions,
+  hasAccess,
+} from "@/lib/admin/permissions"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -39,6 +45,7 @@ export default function AdminLayout({
   const { user, isLoading, signOut } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [permissions, setPermissions] = useState<PermissionMap | null>(null)
 
   // Allow auth-related pages to render without admin shell or auth gate
   const isAuthPage = pathname === "/admin/login" || pathname === "/admin/forgot-password" || pathname === "/admin/reset-password"
@@ -57,6 +64,7 @@ export default function AdminLayout({
       user.user_metadata?.is_admin === true
     if (fastPathAdmin) {
       setIsAdmin(true)
+      setPermissions(resolvePermissions("admin"))
       return
     }
 
@@ -72,10 +80,11 @@ export default function AdminLayout({
           router.push("/")
           return
         }
-        const json = (await res.json()) as { isAdmin?: boolean }
+        const json = (await res.json()) as { isAdmin?: boolean; role?: string; permissions?: Partial<PermissionMap> | null }
         if (cancelled) return
         if (json.isAdmin) {
           setIsAdmin(true)
+          setPermissions(resolvePermissions(json.role ?? "viewer", json.permissions))
         } else {
           router.push("/")
         }
@@ -89,6 +98,16 @@ export default function AdminLayout({
     }
   }, [user, isLoading, router, isAuthPage])
 
+  // Filter sidebar navigation based on user permissions
+  const visibleNavigation = useMemo(() => {
+    if (!permissions) return navigation
+    return navigation.filter((item) => {
+      const feature = ROUTE_TO_FEATURE[item.href]
+      if (!feature) return true
+      return hasAccess(permissions, feature, "read")
+    })
+  }, [permissions])
+
   // Render auth pages without the admin shell
   if (isAuthPage) {
     return <>{children}</>
@@ -96,10 +115,10 @@ export default function AdminLayout({
 
   if (isLoading || !user || !isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying access...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Verifying access...</p>
         </div>
       </div>
     )
@@ -138,7 +157,7 @@ export default function AdminLayout({
         </div>
 
         <nav className="p-4 space-y-1">
-          {navigation.map((item) => (
+          {visibleNavigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}

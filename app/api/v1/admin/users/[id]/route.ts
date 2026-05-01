@@ -96,7 +96,7 @@ export async function PATCH(
   )
   if (!parsed.ok) return parsed.error
 
-  if (parsed.value.is_active === false || parsed.value.role === "viewer") {
+  if (parsed.value.is_active === false || parsed.value.role === "viewer" || parsed.value.permissions !== undefined) {
     const blocked = await selfProtect(id, auth.value.email)
     if (blocked) return blocked
   }

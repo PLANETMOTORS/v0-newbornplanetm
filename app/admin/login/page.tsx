@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -10,14 +10,23 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Eye, EyeOff, Mail, LockKeyhole, Shield, Loader2 } from "lucide-react"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const { user, isLoading: authLoading } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // Redirect already-authenticated users to admin dashboard
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/admin")
+    }
+  }, [authLoading, user, router])
 
   const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -32,12 +41,23 @@ export default function AdminLoginPage() {
       })
 
       if (authError) throw authError
-      router.push("/admin")
+      router.replace("/admin")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Invalid credentials")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Show dark screen while checking auth to avoid form flash
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-400 mx-auto"></div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -10,7 +10,7 @@ describe("inviteAdminSchema", () => {
   it("accepts a valid invite with role default", () => {
     const r = inviteAdminSchema.parse({ email: "Foo@Bar.COM" })
     expect(r.email).toBe("foo@bar.com")
-    expect(r.role).toBe("admin")
+    expect(r.role).toBe("viewer")
     expect(r.notes).toBeUndefined()
   })
 

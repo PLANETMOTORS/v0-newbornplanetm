@@ -14,7 +14,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
-import { isActiveAdmin } from "@/lib/admin/users/repository"
+import { getAdminByEmail } from "@/lib/admin/users/repository"
 
 export const dynamic = "force-dynamic"
 
@@ -28,12 +28,14 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json({ isAdmin: false, email: null })
   }
 
-  const dbActive = await isActiveAdmin(email).catch(() => false)
-  if (dbActive) {
+  // Check DB for full admin row (includes role + custom permissions)
+  const dbResult = await getAdminByEmail(email).catch(() => null)
+  if (dbResult && dbResult.ok && dbResult.value?.is_active) {
     return NextResponse.json({
       isAdmin: true,
       email,
-      role: "admin" as const,
+      role: dbResult.value.role,
+      permissions: dbResult.value.permissions ?? null,
       source: "db" as const,
     })
   }
@@ -43,6 +45,7 @@ export async function GET(): Promise<NextResponse> {
       isAdmin: true,
       email,
       role: "admin" as const,
+      permissions: null,
       source: "env" as const,
     })
   }
