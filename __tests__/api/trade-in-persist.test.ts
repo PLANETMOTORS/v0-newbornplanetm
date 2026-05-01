@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { sendNotificationEmail } from "@/lib/email"
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
@@ -108,7 +109,11 @@ describe("POST /api/trade-in/quote — persistence", () => {
     const body = await res.json()
     expect(body.success).toBe(true)
     expect(body.data.quoteId).toMatch(/^TQ-/)
-    expect(body.data._persistError).toBe("DB exploded")
+    // DB error is surfaced as a sanitized warning (not the raw error message) so
+    // internal Postgres details are never leaked to the customer-facing response.
+    expect(body.data._persistWarning).toBeDefined()
+    // Dealer email must still fire — this is the "no lead loss" guarantee.
+    expect(vi.mocked(sendNotificationEmail)).toHaveBeenCalledOnce()
   })
 
   it("rejects missing required fields with 400", async () => {

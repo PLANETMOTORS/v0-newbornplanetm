@@ -147,6 +147,7 @@ describe("admin lead PATCH allow-list (C3b — mass-assignment)", () => {
       "new",
       "contacted",
       "qualified",
+      "negotiating",
       "converted",
       "lost",
       "archived",
