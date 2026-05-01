@@ -20,6 +20,8 @@ describe("constant lists", () => {
     )
   })
   it("LEAD_STATUSES contains the canonical 7", () => {
+    // 'negotiating' added in fix/trade-in-persist-and-lead-status to match
+    // the admin UI which renders a button for it (was silently 400-ing).
     expect(new Set(LEAD_STATUSES)).toEqual(
       new Set([
         "new",

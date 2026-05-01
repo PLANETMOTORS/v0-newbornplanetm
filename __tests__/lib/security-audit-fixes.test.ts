@@ -143,6 +143,9 @@ describe("admin lead PATCH allow-list (C3b — mass-assignment)", () => {
   })
 
   it("locks the lead status enum", () => {
+    // 'negotiating' added in fix/trade-in-persist-and-lead-status — the admin
+    // UI rendered a button for it but the schema was missing the value, so
+    // every click returned a silent 400.
     expect(LEAD_STATUSES).toEqual([
       "new",
       "contacted",
