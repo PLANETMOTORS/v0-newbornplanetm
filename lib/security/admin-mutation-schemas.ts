@@ -57,10 +57,19 @@ export type AdminReservationPatch = z.infer<typeof adminReservationPatchSchema>
 
 // ── Leads ──────────────────────────────────────────────────────────────────
 
+/**
+ * Lead pipeline statuses. Mirrors the buttons rendered on
+ * `app/admin/leads/page.tsx` — keep these two surfaces in lock-step.
+ *
+ * `negotiating` was added when the admin UI started rendering a
+ * "negotiating" stage button. Without the schema entry the PATCH
+ * returned a silent 400 and the button looked broken.
+ */
 export const LEAD_STATUSES = [
   "new",
   "contacted",
   "qualified",
+  "negotiating",
   "converted",
   "lost",
   "archived",

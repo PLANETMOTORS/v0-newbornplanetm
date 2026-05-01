@@ -19,17 +19,24 @@ describe("constant lists", () => {
       new Set(["pending", "paid", "failed", "refunded"])
     )
   })
-  it("LEAD_STATUSES contains the canonical 6", () => {
+  it("LEAD_STATUSES contains the canonical 7 (incl. negotiating)", () => {
     expect(new Set(LEAD_STATUSES)).toEqual(
       new Set([
         "new",
         "contacted",
         "qualified",
+        "negotiating",
         "converted",
         "lost",
         "archived",
       ])
     )
+  })
+
+  it("LEAD_STATUSES.negotiating round-trips through adminLeadPatchSchema", () => {
+    const r = adminLeadPatchSchema.safeParse({ status: "negotiating" })
+    expect(r.success).toBe(true)
+    if (r.success) expect(r.data.status).toBe("negotiating")
   })
 })
 
