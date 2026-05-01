@@ -6,6 +6,8 @@ import { trackLead } from "@/lib/meta-capi-helpers"
 import { rateLimit } from "@/lib/redis"
 import { getClientIp } from "@/lib/security/client-ip"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { tradeInToAdfProspect } from "@/lib/adf/adapters"
+import { forwardLeadToAutoRaptor } from "@/lib/adf/forwarder"
 
 // Vehicle value estimation algorithm
 function estimateTradeInValue(data: {
@@ -106,12 +108,21 @@ export async function POST(req: Request) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields", 400)
     }
 
+    // Parse numeric fields once and validate — reject non-numeric strings early
+    // so downstream code never operates on NaN (which would silently corrupt
+    // the estimate and fail the DB insert).
+    const yearNum = Number.parseInt(String(year), 10)
+    const mileageNum = Number.parseInt(String(mileage), 10)
+    if (!Number.isFinite(yearNum) || !Number.isFinite(mileageNum)) {
+      return apiError(ErrorCode.VALIDATION_ERROR, "year and mileage must be valid integers", 400)
+    }
+
     // Calculate estimate
     const estimate = estimateTradeInValue({
-      year: Number.parseInt(year),
+      year: yearNum,
       make,
       model,
-      mileage: Number.parseInt(mileage),
+      mileage: mileageNum,
       condition,
       vin,
     })
@@ -137,10 +148,10 @@ export async function POST(req: Request) {
         .from("trade_in_quotes")
         .insert({
           quote_id: quoteId,
-          vehicle_year: Number.parseInt(year),
+          vehicle_year: yearNum,
           vehicle_make: make,
           vehicle_model: model,
-          mileage: Number.parseInt(mileage),
+          mileage: mileageNum,
           condition,
           vin: vin || null,
           customer_name: customerName || null,
@@ -170,11 +181,31 @@ export async function POST(req: Request) {
         customerName: customerName || 'Customer',
         customerEmail,
         customerPhone,
-        vehicleInfo: `${year} ${make} ${model}`,
+        vehicleInfo: `${yearNum} ${make} ${model}`,
         quoteId,
         tradeInValue: estimate.averageEstimate,
       })
     }
+
+    // Forward to AutoRaptor as ADF XML (no-op if AUTORAPTOR_LEAD_EMAIL unset).
+    // Non-blocking — never fails the customer-facing flow.
+    void forwardLeadToAutoRaptor(
+      tradeInToAdfProspect({
+        quoteId,
+        customerName,
+        customerEmail,
+        customerPhone,
+        vehicleYear: yearNum,
+        vehicleMake: make,
+        vehicleModel: model,
+        mileage: mileageNum,
+        condition,
+        vin,
+        offerAmount: estimate.averageEstimate,
+        offerLow: estimate.lowEstimate,
+        offerHigh: estimate.highEstimate,
+      }),
+    ).catch((err) => console.error("[trade-in] ADF forward error:", err))
 
     // Fire Meta CAPI Lead event (non-blocking)
     trackLead(req, {
@@ -182,17 +213,17 @@ export async function POST(req: Request) {
       phone: customerPhone,
       firstName: customerName,
       value: estimate.averageEstimate,
-      contentName: `${year} ${make} ${model} Trade-In`,
+      contentName: `${yearNum} ${make} ${model} Trade-In`,
       contentCategory: "trade_in",
     })
 
     return apiSuccess({
       quoteId,
       vehicle: {
-        year,
+        year: yearNum,
         make,
         model,
-        mileage,
+        mileage: mileageNum,
         condition,
         vin,
       },

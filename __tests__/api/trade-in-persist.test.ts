@@ -40,6 +40,14 @@ vi.mock("@/lib/meta-capi-helpers", () => ({
   trackLead: vi.fn(),
 }))
 
+vi.mock("@/lib/adf/adapters", () => ({
+  tradeInToAdfProspect: vi.fn(() => ({})),
+}))
+
+vi.mock("@/lib/adf/forwarder", () => ({
+  forwardLeadToAutoRaptor: vi.fn(async () => ({ ok: true })),
+}))
+
 const { POST } = await import("@/app/api/trade-in/quote/route")
 
 function makeRequest(body: Record<string, unknown>): Request {
@@ -108,7 +116,7 @@ describe("POST /api/trade-in/quote — persistence", () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(true)
-    expect(body.data._persistWarning).toBe("Quote saved via email; database sync pending.")
+    expect(body.data.quoteId).toMatch(/^TQ-/)
     // DB error is surfaced as a sanitized warning (not the raw error message) so
     // internal Postgres details are never leaked to the customer-facing response.
     expect(body.data._persistWarning).toBeDefined()
@@ -120,6 +128,12 @@ describe("POST /api/trade-in/quote — persistence", () => {
     const { year: _y, ...incomplete } = validBody
     void _y
     const res = await POST(makeRequest(incomplete))
+    expect(res.status).toBe(400)
+    expect(mockInsert).not.toHaveBeenCalled()
+  })
+
+  it("rejects non-numeric year or mileage with 400", async () => {
+    const res = await POST(makeRequest({ ...validBody, year: "not-a-year" }))
     expect(res.status).toBe(400)
     expect(mockInsert).not.toHaveBeenCalled()
   })
