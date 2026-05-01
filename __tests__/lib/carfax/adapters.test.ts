@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  badgeAccessibleLabel,
   envelopeToSummary,
   hasAccidentFreeBadge,
   hasLowKilometerBadge,
@@ -66,19 +67,33 @@ describe("envelopeToSummary", () => {
   })
 
   it("synthesises a no-VHR row when the envelope is empty (defensive)", () => {
-    const malformed = {
+    // Schema now allows empty arrays so the adapter fallback is reachable
+    // when Carfax returns an unexpected zero-row response.
+    const empty = {
       ResponseData: {
-        Badges: [] as unknown as [CarfaxBadgeRow],
+        Badges: [] as readonly CarfaxBadgeRow[],
         Language: "en" as const,
         LogoUrl: "https://cdn.carfax.ca/badging/v3/en/Logo.svg",
       },
       ResultCode: 1,
       ResultMessage: "ok",
     }
-    const s = envelopeToSummary(malformed, "MISSINGVIN12345AB", FIXTURE_NOW_ISO)
+    const s = envelopeToSummary(empty, "MISSINGVIN12345AB", FIXTURE_NOW_ISO)
     expect(s.vin).toBe("MISSINGVIN12345AB")
     expect(s.hasReport).toBe(false)
     expect(s.resultCode).toBe(CARFAX_NO_VHR)
+  })
+})
+
+describe("badgeAccessibleLabel", () => {
+  it("maps known badge ids to descriptive labels", () => {
+    expect(badgeAccessibleLabel("AccidentFree")).toBe("Carfax badge: Accident free")
+    expect(badgeAccessibleLabel("OneOwner")).toBe("Carfax badge: One owner")
+    expect(badgeAccessibleLabel("LowKilometer")).toBe("Carfax badge: Low kilometres")
+  })
+
+  it("falls back to a CamelCase split for unmapped ids", () => {
+    expect(badgeAccessibleLabel("HighwayUse")).toBe("Carfax badge: Highway Use")
   })
 })
 

@@ -18,7 +18,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
 import { rateLimit } from "@/lib/redis"
 import { logger } from "@/lib/logger"
 import { fetchBadges } from "@/lib/carfax/client"
@@ -37,11 +36,14 @@ interface RouteContext {
   params: Promise<{ vin: string }>
 }
 
-const querySchema = z
-  .object({
-    force: z.union([z.literal("true"), z.literal("false"), z.literal("1"), z.literal("0")]).optional(),
-  })
-  .strict()
+const VALID_FORCE_VALUES = new Set(["true", "false", "1", "0"])
+
+function parseForce(request: NextRequest): { ok: true; force: boolean } | { ok: false } {
+  const raw = new URL(request.url).searchParams.get("force")
+  if (raw === null) return { ok: true, force: false }
+  if (!VALID_FORCE_VALUES.has(raw)) return { ok: false }
+  return { ok: true, force: raw === "true" || raw === "1" }
+}
 
 function clientIp(request: NextRequest): string {
   const fwd = request.headers.get("x-forwarded-for")
@@ -79,13 +81,11 @@ export async function GET(
 ): Promise<NextResponse> {
   const { vin: rawVin } = await ctx.params
 
-  const queryRaw = Object.fromEntries(new URL(request.url).searchParams.entries())
-  const queryParsed = querySchema.safeParse(queryRaw)
-  if (!queryParsed.success) {
+  const forceParsed = parseForce(request)
+  if (!forceParsed.ok) {
     return errorResponse("INVALID_QUERY", "force must be true|false|1|0", 400)
   }
-  const force =
-    queryParsed.data.force === "true" || queryParsed.data.force === "1"
+  const { force } = forceParsed
 
   const limit = await rateLimit(`carfax:${clientIp(request)}`, 30, 60)
   if (!limit.success) {

@@ -28,11 +28,13 @@ describe("useCarfaxSummary", () => {
     }
   })
 
-  it("returns disabled when vin is null without calling fetch", async () => {
+  it("returns disabled on the very first render when vin is null (no skeleton flicker)", async () => {
     const fetchSpy = vi.fn()
     globalThis.fetch = fetchSpy as unknown as typeof fetch
     const { result } = renderHook(() => useCarfaxSummary(null))
-    await waitFor(() => expect(result.current.status).toBe("disabled"))
+    // Critical: lazy useState means the initial render is already
+    // 'disabled' rather than briefly 'loading' before the effect runs.
+    expect(result.current.status).toBe("disabled")
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
