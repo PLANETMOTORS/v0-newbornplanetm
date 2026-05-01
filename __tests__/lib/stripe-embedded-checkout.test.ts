@@ -37,4 +37,20 @@ describe('lib/stripe/embedded-checkout', () => {
     expect(p1).toBe(p2)
     delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   })
+
+  it('EmbeddedCheckoutProvider resolves from dynamic import', async () => {
+    vi.resetModules()
+    const mod = await import('@/lib/stripe/embedded-checkout')
+    const factory = mod.EmbeddedCheckoutProvider as unknown as () => Promise<{ default: unknown }>
+    const resolved = await factory()
+    expect(resolved).toHaveProperty('default')
+  })
+
+  it('EmbeddedCheckout resolves from dynamic import', async () => {
+    vi.resetModules()
+    const mod = await import('@/lib/stripe/embedded-checkout')
+    const factory = mod.EmbeddedCheckout as unknown as () => Promise<{ default: unknown }>
+    const resolved = await factory()
+    expect(resolved).toHaveProperty('default')
+  })
 })

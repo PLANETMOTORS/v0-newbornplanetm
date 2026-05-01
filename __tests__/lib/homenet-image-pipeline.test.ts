@@ -349,6 +349,49 @@ describe("lib/homenet/image-pipeline triggerImagePipelineAsync", () => {
     expect(true).toBe(true)
   })
 
+  it("covers vehicle-level catch when processVehicleImages throws unexpectedly", async () => {
+    process.env.DATABASE_URL = "postgres://test"
+    mockFetchOk()
+    const { runImagePipeline } = await import("@/lib/homenet/image-pipeline")
+
+    // Create a vehicle whose image_urls iterator throws to trigger
+    // the outer catch block in the processBatch callback (line 305).
+    const badUrls = {
+      length: 1,
+      [Symbol.iterator]() {
+        throw new Error("iterator explosion")
+      },
+    }
+    const out = await runImagePipeline([
+      {
+        stock_number: "Sboom",
+        vin: "Vboom",
+        image_urls: badUrls as unknown as string[],
+        has_360_spin: false,
+      },
+    ])
+    // The vehicle was caught, not processed
+    expect(out.vehiclesProcessed).toBe(0)
+    expect(console.error).toHaveBeenCalled()
+  })
+
+  it("triggerImagePipelineAsync catch fires when runImagePipeline rejects", async () => {
+    // Make getSql throw by having postgresMock throw when DATABASE_URL is set.
+    // runImagePipeline calls getSql() outside its inner try/catch, so the
+    // rejection propagates to triggerImagePipelineAsync's .catch handler (line 325).
+    process.env.DATABASE_URL = "postgres://test"
+    postgresMock.mockImplementationOnce(() => {
+      throw new Error("postgres init boom")
+    })
+
+    const { triggerImagePipelineAsync } = await import("@/lib/homenet/image-pipeline")
+    triggerImagePipelineAsync([
+      { stock_number: "Sx", vin: "Vx", image_urls: ["https://cdn.example.com/p.jpg"], has_360_spin: false },
+    ])
+    await new Promise((r) => setTimeout(r, 50))
+    expect(console.error).toHaveBeenCalled()
+  })
+
   it("silently swallows thumbnail-marker upload failures", async () => {
     mockFetchOk()
     let putCount = 0

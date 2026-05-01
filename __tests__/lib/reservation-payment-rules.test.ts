@@ -230,4 +230,5 @@ describe('fullPaymentVerification', () => {
     expect(result.valid).toBe(false)
     expect(result.reason).toContain('canceled')
   })
+
 })
