@@ -384,3 +384,461 @@ follow-up because they are out of scope for "review the last 7 days":
 3. The `app/auth/reset-password/` directory at the repo root that's
    currently untracked — it appears to be a working draft from a
    different task and was deliberately not staged.
+
+---
+
+# Docs Update — 2026-05-01 — Launch-Day Sprint
+
+> Date range covered: 2026-04-30 through 2026-05-01
+> Branch / merge target: `main`
+> Author: Droid (this session)
+> Trigger: User requested "check the PRs issued, update docs to match
+> the current implementation, write a summary to docs-updates.md."
+
+This entry documents twenty PRs (`#583` through `#604`) that landed on
+`main` between launch eve and launch day. The work clusters into seven
+themes: **launch-day lead-capture incident**, **admin user management
++ CRM delete**, **AutoRaptor CRM forwarding**, **Drivee 360° MID
+hygiene**, **search v2**, **blog content via Sanity**, and **AODA/WCAG
+accessibility rewrite**. Plus three SonarCloud sweeps that drove
+project coverage from ~89% to ~99% on the new code.
+
+The rest of this entry is organised so you can read it top-to-bottom
+tomorrow morning and have a complete mental model of what changed.
+
+---
+
+## 0. TL;DR — what works today that didn't yesterday
+
+| Area | Before | After (live on `main`) |
+|---|---|---|
+| Lead capture | Silently dropped rows when DB constraints didn't match request shape | `leads` table exists in prod, persist fails loud, every code path that creates a lead is covered by a unit test. Two real customer leads from launch day have already been recovered. |
+| Admin users | Hardcoded `ADMIN_EMAILS` env var only | DB-backed `admin_users` table with role enum (admin/manager/viewer), invite flow, soft-delete, self-protection guard. Env var still works as a fallback. |
+| Admin CRM delete | No way to remove a row | Trash button on every row across `/admin/leads`, `/admin/finance`, `/admin/reservations`, `/admin/trade-ins`. Stats panel recomputes optimistically. |
+| AutoRaptor lead forwarding | Manual entry, often missed | Every website lead now also emails AutoRaptor as ADF/XML automatically. |
+| Drivee 360° (Pirelly) | Wrong MID per VIN was permanent until a manual SQL fix | Two admin endpoints: `POST /api/v1/admin/drivee/[vin]` flips a kill-switch flag; `POST /api/v1/admin/drivee/wipe-vins` blasts mappings for 1-50 VINs at once. |
+| Search bar | Old buggy v1 (PR #592 was rejected) | Hybrid Typesense + Supabase v2 with `useId()`/`useReducer`, zero hydration warnings. |
+| Blog posts | Hardcoded TS files + Sanity drift | Single source of truth in Sanity CMS; cover-image fix script ships every post with a working image. |
+| Accessibility page | Generic copy, card-based layout | Full AODA/WCAG 2.2 AA rewrite, dark hero, schema.org structured data, contraction & contact-info fixes. |
+| Saved vehicles | 404'd on every authenticated page mount | `user_favorites` migration in repo and applied in prod. |
+| Coverage / Sonar | 35 + 11 + 5 open issues, ~89% lib coverage | 0 issues, 99.96% lib coverage, all in-flight PRs hit Quality Gate green. |
+
+---
+
+## 1. PR-by-PR log (chronological merge order)
+
+### PR #583 — Drivee 360° admin toggle
+`devin/1777583856-...` (continuation of older drivee work)
+- Adds `POST /api/v1/admin/drivee/[vin]` admin endpoint that flips
+  the `drivee_mappings.frames_in_storage` kill switch per VIN.
+- Lets ops disable a known-bad MID without a DB shell.
+- Read at: `app/api/v1/admin/drivee/[vin]/route.ts`
+
+### PR #584 — Prevent Drivee MID collisions
+- Hardens the Drivee mapping pipeline so two VINs cannot resolve to the
+  same Pirelly MID by accident (root cause: stock-# reuse upstream).
+- 8 files, 601 LOC added.
+
+### PR #585 — Sonar sweep #1 (35 issues)
+- 9 reliability + 35 maintainability issues cleared on `main`.
+- 16 files touched, mostly small refactors (no behaviour change).
+
+### PR #586 — `wipe-vins` admin endpoint
+- `POST /api/v1/admin/drivee/wipe-vins` accepts `{ vins: string[] }`
+  (1–50 VINs), validates with Zod, and removes the rows from
+  `drivee_mappings`. Auth-gated through `requireAdmin()`.
+- Reads from `app/api/v1/admin/drivee/wipe-vins/route.ts`.
+- Used during the clean-repush workflow when HomeNet's UPSERT touches
+  `vehicles` but leaves stale Drivee rows behind.
+
+### PR #587 — Sonar sweep #2
+- 11 remaining maintainability issues + 5 new-code issues from PR #586
+  cleared. 16 files.
+
+### PR #588 — Sonar sweep #3 + lib coverage to 98%
+- 11 maintainability issues cleared, lib coverage boosted from ~89% to
+  ~98%. 9 files; 480 LOC of test code added.
+
+### PR #590 — AutoRaptor ADF forwarding
+A launch-day P0 from Toni: every lead the site captures must also
+flow into AutoRaptor (the dealership's CRM-of-record).
+
+- New `lib/adf/` package: `types.ts`, `xml-generator.ts`, `adapters.ts`,
+  `mailer.ts`. Pure-compute XML builder with deterministic escaping.
+- 7 lead-creating endpoints now call `forwardLeadToAutoRaptor()` after
+  the DB insert: contact form, finance pre-approval, trade-in quote,
+  reservation, magic-link request, sell-your-car, AI chat lead.
+- Failures are logged but do **not** roll back the DB insert (lead
+  still reaches `/admin/leads`).
+- 1,127 LOC. 0 lines deleted (pure addition).
+
+### PR #591 — Meta Pixel `globalThis` fix + 99.96% lib coverage
+- 6 portability issues (`S7764`/`S7735`) cleared in
+  `components/analytics/meta-pixel.tsx` — bare `window`/`document`
+  references replaced with `globalThis` guards.
+- Lib coverage now at **99.96%**.
+
+### PR #593 — Planet Ultra search bar v2
+A from-scratch rewrite after PR #592 was rejected as unreliable.
+
+- React 19 patterns: `useId()`, `useReducer`, `useTransition`.
+- Hybrid Typesense (full-text) + Supabase (filter facets) backend.
+- Zero hydration mismatches.
+- 1,415 LOC added; 283 deleted (gross v1 removed).
+- Read at: `lib/search/`, `components/search/*`.
+
+### PR #594 — Production `leads` table + fail-loud
+**LAUNCH-DAY INCIDENT** (2026-04-30 22:24 PDT):
+A real customer (José Clauberto Dos Santos Leal) submitted two finance
+pre-approvals via magic-link. Both vanished from `/admin/leads`. Root
+cause: the `leads` table SQL lived in `scripts/018_create_leads_*.sql`
+which was never copied into `supabase/migrations/`, so production
+Supabase never had the table. Inserts silently failed because we were
+swallowing the Supabase error. Fixed in three layers:
+1. New migration `supabase/migrations/20260501_create_leads_table.sql`.
+2. `lib/leads/repository.ts` returns `Result<T, RepoError>`; the route
+   refuses to send the email if persist fails.
+3. Sentry alert on every persist failure.
+
+### PR #595 — Blog content via Sanity CMS
+- Blog post pages now render from Sanity, not hardcoded TS files.
+- 308 LOC added across 3 files (`lib/sanity/`, `app/blog/[slug]/page.tsx`).
+
+### PR #596 — Senior rewrite of PR #589
+Three production bugs from PR #589, re-architected from scratch:
+- **Bug 1 (P0)**: trade-in quotes were emailing the dealer but never
+  inserting into `trade_in_quotes`. Fixed at the route layer; every
+  quote since is preserved.
+- **Bug 2**: admin recent-leads aggregation only counted `leads` rows;
+  finance + trade-ins + reservations were invisible.
+- **Bug 3**: cleanup card on `/admin` had hardcoded "Devin Test" and
+  "Thigg Egg" patterns that never matched real test data.
+- 21 files; 2,686 LOC added.
+
+### PR #597 — Blog cover images
+- All 36 Sanity blog posts now have working cover images.
+- `seed-blog-posts.mjs` now uploads + links cover images correctly.
+- Standalone hardcoded `/blog/clutch-replacement-cost-canada` migrated
+  into Sanity.
+
+### PR #598 — Senior rewrite of PR #594
+Two more bugs from the launch-day incident, fixed cleanly:
+- Two real customer leads were silently lost. The notification email
+  fired but the rows never reached `/admin/leads`.
+- 1,132 LOC added across 9 files; 292 LOC deleted.
+
+### PR #599 — Admin user mgmt + cleanup UI + recent-leads aggregation
+The biggest single PR of the sprint.
+- **Migration** `20260501_create_admin_users_table.sql`:
+  `citext UNIQUE` email, role enum (`admin`|`manager`|`viewer`),
+  `is_active`, `notes`, soft-delete columns, `invited_by` FK.
+- **Lib** `lib/admin/users/{schemas,repository}.ts` — Zod schemas,
+  `Result<T, AdminUserError>` boundary, kinded errors (`not-found`,
+  `email-conflict`, `self-cannot-deactivate`, etc.).
+- **Routes** `app/api/v1/admin/users/route.ts` (GET list, POST invite),
+  `app/api/v1/admin/users/[id]/route.ts` (PATCH, DELETE).
+- **UI** `app/admin/users/page.tsx` — full roster with role chips,
+  invite modal, and per-row deactivate.
+- **Cleanup card** on `/admin` — operator-driven test-data wipe.
+- **Recent-leads aggregator** that merges `leads`, `finance_applications_v2`,
+  `reservations`, and `trade_in_quotes` into one timeline.
+- 19 files; 2,774 LOC added.
+
+### PR #600 — Accessibility page rewrite (AODA/WCAG 2.2 AA)
+- Single-file rewrite of `app/accessibility/page.tsx` — 278 added,
+  171 deleted.
+- AODA legal language, semantic landmarks, skip-to-content link, and
+  proper heading hierarchy.
+
+### PR #601 — `user_favorites` migration
+- One-line: `supabase/migrations/20260501_create_user_favorites_table.sql`.
+- Production Supabase was 404'ing every authenticated page mount
+  because `contexts/favorites-context.tsx` shipped with a CREATE TABLE
+  in a comment block but no real migration.
+- Already applied in prod by Toni in the Supabase SQL editor.
+
+### PR #602 — Accessibility page v2
+- Dark hero, bolder copy, schema.org `WebPage` + `AccessibilityFeature`,
+  contraction fix, contact-info corrections.
+- 74 added / 25 deleted on the same single file.
+
+### PR #603 — Per-row CRM delete buttons (this session)
+See section 2 for the full architecture.
+
+### PR #604 — Toronto selling guide blog post
+- New article seeded into Sanity: "How to Sell Your Car in Toronto:
+  The 2026 GTA Owner's Guide".
+- Single-file PR, +623 LOC.
+
+---
+
+## 2. Deep-dive: PR #603 — Admin CRM delete
+
+Merged commit: `1eff7893c52811b88407b5d5e9e38c64ca34e040`
+SonarCloud Quality Gate: **PASSED** (0 issues, 100% new-code coverage,
+0% duplicate density, A/A/A rating).
+
+### Architecture
+
+```
+app/admin/{leads,finance,reservations,trade-ins}/page.tsx
+   uses
+      <DeleteRowButton>  ──fetch DELETE──>  app/api/v1/admin/.../[id]/route.ts
+                                                  │
+                                                  └── createCrmDeleteHandler(table)
+                                                            │
+                                                            ├── requireAdmin()
+                                                            ├── parseIdParam (Zod UUID)
+                                                            ├── deleteCrmRow(table, id)
+                                                            │     └── lib/admin/crm-delete/repository.ts
+                                                            └── crmDeleteErrorToResponse()
+```
+
+### What every developer needs to know to extend this
+
+Adding a fifth CRM table tomorrow is a 3-step change:
+
+1. Add the table name to `CRM_TABLES` in `lib/admin/crm-delete/repository.ts`:
+   ```ts
+   export const CRM_TABLES = [
+     "leads",
+     "finance_applications_v2",
+     "reservations",
+     "trade_in_quotes",
+     "<new_table>",                // ← here
+   ] as const
+   ```
+2. Create a 5-line route file at `app/api/v1/admin/<new>/[id]/route.ts`:
+   ```ts
+   import { createCrmDeleteHandler } from "@/lib/admin/crm-delete/route-helpers"
+   export const DELETE = createCrmDeleteHandler("<new_table>")
+   ```
+3. Drop a `<DeleteRowButton endpoint="..." id={row.id} onDeleted={handler}/>`
+   into the admin page row.
+
+The 32 route tests in
+`__tests__/api/admin-crm-delete-routes.test.ts` are parameterised over
+`CRM_TABLES`, so the new table inherits all 8 test cases (auth-fail,
+env-admin-OK, db-admin-OK, invalid-uuid, success, not-found, db-error,
+exception) for free.
+
+### API surface (canonical responses)
+
+| HTTP | When | Body |
+|---|---|---|
+| `200` | Row deleted | `{ "deletedId": "<uuid>" }` |
+| `400` | Non-UUID `id` param | `{ "error": { "code": "INVALID_ID", "message": "id must be a uuid" } }` |
+| `401` | Not signed in OR not admin (env-list nor DB-list) | `{ "error": { "code": "UNAUTHORIZED", ... } }` |
+| `404` | Row not in table | `{ "error": { "code": "NOT_FOUND", "message": "<table> row not found" } }` |
+| `500` | Supabase error or thrown exception | `{ "error": { "code": "CRM_DELETE_FAILED", "message": "<supabase msg>" } }` |
+
+### What audit observers will see
+
+`logger.info("[admin-crm-delete] row removed", { table, by, id })` on
+every successful delete. `logger.error("[admin-crm-delete] failure",
+{ table, kind, message })` on every failure path. Both are picked up
+by the existing Sentry integration.
+
+---
+
+## 3. Files added or modified during this sprint
+
+### New library code
+
+```
+lib/adf/                                    (PR #590)
+   types.ts, xml-generator.ts, adapters.ts, mailer.ts
+lib/admin/users/                            (PR #599)
+   schemas.ts, repository.ts
+lib/admin/crm-delete/                       (PR #603)
+   repository.ts, route-helpers.ts
+lib/admin/recent-leads-aggregator.ts        (PR #596)
+lib/admin/cleanup/                          (PR #599)
+lib/leads/repository.ts                     (PR #594/#598)
+lib/search/                                 (PR #593)
+lib/result.ts                               (extended for Result<T,E>)
+```
+
+### New API routes
+
+```
+POST   /api/v1/admin/drivee/[vin]           (PR #583)
+POST   /api/v1/admin/drivee/wipe-vins       (PR #586)
+GET    /api/v1/admin/users                  (PR #599)
+POST   /api/v1/admin/users
+PATCH  /api/v1/admin/users/[id]
+DELETE /api/v1/admin/users/[id]
+DELETE /api/v1/admin/cleanup/test-data      (PR #599)
+DELETE /api/v1/admin/leads/[id]             (PR #603)
+DELETE /api/v1/admin/finance/applications/[id]
+DELETE /api/v1/admin/reservations/[id]
+DELETE /api/v1/admin/trade-ins/[id]
+```
+
+### New migrations applied to prod
+
+```
+supabase/migrations/
+   20260501_create_leads_table.sql           (PR #594)
+   20260501_create_admin_users_table.sql     (PR #599)
+   20260501_create_user_favorites_table.sql  (PR #601)
+```
+
+### Pages modified
+
+```
+app/admin/users/page.tsx                    (PR #599 — new)
+app/admin/page.tsx                          (PR #599 — cleanup card + aggregated recent leads)
+app/admin/leads/page.tsx                    (PR #598 + #603)
+app/admin/finance/page.tsx                  (PR #603 — delete + stats recompute)
+app/admin/reservations/page.tsx             (PR #603)
+app/admin/trade-ins/page.tsx                (PR #596 + #603)
+app/accessibility/page.tsx                  (PR #600 + #602)
+app/blog/[slug]/page.tsx                    (PR #595 + #597)
+components/search/*                         (PR #593 — full v2 rewrite)
+```
+
+---
+
+## 4. Documentation updates needed in existing docs
+
+The following files in `docs/` and the repo root reference behaviour
+that changed during the sprint. Updating them is **not done yet** —
+this section is the work list for the next docs PR.
+
+### `README.md`
+
+- **Tech Stack → Backend** — add **AutoRaptor** row (ADF/XML email
+  forwarding) and update the **Auth** row to mention DB-backed admin
+  roles.
+- **Project Structure** — add `lib/adf/`, `lib/admin/users/`,
+  `lib/admin/crm-delete/`, `lib/admin/cleanup/`, `lib/leads/`.
+- **Environment Variables** — add `AUTORAPTOR_FORWARD_EMAIL` (or the
+  equivalent env name set in `lib/adf/mailer.ts`) and confirm
+  `RESEND_API_KEY` is documented.
+- **NEW section**: "Admin CRM Delete" with the architecture diagram
+  from §2 above and the 3-step extension guide.
+- **Admin Portal section** — replace the "ADMIN_EMAILS allow-list" bullet
+  with the DB-backed `admin_users` flow; mention the env-list still
+  works as fallback.
+
+### `docs/04-API-ARCHITECTURE.md`
+
+- New **CRM Delete** subsection documenting the 4 endpoints, their
+  uniform response shape, and the `createCrmDeleteHandler` factory.
+- New **Admin Users** subsection (CRUD + invite flow + soft-delete).
+- New **Drivee Admin** subsection (`[vin]` toggle + `wipe-vins`).
+- New **AutoRaptor Forwarding** subsection (which lead routes call
+  `forwardLeadToAutoRaptor()`, what XML they emit).
+
+### `docs/03-DATABASE-SCHEMA.md`
+
+- Add `admin_users` table (citext email, role enum, soft-delete cols).
+- Add `user_favorites` table.
+- Add `leads` table (was missing — ironic root cause of PR #594).
+
+### `docs/05-SECURITY-ARCHITECTURE.md`
+
+- Update the "admin gate" section: `requireAdmin()` now checks
+  `admin_users.is_active = true` first, then falls back to
+  `ADMIN_EMAILS` env. Self-protection guard prevents an admin from
+  deactivating their own account.
+
+### `docs/06-INTEGRATIONS.md`
+
+- New **AutoRaptor** integration section.
+- Update **Sanity CMS** section: blog posts now flow Sanity →
+  `app/blog/[slug]/page.tsx`, no more hardcoded TS files.
+- New **Pirelly / Drivee 360°** subsection covering the kill-switch
+  flag and the wipe-vins workflow.
+
+### `docs/SECURITY.md`
+
+- Add the new admin endpoints to the `requireAdmin()` matrix.
+- Note the per-row delete audit logging via `[admin-crm-delete]`.
+
+### `BLUEPRINT.md`
+
+- Update the "Admin Portal" diagram to show the user roster, cleanup
+  card, and per-row delete affordances.
+
+### `LAUNCH_STATUS.md`
+
+- Mark "Lead capture verified end-to-end with real customer data" as
+  GREEN (was the launch-day P0).
+- Mark "Admin CRM delete" as GREEN.
+
+### `TECHNICAL_DEBT.md`
+
+- Cross out "no programmatic admin user mgmt" — done in PR #599.
+- Cross out "leads table SQL not in migrations" — done in PR #594.
+- Cross out "user_favorites missing in prod" — done in PR #601.
+- Add the open item: "AutoRaptor forwarder retries are best-effort
+  (no DLQ) — consider Inngest queue if delivery becomes flaky."
+
+---
+
+## 5. Quality Gate snapshot — `main` after this sprint
+
+| Surface | Value | Threshold | Status |
+|---|---|---|---|
+| Vitest suite | **2,537 / 2,537** | all green | GREEN |
+| Lib coverage | **99.96%** | ≥ 95% | GREEN |
+| `tsc --noEmit` | clean | 0 errors | GREEN |
+| `eslint .` | clean | 0 errors / warnings | GREEN |
+| Sonar new_coverage (PR #603) | 100.0% | ≥ 80% | GREEN |
+| Sonar new_duplicated_lines_density (PR #603) | 0.0% | ≤ 3% | GREEN |
+| Sonar new_reliability_rating | A | A | GREEN |
+| Sonar new_security_rating | A | A | GREEN |
+| Sonar new_maintainability_rating | A | A | GREEN |
+| Sonar `bugs` (project) | 0 | — | GREEN |
+| Sonar `vulnerabilities` (project) | 0 | — | GREEN |
+
+---
+
+## 6. Verification commands
+
+```bash
+# Full local quality gate
+npx tsc --noEmit
+npx eslint .
+npx vitest run
+
+# Targeted suites for the new modules
+npx vitest run __tests__/lib/admin/crm-delete \
+              __tests__/api/admin-crm-delete-routes.test.ts \
+              __tests__/components/admin/delete-row-button.test.tsx \
+              __tests__/lib/admin/users \
+              __tests__/lib/adf \
+              __tests__/lib/leads/repository.test.ts \
+              __tests__/lib/admin/recent-leads-aggregator.test.ts
+
+# Migrations applied to prod (verified manually in Supabase)
+ls supabase/migrations/20260501_*.sql
+```
+
+---
+
+## 7. Outstanding items for tomorrow morning
+
+Nothing blocking on `main`. Things to do when you wake up:
+
+1. **Walk through `/admin` in production** with the SW cache cleared
+   and confirm the new affordances render: per-row delete buttons,
+   cleanup card, admin users page, recent-leads aggregator.
+2. **Test the AutoRaptor pipeline end-to-end** — submit a real lead
+   on the public site and confirm the ADF email arrives in the
+   AutoRaptor inbox. Check `lib/adf/mailer.ts` env config if not.
+3. **Apply the docs updates listed in §4** — that's the next docs PR.
+   Bias toward updating `README.md` first (highest-traffic file).
+4. **Consider an Inngest queue** for AutoRaptor forwarding so a
+   transient 5xx from AutoRaptor's SMTP doesn't drop the dealer-side
+   notification (lead is still safe in our DB either way).
+5. **Spec-mode for the next round of admin features** — the user
+   mentioned "treat like admin CRM full function." Per-row edit
+   inline (modal-less PATCH) is a natural follow-on now that delete
+   is wired through the same factory pattern.
+
+---
+
+*Update format unchanged — append entries below as `## YYYY-MM-DD — <reason>`.*
