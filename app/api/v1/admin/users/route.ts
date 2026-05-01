@@ -9,6 +9,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import {
   requireAdmin,
+  requireFeatureAccess,
   parseJsonBody,
 } from "@/lib/security/admin-route-helpers"
 import {
@@ -53,6 +54,9 @@ export async function GET(): Promise<NextResponse> {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.error
 
+  const forbidden = requireFeatureAccess(auth.value, "admin_users", "read")
+  if (forbidden) return forbidden
+
   const result = await listAdmins()
   if (!result.ok) return repoErrorToResponse(result.error)
   return NextResponse.json({ admins: result.value })
@@ -61,6 +65,9 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.error
+
+  const forbidden = requireFeatureAccess(auth.value, "admin_users", "full")
+  if (forbidden) return forbidden
 
   const parsed = await parseJsonBody<typeof inviteAdminSchema>(
     request,

@@ -23,7 +23,13 @@ vi.mock("@/lib/admin", () => ({
   ADMIN_EMAILS: ["toni@planetmotors.ca", "ops@planetmotors.ca"],
 }))
 
-const { requireAdmin, parseJsonBody } = await import(
+const getAdminByEmailMock = vi.fn()
+
+vi.mock("@/lib/admin/users/repository", () => ({
+  getAdminByEmail: (email: string) => getAdminByEmailMock(email),
+}))
+
+const { requireAdmin, requireFeatureAccess, parseJsonBody } = await import(
   "@/lib/security/admin-route-helpers"
 )
 
@@ -36,7 +42,10 @@ function makeJsonRequest(body: unknown): NextRequest {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks()
   currentUserEmail = "toni@planetmotors.ca"
+  // Default: no DB record, so env-listed admins still work
+  getAdminByEmailMock.mockResolvedValue({ ok: true, value: null })
 })
 
 describe("requireAdmin", () => {
@@ -69,6 +78,92 @@ describe("requireAdmin", () => {
     const r = await requireAdmin()
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.error.status).toBe(401)
+  })
+
+  it("returns ok with db-based admin info including role and permissions", async () => {
+    currentUserEmail = "dbadmin@x.com"
+    getAdminByEmailMock.mockResolvedValue({
+      ok: true,
+      value: {
+        id: "abc",
+        email: "dbadmin@x.com",
+        role: "manager",
+        is_active: true,
+        permissions: null,
+      },
+    })
+    const r = await requireAdmin()
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.value.email).toBe("dbadmin@x.com")
+      expect(r.value.role).toBe("manager")
+      expect(r.value.source).toBe("db")
+      // Manager preset has admin_users: "none"
+      expect(r.value.permissions.admin_users).toBe("none")
+    }
+  })
+
+  it("returns env admins with full permissions", async () => {
+    const r = await requireAdmin()
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.value.source).toBe("env")
+      expect(r.value.permissions.admin_users).toBe("full")
+    }
+  })
+})
+
+describe("requireFeatureAccess", () => {
+  it("returns null when admin has full access", async () => {
+    const r = await requireAdmin()
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      const forbidden = requireFeatureAccess(r.value, "admin_users", "full")
+      expect(forbidden).toBeNull()
+    }
+  })
+
+  it("returns 403 when manager tries to access admin_users", async () => {
+    currentUserEmail = "manager@x.com"
+    getAdminByEmailMock.mockResolvedValue({
+      ok: true,
+      value: {
+        id: "xyz",
+        email: "manager@x.com",
+        role: "manager",
+        is_active: true,
+        permissions: null,
+      },
+    })
+    const r = await requireAdmin()
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      const forbidden = requireFeatureAccess(r.value, "admin_users", "read")
+      expect(forbidden).not.toBeNull()
+      expect(forbidden!.status).toBe(403)
+      const body = await forbidden!.json()
+      expect(body.error.code).toBe("FORBIDDEN")
+    }
+  })
+
+  it("allows manager to access vehicles with read", async () => {
+    currentUserEmail = "manager@x.com"
+    getAdminByEmailMock.mockResolvedValue({
+      ok: true,
+      value: {
+        id: "xyz",
+        email: "manager@x.com",
+        role: "manager",
+        is_active: true,
+        permissions: null,
+      },
+    })
+    const r = await requireAdmin()
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      const forbidden = requireFeatureAccess(r.value, "vehicles", "read")
+      expect(forbidden).toBeNull()
+    }
   })
 })
 

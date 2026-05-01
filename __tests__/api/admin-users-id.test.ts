@@ -7,7 +7,6 @@ vi.mock("next/headers", () => ({
 }))
 
 let currentUserEmail: string | null = "toni@planetmotors.ca"
-const isActiveAdminMock = vi.fn(async () => false)
 const updateAdminMock = vi.fn()
 const deleteAdminMock = vi.fn()
 const getAdminByEmailMock = vi.fn()
@@ -27,10 +26,9 @@ vi.mock("@/lib/admin", () => ({
 }))
 
 vi.mock("@/lib/admin/users/repository", () => ({
-  isActiveAdmin: (email: string) => isActiveAdminMock(email),
+  getAdminByEmail: (email: string) => getAdminByEmailMock(email),
   updateAdmin: (id: string, patch: unknown) => updateAdminMock(id, patch),
   deleteAdmin: (id: string) => deleteAdminMock(id),
-  getAdminByEmail: (email: string) => getAdminByEmailMock(email),
 }))
 
 vi.mock("@/lib/logger", () => ({
@@ -44,10 +42,23 @@ const SAMPLE_ROW = {
   is_active: true,
   invited_by: null,
   notes: null,
+  permissions: null,
   created_at: "2026-05-01T00:00:00Z",
   updated_at: "2026-05-01T00:00:00Z",
 }
-const SELF_ROW = { ...SAMPLE_ROW, email: "toni@planetmotors.ca" }
+const SELF_ROW = {
+  ...SAMPLE_ROW,
+  id: "00000000-0000-0000-0000-000000000001",
+  email: "toni@planetmotors.ca",
+  role: "admin" as const,
+}
+/** Admin row for a manager with no admin_users access */
+const MANAGER_CALLER_ROW = {
+  ...SAMPLE_ROW,
+  id: "00000000-0000-0000-0000-000000000002",
+  email: "manager-caller@x.com",
+  role: "manager" as const,
+}
 
 const { PATCH, DELETE } = await import("@/app/api/v1/admin/users/[id]/route")
 
@@ -66,7 +77,7 @@ function makeCtx(id: string) {
 beforeEach(() => {
   vi.clearAllMocks()
   currentUserEmail = "toni@planetmotors.ca"
-  isActiveAdminMock.mockResolvedValue(false)
+  // Default: no DB record, so env-listed admins still work
   getAdminByEmailMock.mockResolvedValue({ ok: true, value: null })
 })
 
@@ -96,6 +107,15 @@ describe("PATCH /[id] — auth + param validation", () => {
   it("rejects 400 when patch is empty", async () => {
     const res = await PATCH(makeReq({}), makeCtx(SAMPLE_ROW.id))
     expect(res.status).toBe(400)
+  })
+
+  it("rejects manager with admin_users: none", async () => {
+    currentUserEmail = "manager-caller@x.com"
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_CALLER_ROW })
+    const res = await PATCH(makeReq({ role: "admin" }), makeCtx(SAMPLE_ROW.id))
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error.code).toBe("FORBIDDEN")
   })
 })
 
@@ -201,6 +221,18 @@ describe("DELETE /[id]", () => {
       makeCtx("not-uuid"),
     )
     expect(res.status).toBe(400)
+  })
+
+  it("rejects manager with admin_users: none", async () => {
+    currentUserEmail = "manager-caller@x.com"
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_CALLER_ROW })
+    const res = await DELETE(
+      new NextRequest("http://localhost/x", { method: "DELETE" }),
+      makeCtx(SAMPLE_ROW.id),
+    )
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error.code).toBe("FORBIDDEN")
   })
 
   it("blocks self-delete", async () => {

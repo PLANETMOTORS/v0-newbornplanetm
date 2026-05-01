@@ -30,16 +30,24 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
-import { isActiveAdmin } from "@/lib/admin/users/repository"
+import { getAdminByEmail } from "@/lib/admin/users/repository"
 import type { Result } from "@/lib/result"
 import { ok, err } from "@/lib/result"
-import type { AdminRole } from "@/lib/admin/users/schemas"
+import type { AdminRole, PermissionMap } from "@/lib/admin/users/schemas"
+import {
+  resolvePermissions,
+  hasAccess,
+  type AdminFeature,
+  type AccessLevel,
+} from "@/lib/admin/permissions"
 
 export interface AdminContext {
   readonly email: string
   readonly role: AdminRole
   /** "env" = listed in ADMIN_EMAILS env var; "db" = found in admin_users table. */
   readonly source: "env" | "db"
+  /** Resolved permissions for the admin user. */
+  readonly permissions: PermissionMap
 }
 
 /**
@@ -59,14 +67,51 @@ export async function requireAdmin(): Promise<Result<AdminContext, NextResponse>
   if (!email) {
     return err(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
   }
-  const dbActive = await isActiveAdmin(email).catch(() => false)
-  if (dbActive) {
-    return ok({ email, role: "admin", source: "db" })
+
+  // Check DB for full admin row (includes role + custom permissions)
+  const dbResult = await getAdminByEmail(email).catch(() => null)
+  if (dbResult && dbResult.ok && dbResult.value?.is_active) {
+    const adminRow = dbResult.value
+    return ok({
+      email,
+      role: adminRow.role,
+      source: "db",
+      permissions: resolvePermissions(adminRow.role, adminRow.permissions),
+    })
   }
+
   if (ADMIN_EMAILS.includes(email)) {
-    return ok({ email, role: "admin", source: "env" })
+    return ok({
+      email,
+      role: "admin",
+      source: "env",
+      permissions: resolvePermissions("admin"),
+    })
   }
   return err(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
+}
+
+/**
+ * Check if the admin context has the required access level for a feature.
+ * Returns a 403 NextResponse if access is denied, or null if allowed.
+ */
+export function requireFeatureAccess(
+  ctx: AdminContext,
+  feature: AdminFeature,
+  requiredLevel: AccessLevel = "read",
+): NextResponse | null {
+  if (hasAccess(ctx.permissions, feature, requiredLevel)) {
+    return null
+  }
+  return NextResponse.json(
+    {
+      error: {
+        code: "FORBIDDEN",
+        message: `You do not have ${requiredLevel} access to ${feature}`,
+      },
+    },
+    { status: 403 },
+  )
 }
 
 function formatZodIssues(error: z.ZodError): string {

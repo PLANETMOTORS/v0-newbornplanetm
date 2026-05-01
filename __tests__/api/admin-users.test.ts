@@ -7,7 +7,7 @@ vi.mock("next/headers", () => ({
 }))
 
 let currentUserEmail: string | null = "toni@planetmotors.ca"
-const isActiveAdminMock = vi.fn(async () => false)
+const getAdminByEmailMock = vi.fn()
 const listAdminsMock = vi.fn()
 const inviteAdminMock = vi.fn()
 
@@ -26,7 +26,7 @@ vi.mock("@/lib/admin", () => ({
 }))
 
 vi.mock("@/lib/admin/users/repository", () => ({
-  isActiveAdmin: (email: string) => isActiveAdminMock(email),
+  getAdminByEmail: (email: string) => getAdminByEmailMock(email),
   listAdmins: () => listAdminsMock(),
   inviteAdmin: (input: unknown, by: unknown) => inviteAdminMock(input, by),
 }))
@@ -42,8 +42,22 @@ const SAMPLE_ROW = {
   is_active: true,
   invited_by: null,
   notes: null,
+  permissions: null,
   created_at: "2026-05-01T00:00:00Z",
   updated_at: "2026-05-01T00:00:00Z",
+}
+
+/** Admin row for DB-based admin with full permissions */
+const DB_ADMIN_ROW = {
+  ...SAMPLE_ROW,
+  email: "newadmin@x.com",
+}
+
+/** Admin row for a manager with no admin_users access */
+const MANAGER_ROW = {
+  ...SAMPLE_ROW,
+  email: "manager@x.com",
+  role: "manager" as const,
 }
 
 const { GET, POST } = await import("@/app/api/v1/admin/users/route")
@@ -59,7 +73,8 @@ function makePost(body: unknown): NextRequest {
 beforeEach(() => {
   vi.clearAllMocks()
   currentUserEmail = "toni@planetmotors.ca"
-  isActiveAdminMock.mockResolvedValue(false)
+  // Default: no DB record, so env-listed admins still work
+  getAdminByEmailMock.mockResolvedValue({ ok: true, value: null })
 })
 
 describe("GET /api/v1/admin/users — auth", () => {
@@ -85,10 +100,19 @@ describe("GET /api/v1/admin/users — auth", () => {
 
   it("allows DB-listed admins (DB checked even when not in env)", async () => {
     currentUserEmail = "newadmin@x.com"
-    isActiveAdminMock.mockResolvedValue(true)
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: DB_ADMIN_ROW })
     listAdminsMock.mockResolvedValue({ ok: true, value: [] })
     const res = await GET()
     expect(res.status).toBe(200)
+  })
+
+  it("rejects manager with admin_users: none", async () => {
+    currentUserEmail = "manager@x.com"
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_ROW })
+    const res = await GET()
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error.code).toBe("FORBIDDEN")
   })
 
   it("returns 500 on repo db-error", async () => {
@@ -141,6 +165,15 @@ describe("POST /api/v1/admin/users — auth + validation", () => {
   it("rejects unknown role with 400", async () => {
     const res = await POST(makePost({ email: "a@b.com", role: "ceo" }))
     expect(res.status).toBe(400)
+  })
+
+  it("rejects manager with admin_users: none", async () => {
+    currentUserEmail = "manager@x.com"
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_ROW })
+    const res = await POST(makePost({ email: "a@b.com" }))
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error.code).toBe("FORBIDDEN")
   })
 })
 

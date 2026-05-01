@@ -10,6 +10,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import {
   requireAdmin,
+  requireFeatureAccess,
   parseJsonBody,
 } from "@/lib/security/admin-route-helpers"
 import {
@@ -86,6 +87,9 @@ export async function PATCH(
   const auth = await requireAdmin()
   if (!auth.ok) return auth.error
 
+  const forbidden = requireFeatureAccess(auth.value, "admin_users", "full")
+  if (forbidden) return forbidden
+
   const idOrErr = await resolveId(ctx.params)
   if (typeof idOrErr !== "string") return idOrErr
   const id = idOrErr
@@ -117,6 +121,9 @@ export async function DELETE(
 ): Promise<NextResponse> {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.error
+
+  const forbidden = requireFeatureAccess(auth.value, "admin_users", "full")
+  if (forbidden) return forbidden
 
   const idOrErr = await resolveId(ctx.params)
   if (typeof idOrErr !== "string") return idOrErr
