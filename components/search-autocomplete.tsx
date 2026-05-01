@@ -178,9 +178,7 @@ export function SearchAutocomplete({
   })
 
   useEffect(() => {
-    if (isFetching) {
-      dispatch({ type: "SET_LOADING", payload: true })
-    }
+    dispatch({ type: "SET_LOADING", payload: isFetching })
   }, [isFetching, dispatch])
 
   useEffect(() => {
