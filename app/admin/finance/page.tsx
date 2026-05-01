@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface FinanceApplication {
   id: string
@@ -121,6 +122,31 @@ export default function AdminFinancePage() {
       console.error("Error fetching applications:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleApplicationDeleted = (appId: string) => {
+    setApplications((prev) => {
+      const removed = prev.find((a) => a.id === appId)
+      const next = prev.filter((a) => a.id !== appId)
+      // Recompute the stat panel from the new list so the operator sees
+      // the count + total value drop without a refetch round-trip.
+      setStats({
+        total: next.length,
+        pending: next.filter((a) =>
+          ["submitted", "under_review"].includes(a.status),
+        ).length,
+        approved: next.filter((a) => a.status === "approved").length,
+        funded: next.filter((a) => a.status === "funded").length,
+        totalValue: removed
+          ? Math.max(0, stats.totalValue - (removed.requested_amount ?? 0))
+          : stats.totalValue,
+      })
+      return next
+    })
+    if (selectedApp?.id === appId) {
+      setSelectedApp(null)
+      setDetailOpen(false)
     }
   }
 
@@ -383,17 +409,25 @@ export default function AdminFinancePage() {
                         </p>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedApp(app)
-                            setDetailOpen(true)
-                          }}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
+                        <span className="inline-flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedApp(app)
+                              setDetailOpen(true)
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
+                          <DeleteRowButton
+                            endpoint={`/api/v1/admin/finance/applications/${app.id}`}
+                            id={app.id}
+                            label={`application ${app.application_number}`}
+                            onDeleted={handleApplicationDeleted}
+                          />
+                        </span>
                       </td>
                     </tr>
                   ))}
