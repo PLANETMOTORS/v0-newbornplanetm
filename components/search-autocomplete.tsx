@@ -375,7 +375,7 @@ export function SearchAutocomplete({
             <div
               ref={listboxRef}
               id={listboxId}
-              role="listbox" // NOSONAR — WAI-ARIA combobox pattern requires role="listbox" on the suggestion popup
+              role="listbox"
               aria-label="Search suggestions"
               className="flex-1 overflow-y-auto"
             >
@@ -437,7 +437,7 @@ export function SearchAutocomplete({
         <div
           ref={listboxRef}
           id={listboxId}
-          role="listbox" // NOSONAR — WAI-ARIA combobox pattern requires role="listbox" on the suggestion popup
+          role="listbox"
           aria-label="Search suggestions"
           data-testid="search-dropdown"
           className="absolute top-full left-0 right-0 mt-1.5 max-h-[420px] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl z-50"
@@ -491,7 +491,7 @@ function PopularDropdown({
         <button
           key={item.label}
           id={`${optionIdPrefix}-${i}`}
-          role="option" // NOSONAR — WAI-ARIA combobox pattern: items inside role="listbox" must use role="option"
+          role="option"
           aria-selected={activeIndex === i}
           data-index={i}
           type="button"
@@ -564,7 +564,7 @@ function ResultsDropdown({
               <button
                 key={key}
                 id={`${optionIdPrefix}-${idx}`}
-                role="option" // NOSONAR — WAI-ARIA combobox pattern: items inside role="listbox" must use role="option"
+                role="option"
                 aria-selected={activeIndex === idx}
                 data-testid="search-result-item"
                 data-index={idx}

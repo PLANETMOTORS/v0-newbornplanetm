@@ -188,11 +188,8 @@ function mergePostData(sanityPost: any, staticPost: (typeof blogPosts)[string] |
     ? { year: "numeric", month: "short", day: "2-digit" }
     : undefined
 
-  const sanityContent = sanityHasBody
-    ? portableTextToHtml(sanityPost.body)
-    : sanityPost?.body
-      ? portableTextToHtml(sanityPost.body)
-      : undefined
+  const hasUsableBody = sanityPost?.body && (sanityHasBody || !staticPost)
+  const sanityContent = hasUsableBody ? portableTextToHtml(sanityPost.body) : undefined
 
   return {
     title: sanityPost?.title ?? staticPost?.title ?? "",
