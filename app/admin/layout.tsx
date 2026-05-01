@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Car, Users, FileText, DollarSign,
   MessageSquare, Settings, LogOut, Menu, X,
   BarChart3, Bell, Search, Shield, Camera,
-  Bot, CalendarCheck, Mail
+  Bot, CalendarCheck, Mail, UserCog
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ADMIN_EMAILS } from "@/lib/admin"
@@ -25,6 +25,7 @@ const navigation = [
   { name: "Workflows", href: "/admin/workflows", icon: Mail },
   { name: "360° Photos", href: "/admin/360-upload", icon: Camera },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Admin Users", href: "/admin/users", icon: UserCog },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
 
@@ -44,15 +45,47 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (isAuthPage || isLoading) return
-    if (user) {
-      const userIsAdmin = ADMIN_EMAILS.includes(user.email || "") ||
-                         user.user_metadata?.is_admin === true
-      setIsAdmin(userIsAdmin)
-      if (!userIsAdmin) {
-        router.push("/")
-      }
-    } else {
+    if (!user) {
       router.push("/admin/login")
+      return
+    }
+
+    // Synchronous fast-path: if the current user is in the env list or has
+    // the legacy is_admin metadata claim, render the shell immediately.
+    const fastPathAdmin =
+      ADMIN_EMAILS.includes(user.email || "") ||
+      user.user_metadata?.is_admin === true
+    if (fastPathAdmin) {
+      setIsAdmin(true)
+      return
+    }
+
+    // Slow path: consult the DB-backed admin_users table for runtime-invited
+    // admins. A failure here is not authoritative — keep the user on the
+    // verifying screen rather than redirecting to "/".
+    let cancelled = false
+    fetch("/api/v1/admin/me")
+      .then(async (res) => {
+        if (cancelled) return
+        if (!res.ok) {
+          setIsAdmin(false)
+          router.push("/")
+          return
+        }
+        const json = (await res.json()) as { isAdmin?: boolean }
+        if (cancelled) return
+        if (json.isAdmin) {
+          setIsAdmin(true)
+        } else {
+          router.push("/")
+        }
+      })
+      .catch(() => {
+        if (cancelled) return
+        router.push("/")
+      })
+    return () => {
+      cancelled = true
     }
   }, [user, isLoading, router, isAuthPage])
 
