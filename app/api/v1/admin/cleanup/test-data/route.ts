@@ -102,11 +102,14 @@ function parseBody(raw: unknown): { ok: true; body: CleanupBody } | { ok: false;
   }
 
   if (c.mode === "test-pattern") {
+    if ("dryRun" in c && typeof c.dryRun !== "boolean") {
+      return { ok: false, error: "dryRun must be a boolean when provided" }
+    }
     return {
       ok: true,
       body: {
         mode: "test-pattern",
-        dryRun: c.dryRun === true,
+        dryRun: c.dryRun !== false,
       },
     }
   }
