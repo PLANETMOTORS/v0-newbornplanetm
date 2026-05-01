@@ -30,16 +30,25 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { isActiveAdmin } from "@/lib/admin/users/repository"
 import type { Result } from "@/lib/result"
 import { ok, err } from "@/lib/result"
+import type { AdminRole } from "@/lib/admin/users/schemas"
 
 export interface AdminContext {
   readonly email: string
+  readonly role: AdminRole
+  /** "env" = listed in ADMIN_EMAILS env var; "db" = found in admin_users table. */
+  readonly source: "env" | "db"
 }
 
 /**
- * Resolve the current Supabase user and gate by ADMIN_EMAILS.
- * Returns the authenticated admin context or a 401 NextResponse.
+ * Resolve the current Supabase user and gate by either:
+ *   1. the runtime admin_users table, OR
+ *   2. the ADMIN_EMAILS env-var fallback (bootstrap path).
+ *
+ * The DB is consulted first so newly-invited admins gain access without
+ * a redeploy. Env-list members default to role="admin".
  */
 export async function requireAdmin(): Promise<Result<AdminContext, NextResponse>> {
   const authClient = await createClient()
@@ -47,10 +56,17 @@ export async function requireAdmin(): Promise<Result<AdminContext, NextResponse>
     data: { user },
   } = await authClient.auth.getUser()
   const email = user?.email
-  if (!email || !ADMIN_EMAILS.includes(email)) {
+  if (!email) {
     return err(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
   }
-  return ok({ email })
+  const dbActive = await isActiveAdmin(email).catch(() => false)
+  if (dbActive) {
+    return ok({ email, role: "admin", source: "db" })
+  }
+  if (ADMIN_EMAILS.includes(email)) {
+    return ok({ email, role: "admin", source: "env" })
+  }
+  return err(NextResponse.json({ error: "Unauthorized" }, { status: 401 }))
 }
 
 function formatZodIssues(error: z.ZodError): string {

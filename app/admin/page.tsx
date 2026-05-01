@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { timeAgo, sourceIcon, leadStatusVariant as statusColor } from "@/lib/admin/lead-utils"
+import { CleanupTestDataCard } from "@/components/admin/cleanup-test-data-card"
 
 interface DashboardStats {
   totalInventory: number
@@ -226,6 +227,9 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cleanup test data — admin operator action */}
+      <CleanupTestDataCard />
 
       {/* Quick Actions */}
       <Card>
