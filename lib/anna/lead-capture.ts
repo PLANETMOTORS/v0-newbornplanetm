@@ -7,6 +7,8 @@
 
 import { createClient } from "@supabase/supabase-js"
 import { sendNotificationEmail } from "@/lib/email"
+import { inquiryToAdfProspect } from "@/lib/adf/adapters"
+import { forwardLeadToAutoRaptor } from "@/lib/adf/forwarder"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
@@ -74,6 +76,31 @@ export async function createLead(data: LeadData): Promise<string | null> {
         vehicleInfo: data.vehicleInfo,
       },
     }).catch(err => console.error("Lead notification email failed:", err))
+
+    // Forward to AutoRaptor as ADF/XML email (non-blocking).
+    // Skipped silently when the customer hasn't shared an email yet
+    // (Anna asks for contact info up front, but a chat can start
+    // anonymously). The dealer sees no value in unidentifiable leads.
+    if (data.customerEmail) {
+      void forwardLeadToAutoRaptor(
+        inquiryToAdfProspect({
+          inquiryId: lead?.id || `anna-${Date.now().toString(36)}`,
+          customerName: data.customerName,
+          customerEmail: data.customerEmail,
+          customerPhone: data.customerPhone,
+          message: [
+            data.subject,
+            data.message,
+            data.vehicleInfo ? `Vehicle context: ${data.vehicleInfo}` : null,
+            `Source: ${data.source === "chat" ? "Anna AI Chat" : data.source}`,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        }),
+      ).catch((cause) =>
+        console.error("[anna] ADF forward failed:", cause),
+      )
+    }
 
     return lead?.id || null
   } catch (err) {
