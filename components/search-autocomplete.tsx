@@ -260,6 +260,7 @@ export function SearchAutocomplete({
     if (query.length < MIN_QUERY_LENGTH) {
       setResults([])
       setIsLoadingResults(false)
+      abortRef.current?.abort()
       return
     }
 
@@ -278,7 +279,10 @@ export function SearchAutocomplete({
       }
     }, DEBOUNCE_MS)
 
-    return () => globalThis.clearTimeout(timer)
+    return () => {
+      globalThis.clearTimeout(timer)
+      controller.abort()
+    }
   }, [query])
 
   // ── Keyboard navigation ──
