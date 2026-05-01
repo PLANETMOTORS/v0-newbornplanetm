@@ -64,7 +64,7 @@ async function selfProtect(
   callerEmail: string,
 ): Promise<NextResponse | null> {
   const result = await getAdminByEmail(callerEmail)
-  if (result.ok && result.value && result.value.id === id) {
+  if (result.ok && result.value?.id === id) {
     return NextResponse.json(
       {
         error: {

@@ -67,10 +67,10 @@ export async function persistCaptureLead(
   let client: AdminClient
   try {
     client = clientFactory()
-  } catch (caught) {
+  } catch (error_) {
     return err({
       kind: "exception",
-      message: caught instanceof Error ? caught.message : "client init failed",
+      message: error_ instanceof Error ? error_.message : "client init failed",
     })
   }
 
@@ -95,10 +95,10 @@ export async function persistCaptureLead(
       })
     }
     return ok({ id: data.id })
-  } catch (caught) {
+  } catch (error_) {
     return err({
       kind: "exception",
-      message: caught instanceof Error ? caught.message : "insert threw",
+      message: error_ instanceof Error ? error_.message : "insert threw",
     })
   }
 }

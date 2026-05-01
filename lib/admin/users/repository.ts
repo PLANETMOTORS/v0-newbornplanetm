@@ -49,8 +49,8 @@ export async function listAdmins(
       .order("created_at", { ascending: false })
     if (error) return err(dbError(error.message, error.code))
     return ok((data ?? []) as readonly AdminUserRow[])
-  } catch (caught) {
-    return err({ kind: "exception", message: describe(caught) })
+  } catch (error_) {
+    return err({ kind: "exception", message: describe(error_) })
   }
 }
 
@@ -67,8 +67,8 @@ export async function getAdminByEmail(
       .maybeSingle()
     if (error) return err(dbError(error.message, error.code))
     return ok((data ?? null) as AdminUserRow | null)
-  } catch (caught) {
-    return err({ kind: "exception", message: describe(caught) })
+  } catch (error_) {
+    return err({ kind: "exception", message: describe(error_) })
   }
 }
 
@@ -81,7 +81,7 @@ export async function isActiveAdmin(
   factory: ClientFactory = createAdminClient,
 ): Promise<boolean> {
   const result = await getAdminByEmail(email, factory)
-  return result.ok && result.value !== null && result.value.is_active
+  return result.ok && result.value?.is_active === true
 }
 
 export async function inviteAdmin(
@@ -111,8 +111,8 @@ export async function inviteAdmin(
     }
     if (!data) return err(dbError("insert returned no row"))
     return ok(data as AdminUserRow)
-  } catch (caught) {
-    return err({ kind: "exception", message: describe(caught) })
+  } catch (error_) {
+    return err({ kind: "exception", message: describe(error_) })
   }
 }
 
@@ -123,7 +123,7 @@ export async function updateAdmin(
 ): Promise<Result<AdminUserRow, AdminUserRepoError>> {
   try {
     const client = factory()
-    const patch: Record<string, AdminRole | boolean | string | null> = {}
+    const patch: { role?: AdminRole; is_active?: boolean; notes?: string | null } = {}
     if (input.role !== undefined) patch.role = input.role
     if (input.is_active !== undefined) patch.is_active = input.is_active
     if (input.notes !== undefined) patch.notes = input.notes
@@ -136,8 +136,8 @@ export async function updateAdmin(
     if (error) return err(dbError(error.message, error.code))
     if (!data) return err({ kind: "not-found" })
     return ok(data as AdminUserRow)
-  } catch (caught) {
-    return err({ kind: "exception", message: describe(caught) })
+  } catch (error_) {
+    return err({ kind: "exception", message: describe(error_) })
   }
 }
 
@@ -163,7 +163,7 @@ export async function deleteAdmin(
     if (error) return err(dbError(error.message, error.code))
     if (!data) return err({ kind: "not-found" })
     return ok({ id: data.id as string })
-  } catch (caught) {
-    return err({ kind: "exception", message: describe(caught) })
+  } catch (error_) {
+    return err({ kind: "exception", message: describe(error_) })
   }
 }

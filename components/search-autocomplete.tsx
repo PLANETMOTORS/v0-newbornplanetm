@@ -146,7 +146,7 @@ export function SearchAutocomplete({
   const [state, dispatch] = useSearchState()
   const { isOpen, query, popular, groups, isLoading, activeIndex } = state
 
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const listboxRef = useRef<HTMLDivElement>(null)
 
@@ -331,10 +331,10 @@ export function SearchAutocomplete({
         </button>
 
         {isOpen && (
-          <div
-            ref={containerRef}
-            className="fixed inset-0 z-50 bg-white flex flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-200"
-            role="dialog"
+          <dialog
+            ref={containerRef as React.RefObject<HTMLDialogElement | null>}
+            open
+            className="fixed inset-0 z-50 bg-white flex flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-200 w-full h-full m-0 p-0 border-none max-w-none max-h-none"
             aria-label="Search vehicles"
           >
             <div className="flex items-center gap-2 px-4 h-14 border-b border-gray-200">
@@ -392,7 +392,7 @@ export function SearchAutocomplete({
                 navigateTo,
               })}
             </div>
-          </div>
+          </dialog>
         )}
       </>
     )
@@ -400,7 +400,7 @@ export function SearchAutocomplete({
 
   // ── "bar" variant: desktop search bar ──
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef as React.RefObject<HTMLDivElement | null>} className="relative w-full">
       <div className="flex items-center rounded-lg border border-gray-200 bg-white px-3 h-10">
         <Search
           className="h-4 w-4 shrink-0 text-gray-400 mr-2"

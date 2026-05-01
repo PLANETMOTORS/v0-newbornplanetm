@@ -44,7 +44,7 @@ const DEFAULT_BASE_VALUE_CAD = 20000
 
 const CONDITION_MULTIPLIER: Readonly<Record<VehicleCondition, number>> = Object.freeze({
   excellent: 1.1,
-  good: 1.0,
+  good: 1,
   fair: 0.85,
   poor: 0.65,
 })

@@ -72,10 +72,10 @@ export async function persistTradeInQuote(
   let supabase: AdminClient
   try {
     supabase = clientFactory()
-  } catch (caught) {
+  } catch (error_) {
     return err({
       kind: "exception",
-      message: caught instanceof Error ? caught.message : "client init failed",
+      message: error_ instanceof Error ? error_.message : "client init failed",
     })
   }
 
@@ -87,10 +87,10 @@ export async function persistTradeInQuote(
       return err({ kind: "db-error", message: insertError.message })
     }
     return ok(undefined)
-  } catch (caught) {
+  } catch (error_) {
     return err({
       kind: "exception",
-      message: caught instanceof Error ? caught.message : "insert threw",
+      message: error_ instanceof Error ? error_.message : "insert threw",
     })
   }
 }

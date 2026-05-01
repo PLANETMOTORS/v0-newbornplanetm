@@ -45,6 +45,18 @@ interface AdminUserRow {
 
 const ROLE_OPTIONS: readonly AdminRole[] = ["admin", "manager", "viewer"]
 
+async function throwIfNotOk(res: Response, label: string): Promise<void> {
+  if (res.ok) return
+  const j = (await res.json().catch(() => ({}))) as {
+    error?: { message?: string } | string
+  }
+  const msg =
+    typeof j.error === "string"
+      ? j.error
+      : j.error?.message ?? `${label} (${res.status})`
+  throw new Error(msg)
+}
+
 function formatTime(iso: string): string {
   try {
     return new Date(iso).toLocaleString()
@@ -85,9 +97,9 @@ export default function AdminUsersPage() {
       const data = (await res.json()) as { admins: AdminUserRow[] }
       setAdmins(data.admins ?? [])
       setError(null)
-    } catch (caught) {
+    } catch (error_) {
       setError(
-        caught instanceof Error ? caught.message : "Failed to load admins",
+        error_ instanceof Error ? error_.message : "Failed to load admins",
       )
     } finally {
       setLoading(false)
@@ -98,7 +110,7 @@ export default function AdminUsersPage() {
     fetchAdmins()
   }, [fetchAdmins])
 
-  const submitInvite = async (e: React.FormEvent) => {
+  const submitInvite = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!inviteEmail.trim()) return
     setInviting(true)
@@ -112,55 +124,46 @@ export default function AdminUsersPage() {
           notes: inviteNotes.trim() || undefined,
         }),
       })
-      if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string } | string
-        }
-        const msg =
-          typeof j.error === "string"
-            ? j.error
-            : j.error?.message ?? `Invite failed (${res.status})`
-        throw new Error(msg)
-      }
+      await throwIfNotOk(res, "Invite failed")
       setInviteEmail("")
       setInviteNotes("")
       setInviteRole("admin")
       await fetchAdmins()
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Invite failed")
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Invite failed")
     } finally {
       setInviting(false)
     }
   }
 
+  const runMutation = useCallback(
+    async (id: string, label: string, request: () => Promise<Response>) => {
+      setPendingId(id)
+      try {
+        const res = await request()
+        await throwIfNotOk(res, label)
+        await fetchAdmins()
+        setError(null)
+      } catch (error_) {
+        setError(error_ instanceof Error ? error_.message : label)
+      } finally {
+        setPendingId(null)
+      }
+    },
+    [fetchAdmins],
+  )
+
   const patchAdmin = async (
     id: string,
     patch: { role?: AdminRole; is_active?: boolean },
   ) => {
-    setPendingId(id)
-    try {
-      const res = await fetch(`/api/v1/admin/users/${id}`, {
+    await runMutation(id, "Update failed", () =>
+      fetch(`/api/v1/admin/users/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
-      })
-      if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string } | string
-        }
-        const msg =
-          typeof j.error === "string"
-            ? j.error
-            : j.error?.message ?? `Update failed (${res.status})`
-        throw new Error(msg)
-      }
-      await fetchAdmins()
-      setError(null)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Update failed")
-    } finally {
-      setPendingId(null)
-    }
+      }),
+    )
   }
 
   const removeAdmin = async (id: string, email: string) => {
@@ -170,26 +173,9 @@ export default function AdminUsersPage() {
       )
     )
       return
-    setPendingId(id)
-    try {
-      const res = await fetch(`/api/v1/admin/users/${id}`, { method: "DELETE" })
-      if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string } | string
-        }
-        const msg =
-          typeof j.error === "string"
-            ? j.error
-            : j.error?.message ?? `Delete failed (${res.status})`
-        throw new Error(msg)
-      }
-      await fetchAdmins()
-      setError(null)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Delete failed")
-    } finally {
-      setPendingId(null)
-    }
+    await runMutation(id, "Delete failed", () =>
+      fetch(`/api/v1/admin/users/${id}`, { method: "DELETE" }),
+    )
   }
 
   const isSelf = (row: AdminUserRow) =>
@@ -285,15 +271,17 @@ export default function AdminUsersPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {loading && (
             <p className="text-sm text-gray-500 py-6 text-center">
               Loading admins...
             </p>
-          ) : admins.length === 0 ? (
+          )}
+          {!loading && admins.length === 0 && (
             <p className="text-sm text-gray-500 py-6 text-center">
               No admins on file. Invite the first one above.
             </p>
-          ) : (
+          )}
+          {!loading && admins.length > 0 && (
             <div className="divide-y" data-testid="admin-roster">
               {admins.map((row) => {
                 const self = isSelf(row)

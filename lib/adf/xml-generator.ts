@@ -21,7 +21,7 @@ import type {
  * Escape user-supplied text before embedding in XML.
  * Order matters: ampersand first to avoid double-escaping.
  */
-export function escapeXml(value: unknown): string {
+export function escapeXml(value: string | number | boolean | undefined | null): string {
   if (value === undefined || value === null) return ""
   return String(value)
     .replaceAll("&", "&amp;")
@@ -31,7 +31,7 @@ export function escapeXml(value: unknown): string {
     .replaceAll("'", "&apos;")
 }
 
-function tag(name: string, value: unknown, attrs?: Record<string, string>): string {
+function tag(name: string, value: string | number | boolean | undefined | null, attrs?: Record<string, string>): string {
   const escaped = escapeXml(value)
   if (escaped === "") return ""
   const attrStr = attrs
@@ -65,8 +65,8 @@ function buildVehicle(vehicle: ADFVehicle): string {
     tag("trim", vehicle.trim),
     tag("vin", vehicle.vin),
     tag("stock", vehicle.stockNumber),
-    vehicle.mileage !== undefined ? tag("odometer", vehicle.mileage, { units: "km" }) : "",
-    vehicle.price !== undefined ? tag("price", vehicle.price, { type: "asking" }) : "",
+    tag("odometer", vehicle.mileage, { units: "km" }),
+    tag("price", vehicle.price, { type: "asking" }),
   ]
     .filter(Boolean)
     .join("")
@@ -84,15 +84,13 @@ function buildTradeIn(trade: ADFTradeIn): string {
     tag("model", trade.model),
     tag("trim", trade.trim),
     tag("vin", trade.vin),
-    trade.mileage !== undefined ? tag("odometer", trade.mileage, { units: "km" }) : "",
+    tag("odometer", trade.mileage, { units: "km" }),
     tag("condition", trade.condition),
-    trade.offerAmount !== undefined
-      ? tag("price", trade.offerAmount, { type: "appraisal" })
-      : "",
+    tag("price", trade.offerAmount, { type: "appraisal" }),
   ]
     .filter(Boolean)
     .join("")
-  if (!inner) return ""
+  if (inner === "") return ""
   return `<vehicle interest="trade-in">${inner}</vehicle>`
 }
 
