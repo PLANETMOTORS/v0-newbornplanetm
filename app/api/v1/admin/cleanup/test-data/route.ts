@@ -30,10 +30,12 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
 import { logger } from "@/lib/logger"
+import {
+  requireAdmin,
+  parseJsonBody,
+} from "@/lib/security/admin-route-helpers"
 
 export const dynamic = "force-dynamic"
 
@@ -89,20 +91,6 @@ const TEST_EMAIL_PATTERNS = [
 ] as const
 
 const MAX_IDS_PER_CALL = 100
-
-// ── Auth gate ─────────────────────────────────────────────────────
-
-async function authoriseAdmin(): Promise<{ ok: true; email: string } | { ok: false }> {
-  const authClient = await createClient()
-  const {
-    data: { user },
-  } = await authClient.auth.getUser()
-  const email = user?.email
-  if (!email || !ADMIN_EMAILS.includes(email)) {
-    return { ok: false }
-  }
-  return { ok: true, email }
-}
 
 // ── Body validation ───────────────────────────────────────────────
 
@@ -255,25 +243,11 @@ function summarise(matches: PatternResults): Record<CleanableTable, number> {
 // ── POST handler ──────────────────────────────────────────────────
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const auth = await authoriseAdmin()
-  if (!auth.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response
 
-  let json: unknown
-  try {
-    json = await request.json()
-  } catch {
-    return NextResponse.json(
-      { error: "Body must be valid JSON" },
-      { status: 400 },
-    )
-  }
-
-  const parsed = parseBody(json)
-  if (!parsed.ok) {
-    return NextResponse.json({ error: parsed.error }, { status: 400 })
-  }
+  const parsed = await parseJsonBody(request, parseBody)
+  if (!parsed.ok) return parsed.response
 
   const supabase = createAdminClient()
 
