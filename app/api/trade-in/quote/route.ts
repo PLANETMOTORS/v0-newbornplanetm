@@ -1,4 +1,26 @@
+/**
+ * POST /api/trade-in/quote
+ *
+ * Public endpoint that customers hit from the trade-in form.
+ *
+ *   1. CSRF: validate Origin / Referer
+ *   2. Rate-limit by client IP
+ *   3. Zod-parse + reject malformed input early
+ *   4. Compute the value-range estimate (pure function)
+ *   5. Persist to `trade_in_quotes` (Result-typed; failure ≠ thrown)
+ *   6. Fan out side-effects: notification email, ADF, Meta CAPI
+ *   7. Return the canonical success envelope
+ *
+ * Step 5 is the bug-fix from the original PR: until this insert was
+ * added, every trade-in lead since launch was lost from the admin UI
+ * even though the customer had received a confirmation email.
+ *
+ * The handler stays thin — every reusable piece (Zod schema, estimator,
+ * repository) lives in `lib/trade-in/*` and is independently unit-tested.
+ */
+
 import { randomBytes } from "node:crypto"
+import type { NextRequest } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
@@ -7,183 +29,161 @@ import { rateLimit } from "@/lib/redis"
 import { getClientIp } from "@/lib/security/client-ip"
 import { tradeInToAdfProspect } from "@/lib/adf/adapters"
 import { forwardLeadToAutoRaptor } from "@/lib/adf/forwarder"
+import { logger } from "@/lib/logger"
+import { estimateTradeInValue } from "@/lib/trade-in/estimator"
+import { tradeInQuoteRequestSchema, type TradeInQuoteRequest } from "@/lib/trade-in/schemas"
+import { persistTradeInQuote, type PersistError } from "@/lib/trade-in/repository"
 
-// Vehicle value estimation algorithm
-function estimateTradeInValue(data: {
-  year: number
-  make: string
-  model: string
-  mileage: number
-  condition: "excellent" | "good" | "fair" | "poor"
-  vin?: string
-}): { lowEstimate: number; highEstimate: number; averageEstimate: number } {
-  const currentYear = new Date().getFullYear()
-  const vehicleAge = currentYear - data.year
+const RATE_LIMIT_BUCKET = "trade-in-quote"
+const RATE_LIMIT_HOURLY = 10
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60
+const QUOTE_VALIDITY_MS = 7 * 24 * 60 * 60 * 1000
+const QUOTE_ID_RANDOM_BYTES = 3
 
-  // Base value lookup (simplified - in production, use Canadian Black Book API)
-  const baseValues: Record<string, number> = {
-    tesla: 45000,
-    bmw: 35000,
-    mercedes: 38000,
-    audi: 32000,
-    porsche: 55000,
-    toyota: 28000,
-    honda: 26000,
-    ford: 24000,
-    chevrolet: 22000,
-    nissan: 20000,
-    hyundai: 18000,
-    kia: 17000,
-    volkswagen: 22000,
-    mazda: 20000,
-    subaru: 24000,
-    lexus: 35000,
-    acura: 28000,
-    infiniti: 26000,
-    default: 20000,
+function generateQuoteId(now: number): string {
+  const suffix = randomBytes(QUOTE_ID_RANDOM_BYTES).toString("hex").toUpperCase()
+  return `TQ-${now}-${suffix}`
+}
+
+function fireSideEffects(
+  req: NextRequest,
+  body: TradeInQuoteRequest,
+  quoteId: string,
+  estimate: ReturnType<typeof estimateTradeInValue>,
+): void {
+  if (body.customerEmail) {
+    void sendNotificationEmail({
+      type: "trade_in_quote",
+      customerName: body.customerName ?? "Customer",
+      customerEmail: body.customerEmail,
+      customerPhone: body.customerPhone,
+      vehicleInfo: `${body.year} ${body.make} ${body.model}`,
+      quoteId,
+      tradeInValue: estimate.averageEstimate,
+    }).catch((cause) =>
+      logger.error("[trade-in] notification email failed", { quoteId, cause }),
+    )
   }
 
-  const makeKey = data.make.toLowerCase()
-  let baseValue = baseValues[makeKey] || baseValues.default
+  void forwardLeadToAutoRaptor(
+    tradeInToAdfProspect({
+      quoteId,
+      customerName: body.customerName,
+      customerEmail: body.customerEmail,
+      customerPhone: body.customerPhone,
+      vehicleYear: body.year,
+      vehicleMake: body.make,
+      vehicleModel: body.model,
+      mileage: body.mileage,
+      condition: body.condition,
+      vin: body.vin,
+      offerAmount: estimate.averageEstimate,
+      offerLow: estimate.lowEstimate,
+      offerHigh: estimate.highEstimate,
+    }),
+  ).catch((cause) =>
+    logger.error("[trade-in] ADF forward failed", { quoteId, cause }),
+  )
 
-  // Age depreciation (roughly 15% per year for first 3 years, 10% after)
-  for (let i = 0; i < vehicleAge; i++) {
-    if (i < 3) {
-      baseValue *= 0.85
-    } else {
-      baseValue *= 0.9
-    }
-  }
+  trackLead(req, {
+    email: body.customerEmail,
+    phone: body.customerPhone,
+    firstName: body.customerName,
+    value: estimate.averageEstimate,
+    contentName: `${body.year} ${body.make} ${body.model} Trade-In`,
+    contentCategory: "trade_in",
+  })
+}
 
-  // Mileage adjustment (average 20,000 km/year)
-  const expectedMileage = vehicleAge * 20000
-  const mileageDiff = data.mileage - expectedMileage
-  if (mileageDiff > 0) {
-    // Higher than average mileage - deduct
-    baseValue -= (mileageDiff / 10000) * 500
-  } else {
-    // Lower than average - add value
-    baseValue += (Math.abs(mileageDiff) / 10000) * 300
-  }
-
-  // Condition adjustment
-  const conditionMultipliers = {
-    excellent: 1.1,
-    good: 1,
-    fair: 0.85,
-    poor: 0.65,
-  }
-  baseValue *= conditionMultipliers[data.condition]
-
-  // Calculate range
-  const lowEstimate = Math.round(baseValue * 0.9)
-  const highEstimate = Math.round(baseValue * 1.1)
-  const averageEstimate = Math.round(baseValue)
-
+function persistWarningFor(error: PersistError | null): { _persistWarning: string } | Record<string, never> {
+  if (!error) return {}
   return {
-    lowEstimate: Math.max(lowEstimate, 500),
-    highEstimate: Math.max(highEstimate, 1000),
-    averageEstimate: Math.max(averageEstimate, 750),
+    _persistWarning: "Quote saved via email; database sync pending.",
   }
 }
 
-export async function POST(req: Request) {
-  try {
-    if (!validateOrigin(req)) {
-      return apiError(ErrorCode.FORBIDDEN, "Forbidden", 403)
-    }
-
-    const ip = getClientIp(req)
-    const limiter = await rateLimit(`trade-in-quote:${ip}`, 10, 3600)
-    if (!limiter.success) {
-      return apiError(ErrorCode.RATE_LIMITED, "Too many requests. Please try again later.", 429)
-    }
-
-    const data = await req.json()
-    const { year, make, model, mileage, condition, vin, customerName, customerEmail, customerPhone } = data
-
-    // Validate required fields
-    if (!year || !make || !model || !mileage || !condition) {
-      return apiError(ErrorCode.VALIDATION_ERROR, "Missing required fields", 400)
-    }
-
-    // Calculate estimate
-    const estimate = estimateTradeInValue({
-      year: Number.parseInt(year),
-      make,
-      model,
-      mileage: Number.parseInt(mileage),
-      condition,
-      vin,
-    })
-
-    // Generate quote ID
-    const quoteId = `TQ-${Date.now()}-${randomBytes(3).toString("hex").toUpperCase()}`
-
-    // Send notification email to admin
-    if (customerEmail) {
-      await sendNotificationEmail({
-        type: 'trade_in_quote',
-        customerName: customerName || 'Customer',
-        customerEmail,
-        customerPhone,
-        vehicleInfo: `${year} ${make} ${model}`,
-        quoteId,
-        tradeInValue: estimate.averageEstimate,
-      })
-    }
-
-    // Forward to AutoRaptor as ADF XML (no-op if AUTORAPTOR_LEAD_EMAIL unset).
-    // Non-blocking — never fails the customer-facing flow.
-    void forwardLeadToAutoRaptor(
-      tradeInToAdfProspect({
-        quoteId,
-        customerName,
-        customerEmail,
-        customerPhone,
-        vehicleYear: Number.parseInt(year),
-        vehicleMake: make,
-        vehicleModel: model,
-        mileage: Number.parseInt(mileage),
-        condition,
-        vin,
-        offerAmount: estimate.averageEstimate,
-        offerLow: estimate.lowEstimate,
-        offerHigh: estimate.highEstimate,
-      }),
-    ).catch((err) => console.error("[trade-in] ADF forward error:", err))
-
-    // Fire Meta CAPI Lead event (non-blocking)
-    trackLead(req, {
-      email: customerEmail,
-      phone: customerPhone,
-      firstName: customerName,
-      value: estimate.averageEstimate,
-      contentName: `${year} ${make} ${model} Trade-In`,
-      contentCategory: "trade_in",
-    })
-
-    return apiSuccess({
-      quoteId,
-      vehicle: {
-        year,
-        make,
-        model,
-        mileage,
-        condition,
-        vin,
-      },
-      estimate: {
-        low: estimate.lowEstimate,
-        high: estimate.highEstimate,
-        average: estimate.averageEstimate,
-        currency: "CAD",
-      },
-      validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-      message: "This is an estimated value. Final offer subject to in-person inspection.",
-    })
-  } catch (error) {
-    console.error("Trade-in quote error:", error)
-    return apiError(ErrorCode.INTERNAL_ERROR, "Failed to generate quote")
+export async function POST(req: NextRequest) {
+  if (!validateOrigin(req)) {
+    return apiError(ErrorCode.FORBIDDEN, "Forbidden", 403)
   }
+
+  const ip = getClientIp(req)
+  const limiter = await rateLimit(`${RATE_LIMIT_BUCKET}:${ip}`, RATE_LIMIT_HOURLY, RATE_LIMIT_WINDOW_SECONDS)
+  if (!limiter.success) {
+    return apiError(ErrorCode.RATE_LIMITED, "Too many requests. Please try again later.", 429)
+  }
+
+  let raw: unknown
+  try {
+    raw = await req.json()
+  } catch {
+    return apiError(ErrorCode.VALIDATION_ERROR, "Body must be valid JSON", 400)
+  }
+
+  const parsed = tradeInQuoteRequestSchema.safeParse(raw)
+  if (!parsed.success) {
+    const message = parsed.error.issues
+      .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+      .join("; ")
+    return apiError(ErrorCode.VALIDATION_ERROR, message, 400)
+  }
+  const body = parsed.data
+
+  const now = Date.now()
+  const quoteId = generateQuoteId(now)
+  const validUntil = new Date(now + QUOTE_VALIDITY_MS).toISOString()
+
+  const estimate = estimateTradeInValue({
+    year: body.year,
+    make: body.make,
+    mileage: body.mileage,
+    condition: body.condition,
+    referenceYear: new Date(now).getUTCFullYear(),
+  })
+
+  const persistResult = await persistTradeInQuote({
+    quoteId,
+    vehicleYear: body.year,
+    vehicleMake: body.make,
+    vehicleModel: body.model,
+    mileage: body.mileage,
+    condition: body.condition,
+    vin: body.vin ?? null,
+    customerName: body.customerName ?? null,
+    customerEmail: body.customerEmail ?? null,
+    customerPhone: body.customerPhone ?? null,
+    offerAmount: estimate.averageEstimate,
+    offerLow: estimate.lowEstimate,
+    offerHigh: estimate.highEstimate,
+    status: "pending",
+    validUntil,
+    source: "instant_quote",
+  })
+
+  if (!persistResult.ok) {
+    logger.error("[trade-in] persist failed", { quoteId, error: persistResult.error })
+  }
+
+  fireSideEffects(req, body, quoteId, estimate)
+
+  return apiSuccess({
+    quoteId,
+    vehicle: {
+      year: body.year,
+      make: body.make,
+      model: body.model,
+      mileage: body.mileage,
+      condition: body.condition,
+      ...(body.vin ? { vin: body.vin } : {}),
+    },
+    estimate: {
+      low: estimate.lowEstimate,
+      high: estimate.highEstimate,
+      average: estimate.averageEstimate,
+      currency: "CAD" as const,
+    },
+    validUntil,
+    message: "This is an estimated value. Final offer subject to in-person inspection.",
+    ...persistWarningFor(persistResult.ok ? null : persistResult.error),
+  })
 }

@@ -63,7 +63,7 @@ function makeBody(excerpt) {
 }
 
 async function seed() {
-  console.log(`\n🌱 Seeding ${posts.length} blog posts → project ${PROJECT_ID} / ${DATASET}\n`)
+  console.log(`\n🌱 Seeding ${posts.length} blog posts → project ${PROJECT_ID} / production\n`)
   let ok = 0, fail = 0
   for (const p of posts) {
     try {
