@@ -31,7 +31,7 @@ describe("search/data", () => {
 
   it("returns cached results from Redis", async () => {
     const cached = [{ label: "SUVs", type: "body_style", count: 5, href: "/", score: 0.8 }]
-    mockGet.mockResolvedValue(JSON.stringify(cached))
+    mockGet.mockResolvedValue(cached)
 
     const { getPopularSearches } = await import("@/lib/search/data")
     const results = await getPopularSearches()
@@ -51,7 +51,7 @@ describe("search/data", () => {
     expect(results).toEqual(rpcData)
     expect(mockSet).toHaveBeenCalledWith(
       "planet:popular_searches",
-      JSON.stringify(rpcData),
+      rpcData,
       { ex: 900 },
     )
   })

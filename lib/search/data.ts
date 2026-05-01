@@ -49,9 +49,9 @@ export async function getPopularSearches(): Promise<readonly PopularSearch[]> {
     const redis = await getRedis()
 
     if (redis) {
-      const cached = await redis.get<string>(POPULAR_KEY)
-      if (typeof cached === "string") {
-        return JSON.parse(cached) as PopularSearch[]
+      const cached = await redis.get<PopularSearch[]>(POPULAR_KEY)
+      if (cached) {
+        return cached
       }
     }
 
@@ -67,7 +67,7 @@ export async function getPopularSearches(): Promise<readonly PopularSearch[]> {
     const results = (data ?? []) as PopularSearch[]
 
     if (redis) {
-      await redis.set(POPULAR_KEY, JSON.stringify(results), { ex: POPULAR_TTL })
+      await redis.set(POPULAR_KEY, results, { ex: POPULAR_TTL })
     }
 
     return results
