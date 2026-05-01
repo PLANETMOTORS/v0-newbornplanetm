@@ -190,7 +190,7 @@ export const VEHICLE_WITH_PAYMENT_CONTEXT_QUERY = `
 export const BLOG_LIST_QUERY = `
   *[_type == "blogPost"] | order(publishedAt desc)[$start...$end] {
     _id, title, slug, publishedAt, excerpt, "coverImage": coverImage.asset->url, seoTitle, seoDescription,
-    "categories": categories[]->title
+    "categories": categories
   }
 `
 

@@ -158,6 +158,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const isFavorite = isFavoriteInContext(vehicleId)
   const [activeTab, setActiveTab] = useState("photos")
+  const [showAllFeatures, setShowAllFeatures] = useState(false)
+  const [showAllSpecs, setShowAllSpecs] = useState(false)
   const [imageType, setImageType] = useState<"exterior" | "interior" | "360">("exterior")
   const [postalCode, setPostalCode] = useState("")
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false)
@@ -854,24 +856,33 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                         <CardTitle className="text-base">FEATURES</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-0">
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Comfort & Convenience</span>
-                          <span className="font-semibold">Heated Seats</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Safety & Security</span>
-                          <span className="font-semibold">Autopilot</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Entertainment & Tech</span>
-                          <span className="font-semibold">15&quot; Touchscreen</span>
-                        </div>
-                        <div className="flex justify-between py-4">
-                          <span className="text-muted-foreground">Braking & Traction</span>
-                          <span className="font-semibold">Brake Assist</span>
-                        </div>
-                        <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
-                          View all features →
+                        {(
+                          [
+                            { label: "Comfort & Convenience", items: vehicleData.features.comfortConvenience },
+                            { label: "Safety & Security", items: vehicleData.features.safetySecurity },
+                            { label: "Entertainment & Tech", items: vehicleData.features.entertainmentTech },
+                            { label: "Braking & Traction", items: vehicleData.features.brakingTraction },
+                          ] satisfies readonly { label: string; items: readonly string[] }[]
+                        ).map((cat, ci) => (
+                          <div key={cat.label}>
+                            <div className="flex justify-between py-4 border-b">
+                              <span className="text-muted-foreground">{cat.label}</span>
+                              <span className="font-semibold">{cat.items[0]}</span>
+                            </div>
+                            {showAllFeatures && cat.items.slice(1).map((item, idx) => (
+                              <div key={`${cat.label}-${item}`} className={`flex justify-between py-3 pl-4 ${ci < 3 || idx < cat.items.length - 2 ? "border-b border-dashed" : ""}`}>
+                                <span className="text-sm text-muted-foreground" />
+                                <span className="text-sm">{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto text-primary mt-2"
+                          onClick={() => setShowAllFeatures((prev) => !prev)}
+                        >
+                          {showAllFeatures ? "Show less ↑" : `View all features →`}
                         </Button>
                       </CardContent>
                     </Card>
@@ -882,30 +893,46 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                         <CardTitle className="text-base">SPECS</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-0">
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Range</span>
-                          <span className="font-semibold">{vehicle.range || "N/A"}</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Exterior</span>
-                          <span className="font-semibold">{vehicle.exteriorColor}</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Interior</span>
-                          <span className="font-semibold">{vehicle.interiorColor}</span>
-                        </div>
-                        <div className="flex justify-between py-4">
-                          <span className="text-muted-foreground">Drive</span>
-                          <span className="font-semibold">{vehicle.drivetrain}</span>
-                        </div>
-                        <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
-                          View all specs →
-                        </Button>
+                        {(() => {
+                          const allSpecs: { label: string; value: string }[] = [
+                            { label: "Exterior", value: vehicle.exteriorColor || "N/A" },
+                            { label: "Interior", value: vehicle.interiorColor || "N/A" },
+                            { label: "Drivetrain", value: vehicle.drivetrain || "N/A" },
+                            { label: "Transmission", value: vehicle.transmission || "N/A" },
+                            ...(vehicle.engine ? [{ label: "Engine", value: vehicle.engine }] : []),
+                            { label: "Fuel Type", value: vehicle.fuelType || "N/A" },
+                            ...(vehicle.bodyStyle ? [{ label: "Body Style", value: vehicle.bodyStyle }] : []),
+                            { label: "Mileage", value: `${vehicle.mileage.toLocaleString()} km` },
+                            ...(vehicle.range ? [{ label: "Range", value: vehicle.range }] : []),
+                            { label: "VIN", value: vehicle.vin },
+                          ]
+                          const visible = showAllSpecs ? allSpecs : allSpecs.slice(0, 4)
+                          return (
+                            <>
+                              {visible.map((spec, i) => (
+                                <div key={spec.label} className={`flex justify-between py-4 ${i < visible.length - 1 ? "border-b" : ""}`}>
+                                  <span className="text-muted-foreground">{spec.label}</span>
+                                  <span className="font-semibold">{spec.value}</span>
+                                </div>
+                              ))}
+                              {allSpecs.length > 4 && (
+                                <Button
+                                  variant="link"
+                                  className="p-0 h-auto text-primary mt-2"
+                                  onClick={() => setShowAllSpecs((prev) => !prev)}
+                                >
+                                  {showAllSpecs ? "Show less ↑" : `View all specs →`}
+                                </Button>
+                              )}
+                            </>
+                          )
+                        })()}
                       </CardContent>
                     </Card>
                   </div>
 
                   {/* Packages */}
+                  {vehicleData.packages.length > 0 && (
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base">PACKAGES</CardTitle>
@@ -913,16 +940,12 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     <CardContent>
                       {(vehicleData.packages as readonly (string | { name: string })[]).map((pkg) => (
                         <div key={typeof pkg === "string" ? pkg : pkg.name} className="py-4 border-b last:border-b-0">
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold">{typeof pkg === "string" ? pkg : pkg.name}</span>
-                            <Button variant="link" className="p-0 h-auto text-primary text-sm" onClick={() => setActiveTab("features")}>
-                              View details →
-                            </Button>
-                          </div>
+                          <span className="font-semibold">{typeof pkg === "string" ? pkg : pkg.name}</span>
                         </div>
                       ))}
                     </CardContent>
                   </Card>
+                  )}
                 </TabsContent>
 
                 {/* Inspection Tab */}
