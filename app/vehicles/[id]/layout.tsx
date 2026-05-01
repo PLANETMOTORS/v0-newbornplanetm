@@ -10,8 +10,8 @@ import { fetchVehicleForSSR } from "@/lib/vehicles/fetch-vehicle"
 import { getPublicSiteUrl } from "@/lib/site-url"
 
 interface Props {
-  children: React.ReactNode
-  params: Promise<{ id: string }>
+  readonly children: React.ReactNode
+  readonly params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

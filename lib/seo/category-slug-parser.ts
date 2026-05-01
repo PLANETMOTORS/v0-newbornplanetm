@@ -265,11 +265,13 @@ function withDisplay(
   if (partial.isLuxury) parts.push('Luxury')
   if (partial.isAccidentFree) parts.push('Accident-Free')
   if (partial.isCertified) parts.push('Certified Pre-Owned')
-  if (partial.fuelTypeDb === 'Electric') parts.push('Electric')
-  else if (partial.fuelTypeDb === 'Hybrid') parts.push('Hybrid')
-  else if (partial.fuelTypeDb === 'PHEV') parts.push('Plug-in Hybrid')
-  else if (partial.fuelTypeDb === 'Gasoline') parts.push('Gasoline')
-  else if (partial.fuelTypeDb === 'Diesel') parts.push('Diesel')
+  const fuelDisplay: Record<string, string> = {
+    Electric: 'Electric', Hybrid: 'Hybrid', PHEV: 'Plug-in Hybrid',
+    Gasoline: 'Gasoline', Diesel: 'Diesel',
+  }
+  if (partial.fuelTypeDb && fuelDisplay[partial.fuelTypeDb]) {
+    parts.push(fuelDisplay[partial.fuelTypeDb])
+  }
 
   if (partial.makeSlug) {
     const makeDisplay = partial.makeSlug
@@ -281,8 +283,6 @@ function withDisplay(
 
   if (partial.bodyStyleDb) {
     parts.push(`${partial.bodyStyleDb}s`)
-  } else if (parts.length === 0 || (!partial.makeSlug && !partial.fuelTypeDb)) {
-    parts.push('Vehicles')
   } else {
     parts.push('Vehicles')
   }

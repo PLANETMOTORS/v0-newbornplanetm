@@ -5,8 +5,8 @@ import { cityData } from "./city-data"
 const SITE_URL = getPublicSiteUrl()
 
 interface Props {
-  children: React.ReactNode
-  params: Promise<{ city: string }>
+  readonly children: React.ReactNode
+  readonly params: Promise<{ city: string }>
 }
 
 export function generateStaticParams() {
