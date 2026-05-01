@@ -108,7 +108,7 @@ describe("POST /api/trade-in/quote — persistence", () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(true)
-    expect(body.data.quoteId).toMatch(/^TQ-/)
+    expect(body.data._persistWarning).toBe("Quote saved via email; database sync pending.")
     // DB error is surfaced as a sanitized warning (not the raw error message) so
     // internal Postgres details are never leaked to the customer-facing response.
     expect(body.data._persistWarning).toBeDefined()
