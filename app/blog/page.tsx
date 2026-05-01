@@ -11,6 +11,8 @@ import { blogPostsMeta } from "@/lib/blog-data"
 import { getBlogPosts } from "@/lib/sanity/fetch"
 import type { NormalisedPost } from "@/components/blog-page-content"
 
+export const revalidate = 300
+
 export const metadata = {
   title: "Blog | Planet Motors - Car Buying Tips & Industry News",
   description:
