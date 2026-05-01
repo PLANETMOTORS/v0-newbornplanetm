@@ -8,6 +8,7 @@ vi.mock("next/headers", () => ({
 
 let currentUserEmail: string | null = "toni@planetmotors.ca"
 const isActiveAdminMock = vi.fn(async () => false)
+const getAdminByEmailMock = vi.fn(async () => ({ ok: true, value: null }))
 const listAdminsMock = vi.fn()
 const inviteAdminMock = vi.fn()
 
@@ -27,6 +28,7 @@ vi.mock("@/lib/admin", () => ({
 
 vi.mock("@/lib/admin/users/repository", () => ({
   isActiveAdmin: (email: string) => isActiveAdminMock(email),
+  getAdminByEmail: (email: string) => getAdminByEmailMock(email),
   listAdmins: () => listAdminsMock(),
   inviteAdmin: (input: unknown, by: unknown) => inviteAdminMock(input, by),
 }))
@@ -60,6 +62,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   currentUserEmail = "toni@planetmotors.ca"
   isActiveAdminMock.mockResolvedValue(false)
+  getAdminByEmailMock.mockResolvedValue({ ok: true, value: null })
 })
 
 describe("GET /api/v1/admin/users — auth", () => {
@@ -86,6 +89,10 @@ describe("GET /api/v1/admin/users — auth", () => {
   it("allows DB-listed admins (DB checked even when not in env)", async () => {
     currentUserEmail = "newadmin@x.com"
     isActiveAdminMock.mockResolvedValue(true)
+    getAdminByEmailMock.mockResolvedValue({
+      ok: true,
+      value: { ...SAMPLE_ROW, email: "newadmin@x.com", role: "admin", is_active: true },
+    })
     listAdminsMock.mockResolvedValue({ ok: true, value: [] })
     const res = await GET()
     expect(res.status).toBe(200)
@@ -189,5 +196,41 @@ describe("POST /api/v1/admin/users — happy path + repo errors", () => {
     })
     const res = await POST(makePost({ email: "ok@x.com", role: "admin" }))
     expect(res.status).toBe(404)
+  })
+})
+
+describe("server-side permission enforcement", () => {
+  // Same caller authenticated and active, but only "manager" role.
+  // The default manager preset has admin_users: "none", so they should
+  // be unable to list, invite, or otherwise touch the admin roster
+  // even by hitting the API directly.
+  const MANAGER_CALLER = {
+    id: "00000000-0000-0000-0000-0000000000cc",
+    email: "manager-caller@x.com",
+    role: "manager" as const,
+    is_active: true,
+    permissions: null,
+    invited_by: null,
+    notes: null,
+    created_at: "2026-05-01T00:00:00Z",
+    updated_at: "2026-05-01T00:00:00Z",
+  }
+
+  it("GET rejects manager-role caller with 403 (no admin_users.read)", async () => {
+    currentUserEmail = MANAGER_CALLER.email
+    isActiveAdminMock.mockResolvedValue(true)
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_CALLER })
+    const res = await GET()
+    expect(res.status).toBe(403)
+    expect(listAdminsMock).not.toHaveBeenCalled()
+  })
+
+  it("POST (invite) rejects manager-role caller with 403", async () => {
+    currentUserEmail = MANAGER_CALLER.email
+    isActiveAdminMock.mockResolvedValue(true)
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_CALLER })
+    const res = await POST(makePost({ email: "new@x.com", role: "admin" }))
+    expect(res.status).toBe(403)
+    expect(inviteAdminMock).not.toHaveBeenCalled()
   })
 })

@@ -6,9 +6,23 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { requireAdmin } from "@/lib/security/admin-route-helpers"
+import { requirePermission } from "@/lib/security/admin-route-helpers"
+import type { AdminFeature } from "@/lib/admin/permissions"
 import { logger } from "@/lib/logger"
 import { deleteCrmRow, type CrmDeleteError, type CrmTable } from "./repository"
+
+/**
+ * Map each CRM table to the admin-permissions feature key that gates it.
+ * Destructive ops (delete) require the matching feature at "full" level —
+ * a manager/viewer with read-only access on a feature can no longer call
+ * DELETE on its rows by hitting the API directly.
+ */
+const TABLE_TO_FEATURE: Record<CrmTable, AdminFeature> = {
+  leads: "leads",
+  finance_applications_v2: "finance_apps",
+  reservations: "reservations",
+  trade_in_quotes: "leads",
+}
 
 export const idParamSchema = z
   .object({ id: z.string().uuid("id must be a uuid") })
@@ -64,7 +78,9 @@ export function createCrmDeleteHandler(table: CrmTable) {
     _request: NextRequest,
     ctx: { params: Promise<{ id: string }> },
   ): Promise<NextResponse> {
-    const auth = await requireAdmin()
+    // Destructive ops require "full" access on the feature that owns
+    // this table; viewers / read-only managers receive 403.
+    const auth = await requirePermission(TABLE_TO_FEATURE[table], "full")
     if (!auth.ok) return auth.error
 
     const idOrResp = await parseIdParam(ctx.params)
@@ -76,6 +92,7 @@ export function createCrmDeleteHandler(table: CrmTable) {
     logger.info("[admin-crm-delete] row removed", {
       table,
       by: auth.value.email,
+      role: auth.value.role,
       id: idOrResp,
     })
     return NextResponse.json({ deletedId: result.value.id })

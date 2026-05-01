@@ -47,7 +47,14 @@ const SAMPLE_ROW = {
   created_at: "2026-05-01T00:00:00Z",
   updated_at: "2026-05-01T00:00:00Z",
 }
-const SELF_ROW = { ...SAMPLE_ROW, email: "toni@planetmotors.ca" }
+// Caller acting as themselves is an admin (per ADMIN_EMAILS) — needed
+// so requirePermission("admin_users","full") passes the gate before
+// self-protection runs.
+const SELF_ROW = {
+  ...SAMPLE_ROW,
+  email: "toni@planetmotors.ca",
+  role: "admin" as const,
+}
 
 const { PATCH, DELETE } = await import("@/app/api/v1/admin/users/[id]/route")
 
@@ -254,5 +261,42 @@ describe("DELETE /[id]", () => {
       makeCtx(SAMPLE_ROW.id),
     )
     expect(res.status).toBe(500)
+  })
+})
+
+describe("server-side permission enforcement", () => {
+  // Same caller authenticated, but their authoritative DB row only
+  // grants "manager" role. The default manager preset has
+  // admin_users: "none", so even though they're logged in as an admin
+  // user, the API must reject mutating peers.
+  const MANAGER_CALLER = {
+    id: "00000000-0000-0000-0000-0000000000cc",
+    email: "manager-caller@x.com",
+    role: "manager" as const,
+    is_active: true,
+    permissions: null,
+    invited_by: null,
+    notes: null,
+    created_at: "2026-05-01T00:00:00Z",
+    updated_at: "2026-05-01T00:00:00Z",
+  }
+
+  it("PATCH rejects manager-role caller with 403", async () => {
+    currentUserEmail = MANAGER_CALLER.email
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_CALLER })
+    const res = await PATCH(makeReq({ role: "admin" }), makeCtx(SAMPLE_ROW.id))
+    expect(res.status).toBe(403)
+    expect(updateAdminMock).not.toHaveBeenCalled()
+  })
+
+  it("DELETE rejects manager-role caller with 403", async () => {
+    currentUserEmail = MANAGER_CALLER.email
+    getAdminByEmailMock.mockResolvedValue({ ok: true, value: MANAGER_CALLER })
+    const res = await DELETE(
+      new NextRequest("http://localhost/x", { method: "DELETE" }),
+      makeCtx(SAMPLE_ROW.id),
+    )
+    expect(res.status).toBe(403)
+    expect(deleteAdminMock).not.toHaveBeenCalled()
   })
 })

@@ -8,6 +8,7 @@ vi.mock("next/headers", () => ({
 
 let currentUserEmail: string | null = "toni@planetmotors.ca"
 const isActiveAdminMock = vi.fn(async () => false)
+const getAdminByEmailMock = vi.fn(async () => ({ ok: true, value: null }))
 const deleteCrmRowMock = vi.fn()
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -26,6 +27,7 @@ vi.mock("@/lib/admin", () => ({
 
 vi.mock("@/lib/admin/users/repository", () => ({
   isActiveAdmin: (email: string) => isActiveAdminMock(email),
+  getAdminByEmail: (email: string) => getAdminByEmailMock(email),
 }))
 
 vi.mock("@/lib/admin/crm-delete/repository", async () => {
@@ -48,6 +50,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   currentUserEmail = "toni@planetmotors.ca"
   isActiveAdminMock.mockResolvedValue(false)
+  getAdminByEmailMock.mockResolvedValue({ ok: true, value: null })
 })
 
 function makeReq(): NextRequest {
@@ -145,10 +148,51 @@ for (const pair of ROUTE_TABLE_PAIRS) {
     it("allows DB-listed admins through (DB gate, not env)", async () => {
       currentUserEmail = "newadmin@x.com"
       isActiveAdminMock.mockResolvedValue(true)
+      // requirePermission needs role=admin so the preset grants
+      // "full" access on the CRM features being deleted from.
+      getAdminByEmailMock.mockResolvedValue({
+        ok: true,
+        value: {
+          id: "00000000-0000-0000-0000-0000000000aa",
+          email: "newadmin@x.com",
+          role: "admin",
+          is_active: true,
+          permissions: null,
+          invited_by: null,
+          notes: null,
+          created_at: "2026-05-01T00:00:00Z",
+          updated_at: "2026-05-01T00:00:00Z",
+        },
+      })
       deleteCrmRowMock.mockResolvedValue({ ok: true, value: { id: VALID_ID } })
       const { DELETE } = await pair.importer()
       const res = await DELETE(makeReq(), ctx(VALID_ID))
       expect(res.status).toBe(200)
+    })
+
+    it("rejects DB-listed viewer with 403 on delete (no full access)", async () => {
+      currentUserEmail = "viewer@x.com"
+      isActiveAdminMock.mockResolvedValue(true)
+      getAdminByEmailMock.mockResolvedValue({
+        ok: true,
+        value: {
+          id: "00000000-0000-0000-0000-0000000000bb",
+          email: "viewer@x.com",
+          role: "viewer",
+          is_active: true,
+          permissions: null,
+          invited_by: null,
+          notes: null,
+          created_at: "2026-05-01T00:00:00Z",
+          updated_at: "2026-05-01T00:00:00Z",
+        },
+      })
+      const { DELETE } = await pair.importer()
+      const res = await DELETE(makeReq(), ctx(VALID_ID))
+      expect(res.status).toBe(403)
+      const body = await res.json()
+      expect(body.error.code).toBe("FORBIDDEN")
+      expect(deleteCrmRowMock).not.toHaveBeenCalled()
     })
   })
 }
