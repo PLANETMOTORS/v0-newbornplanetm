@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { timeAgo, sourceIcon, leadStatusVariant as statusVariant } from "@/lib/admin/lead-utils"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface Lead {
   id: string
@@ -99,6 +100,13 @@ export default function AdminLeadsPage() {
   }, [statusFilter, sourceFilter, search, page])
 
   useEffect(() => { fetchLeads() }, [fetchLeads])
+
+  const handleLeadDeleted = useCallback((leadId: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId))
+    setStats((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }))
+    setTotal((prev) => Math.max(0, prev - 1))
+    setSelectedLead((prev) => (prev?.id === leadId ? null : prev))
+  }, [])
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
@@ -205,11 +213,18 @@ export default function AdminLeadsPage() {
                   {leads.map(lead => {
                     const Icon = sourceIcon(lead.source)
                     return (
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         key={lead.id}
                         className={`w-full text-left p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                         onClick={() => setSelectedLead(lead)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            setSelectedLead(lead)
+                          }
+                        }}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-3">
@@ -224,17 +239,25 @@ export default function AdminLeadsPage() {
                               )}
                             </div>
                           </div>
-                          <div className="text-right shrink-0 ml-2">
-                            <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
-                            {lead.priority && lead.priority !== "medium" && (
-                              <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>
-                                {lead.priority}
-                              </span>
-                            )}
-                            <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
+                          <div className="text-right shrink-0 ml-2 flex items-start gap-2">
+                            <div>
+                              <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
+                              {lead.priority && lead.priority !== "medium" && (
+                                <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>
+                                  {lead.priority}
+                                </span>
+                              )}
+                              <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
+                            </div>
+                            <DeleteRowButton
+                              endpoint={`/api/v1/admin/leads/${lead.id}`}
+                              id={lead.id}
+                              label={`lead from ${lead.customer_name || lead.customer_email || "Unknown"}`}
+                              onDeleted={handleLeadDeleted}
+                            />
                           </div>
                         </div>
-                      </button>
+                      </div>
                     )
                   })}
                 </div>

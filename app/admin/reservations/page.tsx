@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { timeAgo } from "@/lib/admin/lead-utils"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface Vehicle {
   year: number
@@ -229,7 +230,18 @@ export default function AdminReservationsPage() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400">{timeAgo(res.created_at)}</p>
+                        <div className="flex flex-col items-end gap-2">
+                          <p className="text-xs text-gray-400">{timeAgo(res.created_at)}</p>
+                          <DeleteRowButton
+                            endpoint={`/api/v1/admin/reservations/${res.id}`}
+                            id={res.id}
+                            label={`reservation by ${res.customer_name || res.customer_email}`}
+                            onDeleted={(deletedId) => {
+                              setReservations((prev) => prev.filter((r) => r.id !== deletedId))
+                              if (selectedRes?.id === deletedId) setSelectedRes(null)
+                            }}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

@@ -38,6 +38,7 @@ import {
   Mail,
   MapPin
 } from "lucide-react"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface TradeInQuote {
   id: string
@@ -305,6 +306,18 @@ export default function AdminTradeInsPage() {
                             Complete
                           </Button>
                         )}
+                        <DeleteRowButton
+                          endpoint={`/api/v1/admin/trade-ins/${quote.id}`}
+                          id={quote.id}
+                          label={`trade-in quote ${quote.quote_id?.slice(0, 8)}`}
+                          onDeleted={(deletedId) => {
+                            setQuotes((prev) => prev.filter((q) => q.id !== deletedId))
+                            if (selectedQuote?.id === deletedId) {
+                              setSelectedQuote(null)
+                              setIsDetailOpen(false)
+                            }
+                          }}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
