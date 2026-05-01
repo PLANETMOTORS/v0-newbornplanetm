@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Resend } from "resend"
 import { isEmailLike } from "@/lib/validation/email"
+import { escapeHtml } from "@/lib/email"
 import { rateLimit } from "@/lib/redis"
 import { validateOrigin } from "@/lib/csrf"
 import { forwardLeadToAutoRaptor } from "@/lib/adf/forwarder"
@@ -53,7 +54,7 @@ function subscriberConfirmationHtml(email: string): string {
             We respect your inbox and only send updates that matter.
           </p>
           <div style="background:#f8fafc;border-radius:8px;padding:16px;margin:16px 0;">
-            <p style="margin:0;color:#64748b;font-size:13px;">Subscribed as: <strong style="color:#0f172a;">${email}</strong></p>
+            <p style="margin:0;color:#64748b;font-size:13px;">Subscribed as: <strong style="color:#0f172a;">${escapeHtml(email)}</strong></p>
           </div>
           <p style="margin:24px 0 0;color:#94a3b8;font-size:12px;">
             Planet Motors | ${PHONE_LOCAL} | ${PHONE_TOLL_FREE}
@@ -82,7 +83,7 @@ function adminNotificationHtml(email: string): string {
           <table role="presentation" width="100%" cellpadding="8" cellspacing="0">
             <tr>
               <td style="color:#64748b;font-size:13px;width:100px;">Email</td>
-              <td style="color:#0f172a;font-size:14px;font-weight:600;">${email}</td>
+              <td style="color:#0f172a;font-size:14px;font-weight:600;">${escapeHtml(email)}</td>
             </tr>
             <tr>
               <td style="color:#64748b;font-size:13px;">Source</td>
