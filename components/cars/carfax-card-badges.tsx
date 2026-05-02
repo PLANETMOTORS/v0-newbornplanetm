@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useCarfaxSummary } from "@/hooks/use-carfax-summary"
 import {
   hasAccidentFreeBadge,
@@ -12,8 +13,13 @@ interface CarfaxCardBadgesProps {
   vin: string
 }
 
+/**
+ * Renders the combined Carfax badge SVG (BadgesImageUrl from Badging API v3)
+ * per the PDF spec. Falls back to text claims if image fails to load.
+ */
 export function CarfaxCardBadges({ vin }: CarfaxCardBadgesProps) {
   const state = useCarfaxSummary(vin)
+  const [imgError, setImgError] = useState(false)
 
   if (state.status === "loading") {
     return (
@@ -48,14 +54,36 @@ export function CarfaxCardBadges({ vin }: CarfaxCardBadgesProps) {
   }
 
   const { summary } = state
+  const reportUrl = summary.vhrReportUrl ?? `https://www.carfax.ca/vehicle/${vin}`
+
   const claims: string[] = []
   if (hasAccidentFreeBadge(summary)) claims.push("No Accidents")
   if (hasOneOwnerBadge(summary)) claims.push("One Owner")
   if (hasLowKilometerBadge(summary)) claims.push("Low KM")
 
   return (
-    <div className="mt-3 space-y-1">
-      {claims.length > 0 && (
+    <div className="mt-3 space-y-1.5">
+      {/* Combined badge SVG from Carfax Badging API (per PDF spec) */}
+      {summary.badgesImageUrl && !imgError ? (
+        <a
+          href={reportUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+          onClick={(e) => {
+            e.preventDefault()
+            window.open(reportUrl, "_blank", "noopener,noreferrer")
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={summary.badgesImageUrl}
+            alt={claims.length > 0 ? `CARFAX: ${claims.join(", ")}` : "CARFAX Canada"}
+            className="h-8 w-auto"
+            onError={() => setImgError(true)}
+          />
+        </a>
+      ) : claims.length > 0 ? (
         <div className="flex flex-wrap gap-x-3 gap-y-1">
           {claims.map((c) => (
             <span
@@ -67,27 +95,23 @@ export function CarfaxCardBadges({ vin }: CarfaxCardBadgesProps) {
             </span>
           ))}
         </div>
-      )}
-      {summary.vhrReportUrl && (
-        <a
-          href={summary.vhrReportUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          onClick={(e) => {
-            e.preventDefault()
-            window.open(
-              summary.vhrReportUrl!,
-              "_blank",
-              "noopener,noreferrer",
-            )
-          }}
-        >
-          <span className="font-bold text-[#e01f26]">CARFAX</span>
-          <span>View Report</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
-      )}
+      ) : null}
+
+      {/* Report link */}
+      <a
+        href={reportUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        onClick={(e) => {
+          e.preventDefault()
+          window.open(reportUrl, "_blank", "noopener,noreferrer")
+        }}
+      >
+        <span className="font-bold text-[#e01f26]">CARFAX</span>
+        <span>View Report</span>
+        <ExternalLink className="w-3 h-3" />
+      </a>
     </div>
   )
 }
