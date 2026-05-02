@@ -1788,9 +1788,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   </div>
 
                   {/* CARFAX sidebar — badge images + report link near CTA */}
-                  <div className="mt-4 pt-4 border-t">
-                    <CarfaxInlineLink vin={vehicle.vin ?? null} />
-                  </div>
+                  <CarfaxInlineLink vin={vehicle.vin ?? null} />
 
                   {/* Delivery Calculator */}
                   <div className="mt-4 pt-4 border-t">

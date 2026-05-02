@@ -234,7 +234,7 @@ export function CarfaxInlineLink({ vin }: Readonly<{ vin: string | null }>) {
   const claims = buildClaims(summary)
 
   return (
-    <div className="flex flex-col gap-2" data-testid="carfax-inline">
+    <div className="flex flex-col gap-2 mt-4 pt-4 border-t" data-testid="carfax-inline">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-red-600 text-red-600 text-xs">
