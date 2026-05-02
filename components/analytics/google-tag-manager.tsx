@@ -9,9 +9,25 @@ declare global {
 }
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
+const SGTM_URL = process.env.NEXT_PUBLIC_SGTM_URL
+
+/**
+ * When NEXT_PUBLIC_SGTM_URL is set (e.g. https://capig.planetmotors.ca),
+ * GTM loads from the server-side container via Stape. This avoids ad blockers
+ * and improves match rates for server-side events (Meta CAPI, TikTok Events API).
+ */
+function getGtmScriptUrl(): string {
+  if (SGTM_URL) {
+    const base = SGTM_URL.replace(/\/$/, '')
+    return `${base}/gtm.js?id=${GTM_ID}`
+  }
+  return `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`
+}
 
 export function GoogleTagManager() {
   if (!GTM_ID) return null
+
+  const scriptUrl = getGtmScriptUrl()
 
   return (
     <Script id="gtm" strategy="afterInteractive">
@@ -29,8 +45,7 @@ export function GoogleTagManager() {
 
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        j=d.createElement(s);j.async=true;j.src='${scriptUrl}';f.parentNode.insertBefore(j,f);
         })(globalThis,document,'script','dataLayer','${GTM_ID}');
       `}
     </Script>
@@ -40,11 +55,15 @@ export function GoogleTagManager() {
 export function GoogleTagManagerNoScript() {
   if (!GTM_ID) return null
 
+  const noscriptBase = SGTM_URL
+    ? `${SGTM_URL.replace(/\/$/, '')}/ns.html`
+    : 'https://www.googletagmanager.com/ns.html'
+
   return (
     <noscript>
       <iframe
         title="Google Tag Manager"
-        src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+        src={`${noscriptBase}?id=${GTM_ID}`}
         height="0"
         width="0"
         style={{ display: "none", visibility: "hidden" }}

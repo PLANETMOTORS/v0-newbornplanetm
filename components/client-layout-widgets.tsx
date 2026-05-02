@@ -46,6 +46,18 @@ const PixelRouteTracker = dynamic(
   { ssr: false }
 )
 
+// V1 Tracking — DataLayer-based route change + attribution tracking.
+// RouteChangeTracker pushes page_view events to the DataLayer on SPA navigations.
+// AttributionTracker captures UTM + click IDs + organic/referral/direct attribution.
+const RouteChangeTracker = dynamic(
+  () => import('@/components/tracking/route-change-tracker').then(m => ({ default: m.RouteChangeTracker })),
+  { ssr: false }
+)
+const AttributionTracker = dynamic(
+  () => import('@/components/tracking/attribution-tracker').then(m => ({ default: m.AttributionTracker })),
+  { ssr: false }
+)
+
 // Cookie consent & UTM — client-only, lazy-loaded
 const CookieConsentBanner = dynamic(
   () => import('@/components/cookie-consent-banner').then(m => ({ default: m.CookieConsentBanner })),
@@ -99,6 +111,7 @@ export function ClientLayoutWidgets() {
       <Toaster richColors position="top-right" />
       <CookieConsentBanner />
       <UTMTracker />
+      <AttributionTracker />
       <GoogleAnalytics />
       <GoogleTagManager />
       <GoogleTagManagerNoScript />
@@ -108,6 +121,7 @@ export function ClientLayoutWidgets() {
       <SnapchatPixel />
       <MetaPixel />
       <PixelRouteTracker />
+      <RouteChangeTracker />
       {isVercelDeploy && <VercelAnalytics />}
       {isVercelDeploy && <VercelSpeedInsights />}
     </>
