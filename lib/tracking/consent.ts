@@ -43,15 +43,29 @@ function readCookie(name: string): string | null {
   return match ? decodeURIComponent(match[1]) : null
 }
 
-function cookieCategoryGranted(cookieValue: string, keys: string[]): boolean | null {
-  const normalized = cookieValue.toLowerCase()
+const GRANTED_VALUES = new Set(['yes', 'true', '1', 'granted', 'allow', 'allowed'])
+const DENIED_VALUES = new Set(['no', 'false', '0', 'denied', 'deny', 'disallow', 'disallowed'])
 
+function extractKeyValue(cookieValue: string, key: string): string | null {
+  const lowerCookie = cookieValue.toLowerCase()
+  const lowerKey = key.toLowerCase()
+  const keyIndex = lowerCookie.indexOf(lowerKey)
+  if (keyIndex === -1) return null
+
+  const afterKey = lowerCookie.slice(keyIndex + lowerKey.length).trimStart()
+  if (afterKey.length === 0 || (afterKey[0] !== ':' && afterKey[0] !== '=')) return null
+
+  const valueStr = afterKey.slice(1).trimStart()
+  const endIndex = valueStr.search(/[,;&|\s]/)
+  return endIndex === -1 ? valueStr : valueStr.slice(0, endIndex)
+}
+
+function cookieCategoryGranted(cookieValue: string, keys: readonly string[]): boolean | null {
   for (const key of keys) {
-    const grantedPattern = new RegExp(`${key}\\s*[:=]\\s*(yes|true|1|granted|allow|allowed)`, 'i')
-    if (grantedPattern.test(normalized)) return true
-
-    const deniedPattern = new RegExp(`${key}\\s*[:=]\\s*(no|false|0|denied|deny|disallow|disallowed)`, 'i')
-    if (deniedPattern.test(normalized)) return false
+    const value = extractKeyValue(cookieValue, key)
+    if (!value) continue
+    if (GRANTED_VALUES.has(value)) return true
+    if (DENIED_VALUES.has(value)) return false
   }
 
   return null

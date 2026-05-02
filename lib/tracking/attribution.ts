@@ -82,7 +82,11 @@ function inferSourceMedium(
 }
 
 function hasCampaignOrClickId(payload: AttributionPayload): boolean {
-  return [...UTM_KEYS, ...CLICK_ID_KEYS].some((key) => Boolean(payload[key]))
+  return Boolean(
+    payload.utm_campaign || payload.utm_content || payload.utm_term ||
+    payload.gclid || payload.gbraid || payload.wbraid ||
+    payload.fbclid || payload.ttclid || payload.msclkid,
+  )
 }
 
 export function buildAttributionFromLocation(

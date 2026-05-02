@@ -11,7 +11,13 @@ export function generateEventId(prefix = 'event'): string {
     return `${safePrefix}_${crypto.randomUUID()}`
   }
 
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(8)
+    crypto.getRandomValues(bytes)
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+    return `${safePrefix}_${Date.now()}_${hex}`
+  }
+
   const timestamp = Date.now()
-  const random = Math.random().toString(36).slice(2, 10)
-  return `${safePrefix}_${timestamp}_${random}`
+  return `${safePrefix}_${timestamp}_${String(performance?.now?.() ?? 0).replace('.', '')}`
 }
