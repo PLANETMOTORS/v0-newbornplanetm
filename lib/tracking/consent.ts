@@ -62,7 +62,14 @@ function extractKeyValue(cookieValue: string, key: string): string | null {
   if (afterKey.length === 0 || (afterKey[0] !== ':' && afterKey[0] !== '=')) return null
 
   const valueStr = afterKey.slice(1).trimStart()
-  const endIndex = valueStr.search(/[,;&|\s]/)
+  let endIndex = -1
+  for (let i = 0; i < valueStr.length; i++) {
+    const c = valueStr[i]
+    if (c === ',' || c === ';' || c === '&' || c === '|' || c === ' ' || c === '\t' || c === '\n' || c === '\r') {
+      endIndex = i
+      break
+    }
+  }
   return endIndex === -1 ? valueStr : valueStr.slice(0, endIndex)
 }
 
