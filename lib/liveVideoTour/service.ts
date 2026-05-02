@@ -13,7 +13,7 @@ import { sendLiveVideoTourNotifications, sendCancellationNotification } from "./
 // Generate unique booking ID
 function generateBookingId(): string {
   const timestamp = Date.now().toString(36).toUpperCase()
-  const random = Math.random().toString(36).substr(2, 4).toUpperCase()
+  const random = Math.random().toString(36).slice(2, 6).toUpperCase()
   return `VT-${timestamp}-${random}`
 }
 

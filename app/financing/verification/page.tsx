@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,10 +51,8 @@ interface IDDocument {
 
 function IDVerificationContent() {
   useRouter()
-  // Read applicationId from URL without triggering Suspense boundary delay
-  const applicationId = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get("applicationId")
-    : null
+  const searchParams = useSearchParams()
+  const applicationId = searchParams.get("applicationId")
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerified, setIsVerified] = useState(false)

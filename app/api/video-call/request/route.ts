@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     // Generate a unique call ID
-    const callId = `VC-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const callId = `VC-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
     // In production, this would:
     // 1. Save to database

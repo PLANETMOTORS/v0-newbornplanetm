@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     })
 
     // Generate quote ID
-    const quoteId = `TQ-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
+    const quoteId = `TQ-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
 
     // Send notification email to admin
     if (customerEmail) {

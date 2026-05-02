@@ -14,6 +14,7 @@ export default [
       'dist/**',
       'coverage/**',
       'supabase/functions/**',
+      'public/sw.js',
     ],
   },
 
@@ -68,7 +69,7 @@ export default [
       'react-hooks': reactHooksPlugin,
     },
     rules: {
-      'react-hooks/rules-of-hooks': 'warn', // TODO: upgrade to 'error' after fixing violations
+      'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
     },
   },
