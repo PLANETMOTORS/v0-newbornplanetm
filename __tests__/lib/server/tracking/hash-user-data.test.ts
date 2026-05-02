@@ -3,6 +3,7 @@ import {
   normalizeEmail,
   normalizePhoneToE164,
   normalizeText,
+  normalizePostalCode,
   sha256Hex,
   buildHashedUserData,
 } from '@/lib/server/tracking/hash-user-data'
@@ -114,5 +115,30 @@ describe('buildHashedUserData', () => {
     const result1 = buildHashedUserData({ phone: '(416) 555-0100' })
     const result2 = buildHashedUserData({ phone: '+14165550100' })
     expect(result1.phone_sha256).toBe(result2.phone_sha256)
+  })
+
+  it('strips internal spaces from postal code before hashing', () => {
+    const result1 = buildHashedUserData({ postalCode: 'M5V 2T6' })
+    const result2 = buildHashedUserData({ postalCode: 'm5v2t6' })
+    expect(result1.postal_code_sha256).toBe(result2.postal_code_sha256)
+  })
+})
+
+describe('normalizePostalCode', () => {
+  it('strips spaces and lowercases Canadian postal code', () => {
+    expect(normalizePostalCode('M5V 2T6')).toBe('m5v2t6')
+  })
+
+  it('strips tabs and newlines', () => {
+    expect(normalizePostalCode('M5V\t2T6')).toBe('m5v2t6')
+  })
+
+  it('trims and lowercases US zip code', () => {
+    expect(normalizePostalCode('  90210  ')).toBe('90210')
+  })
+
+  it('returns null for empty input', () => {
+    expect(normalizePostalCode('')).toBeNull()
+    expect(normalizePostalCode(null)).toBeNull()
   })
 })

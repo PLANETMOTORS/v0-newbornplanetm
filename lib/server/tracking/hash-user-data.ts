@@ -42,6 +42,17 @@ export function normalizeText(value?: string | null): string | null {
   return normalized || null
 }
 
+export function normalizePostalCode(value?: string | null): string | null {
+  if (!value) return null
+  let result = ''
+  for (const ch of value.trim().toLowerCase()) {
+    if (ch !== ' ' && ch !== '\t' && ch !== '\n' && ch !== '\r') {
+      result += ch
+    }
+  }
+  return result || null
+}
+
 export function sha256Hex(value?: string | null): string | null {
   if (!value) return null
   return createHash('sha256').update(value).digest('hex')
@@ -56,6 +67,6 @@ export function buildHashedUserData(input: UserDataInput): HashedUserData {
     phone_sha256: sha256Hex(phone),
     first_name_sha256: sha256Hex(normalizeText(input.firstName)),
     last_name_sha256: sha256Hex(normalizeText(input.lastName)),
-    postal_code_sha256: sha256Hex(normalizeText(input.postalCode)),
+    postal_code_sha256: sha256Hex(normalizePostalCode(input.postalCode)),
   }
 }
