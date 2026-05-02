@@ -23,6 +23,7 @@ import { useFavorites } from "@/contexts/favorites-context"
 import { InventoryPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { trackAddToWishlist } from "@/components/analytics/google-analytics"
+import { CarfaxCardBadge } from "@/components/carfax-card-badge"
 import { safeNum } from "@/lib/pricing/format"
 import { randomInt } from "@/lib/util/random"
 
@@ -1115,18 +1116,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       </div>
                     )}
                     
-                    {/* CARFAX Badge */}
-                    {vehicle.carfaxUrl && (
-                      <a 
-                        href={vehicle.carfaxUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <span className="font-bold text-[#e01f26]">CARFAX</span>
-                        <span>Report Available</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                    {/* CARFAX Badge — real per-VIN badges from Badging API v3 */}
+                    {vehicle.vin && (
+                      <CarfaxCardBadge vin={vehicle.vin} />
                     )}
                   </div>
                 </CardContent>
