@@ -142,6 +142,7 @@ const nextConfig = {
       'https://stapecdn.com',             // Stape server-side tagging CDN
       'https://googleads.g.doubleclick.net',  // Google Ads conversion scripts
       'https://www.googleadservices.com',     // Google Ads services
+      'https://capig.planetmotors.ca',       // Server-side GTM tagging
     ]
 
     const styleSrc = [
