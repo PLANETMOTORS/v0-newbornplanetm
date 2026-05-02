@@ -3,7 +3,7 @@ import type { TrackingPayload } from './types'
 declare global {
   interface Window {
     dataLayer?: Array<Record<string, unknown>>
-    gtag?: (...args: unknown[]) => void
+    gtag?: (...args: [string, ...unknown[]]) => void
   }
 }
 
