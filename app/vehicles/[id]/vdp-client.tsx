@@ -39,7 +39,7 @@ import { trackProductView, trackPhoneClick } from "@/components/analytics/google
 import { safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
-import { CarfaxSection, CarfaxInlineLink, CarfaxOverviewBadge } from "@/components/vdp/carfax-section"
+import { CarfaxSection, CarfaxInlineLink } from "@/components/vdp/carfax-section"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 
@@ -722,7 +722,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                         <FileText className="w-5 h-5" />
                       </div>
                       <span className="text-xs text-muted-foreground">HISTORY</span>
-                      <CarfaxOverviewBadge vin={vehicle.vin ?? null} />
+                      <Badge variant="outline" className="text-xs border-red-500 text-red-600">CARFAX</Badge>
                     </div>
                   </div>
 
@@ -950,10 +950,6 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
                 {/* Inspection Tab */}
                 <TabsContent value="inspection" className="mt-0 space-y-6">
-                  {/* CARFAX Vehicle History — industry-standard: first item
-                      in Inspect tab, above the 210-point inspection. */}
-                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
-
                   <div className="text-center py-8">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-primary flex items-center justify-center">
                       <span className="text-2xl font-bold text-primary">{vehicleData.inspectionScore}</span>
@@ -1202,6 +1198,11 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       </div>
                     </DialogContent>
                   </Dialog>
+
+                  {/* CARFAX panel — driven by /api/v1/carfax/[vin]; renders
+                      real badges + a tokenized VhrReportUrl. */}
+                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
+
 
                   {/* EV Battery Health - Show for EVs/PHEVs */}
                   {(vehicle.fuelType === "Electric" || vehicle.fuelType === "PHEV") && (
@@ -1787,7 +1788,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     />
                   </div>
 
-                  {/* CARFAX sidebar — badge images + report link near CTA */}
+                  {/* CARFAX inline link — same per-VIN tokenized URL as the
+                      panel above; no copy-paste deep link to carfax.ca. */}
                   <CarfaxInlineLink vin={vehicle.vin ?? null} />
 
                   {/* Delivery Calculator */}
