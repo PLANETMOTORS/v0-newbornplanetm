@@ -38,9 +38,15 @@ function rememberConsent(consent: GoogleConsentModeState) {
 
 function readCookie(name: string): string | null {
   if (globalThis.document === undefined) return null
-  const escaped = name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')
-  const match = globalThis.document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`))
-  return match ? decodeURIComponent(match[1]) : null
+  const prefix = `${name}=`
+  const cookies = globalThis.document.cookie.split('; ')
+  for (const cookie of cookies) {
+    const trimmed = cookie.trimStart()
+    if (trimmed.startsWith(prefix)) {
+      return decodeURIComponent(trimmed.slice(prefix.length))
+    }
+  }
+  return null
 }
 
 const GRANTED_VALUES = new Set(['yes', 'true', '1', 'granted', 'allow', 'allowed'])
