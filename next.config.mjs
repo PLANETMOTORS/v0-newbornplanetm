@@ -69,6 +69,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'www.carpages.ca' },
       { protocol: 'https', hostname: 'ldervbcvkoawwknsemuz.supabase.co' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'cdn.carfax.ca' },
     ],
   },
 
