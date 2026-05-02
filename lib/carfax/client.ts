@@ -107,6 +107,7 @@ export async function fetchBadges(
       method: "GET",
       headers: {
         accept: "application/json",
+        Authorization: `Bearer ${tokenResult.value}`,
         Auth0CarfaxCanadaJWTBearer: tokenResult.value,
       },
     },

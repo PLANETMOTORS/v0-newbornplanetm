@@ -113,11 +113,12 @@ describe("fetchBadges", () => {
     expect(url.searchParams.get("HideVin")).toBe("false")
   })
 
-  it("includes the Auth0CarfaxCanadaJWTBearer header verbatim", async () => {
+  it("includes both Authorization and Auth0CarfaxCanadaJWTBearer headers", async () => {
     storeToken(FIXTURE_ENV.CARFAX_CLIENT_ID, FIXTURE_TOKEN)
     const mock = vi.fn().mockResolvedValue(jsonResponse(FIXTURE_BADGES_ENVELOPE_OK))
     await fetchBadges(FIXTURE_ENV, FIXTURE_VIN, mock as unknown as typeof fetch, () => FIXTURE_NOW_ISO)
     const init = mock.mock.calls[0][1] as RequestInit & { headers: Record<string, string> }
+    expect(init.headers.Authorization).toBe(`Bearer ${FIXTURE_TOKEN.access_token}`)
     expect(init.headers.Auth0CarfaxCanadaJWTBearer).toBe(FIXTURE_TOKEN.access_token)
   })
 

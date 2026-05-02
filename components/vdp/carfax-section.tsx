@@ -39,6 +39,15 @@ import {
 import { useCarfaxSummary } from "@/hooks/use-carfax-summary"
 import type { CarfaxBadgeSummary } from "@/lib/carfax/schemas"
 
+/**
+ * Ref callback that forces `target="_blank"` on the DOM element.
+ * Works around a React 19 hydration issue where `target` attributes
+ * are silently stripped from anchor elements during reconciliation.
+ */
+function setBlankTarget(el: HTMLAnchorElement | null) {
+  if (el) el.target = "_blank"
+}
+
 interface CarfaxSectionProps {
   readonly vin: string | null
   readonly variant?: "headline" | "panel"
@@ -104,6 +113,7 @@ export function CarfaxSection({
           {/* Carfax logo badge linking to report */}
           {summary.vhrReportUrl ? (
             <a
+              ref={setBlankTarget}
               href={summary.vhrReportUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -163,7 +173,7 @@ export function CarfaxSection({
           </div>
           {summary.vhrReportUrl && (
             <Button variant="default" size="sm" className="bg-red-600 hover:bg-red-700 text-white" asChild>
-              <a href={summary.vhrReportUrl} target="_blank" rel="noopener noreferrer">
+              <a ref={setBlankTarget} href={summary.vhrReportUrl} target="_blank" rel="noopener noreferrer">
                 View CARFAX Report
                 <ExternalLink className="w-4 h-4 ml-1.5" />
               </a>
@@ -237,7 +247,7 @@ export function CarfaxInlineLink({ vin }: Readonly<{ vin: string | null }>) {
           )}
         </div>
         <Button variant="link" className="text-primary p-0 h-auto text-xs" asChild>
-          <a href={reportUrl} target="_blank" rel="noopener noreferrer">
+          <a ref={setBlankTarget} href={reportUrl} target="_blank" rel="noopener noreferrer">
             View report <ExternalLink className="w-3 h-3 ml-1" />
           </a>
         </Button>
@@ -272,6 +282,7 @@ export function CarfaxOverviewBadge({ vin }: Readonly<{ vin: string | null }>) {
   if (state.status === "ready" && state.summary.vhrReportUrl) {
     return (
       <a
+        ref={setBlankTarget}
         href={state.summary.vhrReportUrl}
         target="_blank"
         rel="noopener noreferrer"
