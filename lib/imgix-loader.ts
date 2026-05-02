@@ -85,14 +85,11 @@ export default function imgixLoader({ src, width, quality = 75 }: ImageLoaderPro
     return buildImgixUrl(path, width, quality)
   }
 
-  // Other external URLs can't be served through a Web Folder source — pass through unchanged
-  if (src.startsWith('http')) {
-    return src
-  }
-
-  // Local images — serve from imgix with the relative path
-  const path = src.startsWith('/') ? src.slice(1) : src
-  return buildImgixUrl(path, width, quality)
+  // All other URLs (external or local) — pass through unchanged.
+  // Local images (e.g. /images/planet-motors-logo.png) live in public/ and are
+  // served by Vercel directly; imgix's Web Folder source only has HomenetIOL as
+  // its origin so local paths would 400.
+  return src
 }
 
 // Export for testing/debugging
