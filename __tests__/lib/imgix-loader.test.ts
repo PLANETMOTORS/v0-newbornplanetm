@@ -65,17 +65,14 @@ describe("imgixLoader with NEXT_PUBLIC_IMGIX_DOMAIN configured", () => {
     delete process.env.NEXT_PUBLIC_IMGIX_DOMAIN
   })
 
-  it("rewrites local paths through imgix", () => {
+  it("passes through local paths unchanged (imgix source is HomenetIOL only)", () => {
     const result = loader({ src: "/cars/foo.jpg", width: 400 })
-    expect(result).toContain("https://test.imgix.net/cars/foo.jpg")
-    expect(result).toContain("w=400")
-    expect(result).toContain("auto=format%2Ccompress")
-    expect(result).not.toContain("chromasub")
+    expect(result).toBe("/cars/foo.jpg")
   })
 
-  it("handles local path without leading slash", () => {
+  it("passes through local path without leading slash unchanged", () => {
     const result = loader({ src: "cars/foo.jpg", width: 400 })
-    expect(result).toContain("https://test.imgix.net/cars/foo.jpg")
+    expect(result).toBe("cars/foo.jpg")
   })
 
   it("strips base URL from HomenetIOL images and routes through imgix", () => {
@@ -129,17 +126,19 @@ describe("imgixLoader with NEXT_PUBLIC_IMGIX_DOMAIN configured", () => {
     expect(result).toContain("auto=format%2Ccompress")
   })
 
-  it("uses adaptive quality tiers (thumbnail → q65, mobile → q72)", () => {
-    const thumb = loader({ src: "/hero.jpg", width: 300, quality: 80 })
+  it("uses adaptive quality tiers for HomenetIOL images (thumbnail → q65, mobile → q72)", () => {
+    const base = "https://content.homenetiol.com/2003873/2291843/0x0/img.jpg"
+
+    const thumb = loader({ src: base, width: 300, quality: 80 })
     expect(thumb).toContain("q=65")
 
-    const mobile = loader({ src: "/hero.jpg", width: 700, quality: 80 })
+    const mobile = loader({ src: base, width: 700, quality: 80 })
     expect(mobile).toContain("q=72")
 
-    const tablet = loader({ src: "/hero.jpg", width: 1000, quality: 80 })
+    const tablet = loader({ src: base, width: 1000, quality: 80 })
     expect(tablet).toContain("q=80")
 
-    const desktop = loader({ src: "/hero.jpg", width: 1500, quality: 80 })
+    const desktop = loader({ src: base, width: 1500, quality: 80 })
     expect(desktop).toContain("q=85")
   })
 })
