@@ -27,7 +27,6 @@
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExternalLink, ShieldCheck, CheckCircle2 } from "lucide-react"
 import {
@@ -40,16 +39,14 @@ import { useCarfaxSummary } from "@/hooks/use-carfax-summary"
 import type { CarfaxBadgeSummary } from "@/lib/carfax/schemas"
 
 /**
- * Click handler that guarantees new-tab behaviour.
- * React 19 can strip `target` attributes during reconciliation;
- * this onClick fallback uses window.open as a safety net.
+ * Always open the Carfax report in a new tab via window.open.
+ * React 19 strips `target="_blank"` during client-side rendering
+ * and Radix Slot (Button asChild) can swallow onClick handlers,
+ * so we bypass both by always calling window.open directly.
  */
-function openInNewTab(e: React.MouseEvent<HTMLAnchorElement>) {
-  const anchor = e.currentTarget
-  if (anchor.target !== "_blank") {
-    e.preventDefault()
-    window.open(anchor.href, "_blank", "noopener,noreferrer")
-  }
+function openCarfaxReport(e: React.MouseEvent<HTMLAnchorElement>) {
+  e.preventDefault()
+  window.open(e.currentTarget.href, "_blank", "noopener,noreferrer")
 }
 
 interface CarfaxSectionProps {
@@ -118,10 +115,9 @@ export function CarfaxSection({
           {summary.vhrReportUrl ? (
             <a
               href={summary.vhrReportUrl}
-              target="_blank"
               rel="noopener noreferrer"
-              onClick={openInNewTab}
-              className="shrink-0"
+              onClick={openCarfaxReport}
+              className="shrink-0 cursor-pointer"
             >
               <Badge variant="outline" className="border-red-600 text-red-600 text-xs hover:bg-red-50 transition-colors cursor-pointer">
                 CARFAX
@@ -176,12 +172,15 @@ export function CarfaxSection({
             </div>
           </div>
           {summary.vhrReportUrl && (
-            <Button variant="default" size="sm" className="bg-red-600 hover:bg-red-700 text-white" asChild>
-              <a href={summary.vhrReportUrl} target="_blank" rel="noopener noreferrer" onClick={openInNewTab}>
-                View CARFAX Report
-                <ExternalLink className="w-4 h-4 ml-1.5" />
-              </a>
-            </Button>
+            <a
+              href={summary.vhrReportUrl}
+              rel="noopener noreferrer"
+              onClick={openCarfaxReport}
+              className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-semibold h-8 px-3 bg-red-600 hover:bg-red-700 text-white transition-all cursor-pointer"
+            >
+              View CARFAX Report
+              <ExternalLink className="w-4 h-4" />
+            </a>
           )}
         </div>
 
@@ -250,11 +249,14 @@ export function CarfaxInlineLink({ vin }: Readonly<{ vin: string | null }>) {
             </span>
           )}
         </div>
-        <Button variant="link" className="text-primary p-0 h-auto text-xs" asChild>
-          <a href={reportUrl} target="_blank" rel="noopener noreferrer" onClick={openInNewTab}>
-            View report <ExternalLink className="w-3 h-3 ml-1" />
-          </a>
-        </Button>
+        <a
+          href={reportUrl}
+          rel="noopener noreferrer"
+          onClick={openCarfaxReport}
+          className="text-primary text-xs underline-offset-4 hover:underline inline-flex items-center gap-1 cursor-pointer"
+        >
+          View report <ExternalLink className="w-3 h-3" />
+        </a>
       </div>
       {/* Show first badge image in sidebar for visual trust */}
       {summary.badges.length > 0 && (
@@ -287,10 +289,9 @@ export function CarfaxOverviewBadge({ vin }: Readonly<{ vin: string | null }>) {
     return (
       <a
         href={state.summary.vhrReportUrl}
-        target="_blank"
         rel="noopener noreferrer"
-        onClick={openInNewTab}
-        className="inline-block"
+        onClick={openCarfaxReport}
+        className="inline-block cursor-pointer"
       >
         <Badge
           variant="outline"
