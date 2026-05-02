@@ -151,10 +151,13 @@ export function CarfaxInlineLink({ vin }: Readonly<{ vin: string | null }>) {
   if (state.status !== "ready" || !state.summary.vhrReportUrl) return null
 
   return (
-    <Button variant="link" className={COMPACT_LINK_BUTTON_CLASSES} asChild>
-      <Link href={state.summary.vhrReportUrl} target="_blank" rel="noopener noreferrer">
-        View report <ExternalLink className="w-3 h-3 ml-1" />
-      </Link>
-    </Button>
+    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+      <Badge variant="outline" className="border-red-500 text-red-600">CARFAX</Badge>
+      <Button variant="link" className={COMPACT_LINK_BUTTON_CLASSES} asChild>
+        <Link href={state.summary.vhrReportUrl} target="_blank" rel="noopener noreferrer">
+          View report <ExternalLink className="w-3 h-3 ml-1" />
+        </Link>
+      </Button>
+    </div>
   )
 }

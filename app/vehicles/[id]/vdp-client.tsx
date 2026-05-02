@@ -1790,10 +1790,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
                   {/* CARFAX inline link — same per-VIN tokenized URL as the
                       panel above; no copy-paste deep link to carfax.ca. */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                    <Badge variant="outline" className="border-red-500 text-red-600">CARFAX</Badge>
-                    <CarfaxInlineLink vin={vehicle.vin ?? null} />
-                  </div>
+                  <CarfaxInlineLink vin={vehicle.vin ?? null} />
 
                   {/* Delivery Calculator */}
                   <div className="mt-4 pt-4 border-t">
