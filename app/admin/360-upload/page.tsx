@@ -59,8 +59,8 @@ export default function Admin360UploadPage() {
         const data = await res.json()
         setVehicles(data.vehicles ?? [])
       }
-    } catch {
-      // Silently fail — vehicles list is supplementary
+    } catch (err) {
+      console.error("[360-upload] Failed to load vehicles list:", err)
     } finally {
       setLoadingVehicles(false)
     }
@@ -139,12 +139,12 @@ export default function Admin360UploadPage() {
 
       const data = await res.json()
 
-      if (!res.ok) {
-        setUploadError(data.error ?? "Upload failed")
-      } else {
+      if (res.ok) {
         setUploadResult(data)
         // Refresh vehicle list
         loadVehicles()
+      } else {
+        setUploadError(data.error ?? "Upload failed")
       }
     } catch {
       setUploadError("Network error — please try again")
@@ -179,13 +179,14 @@ export default function Admin360UploadPage() {
               {/* Vehicle Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="upload-mid" className="block text-sm font-medium text-gray-700 mb-1">
                     Media ID (MID)
                   </label>
                   <Input
+                    id="upload-mid"
                     placeholder="e.g. 190171976531"
                     value={mid}
-                    onChange={e => setMid(e.target.value.replace(/\D/g, ""))}
+                    onChange={e => setMid(e.target.value.replaceAll(/\D/g, ""))}
                     maxLength={15}
                   />
                   <p className="text-xs text-gray-400 mt-1">
@@ -193,10 +194,11 @@ export default function Admin360UploadPage() {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="upload-vehicle-name" className="block text-sm font-medium text-gray-700 mb-1">
                     Vehicle Name
                   </label>
                   <Input
+                    id="upload-vehicle-name"
                     placeholder="e.g. 2024 Tesla Model 3"
                     value={vehicleName}
                     onChange={e => setVehicleName(e.target.value)}
@@ -205,13 +207,14 @@ export default function Admin360UploadPage() {
               </div>
 
               {/* Drop Zone */}
-              <div
+              <button
+                type="button"
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 className={`
-                  border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                  w-full border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                   ${isDragOver
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
@@ -233,14 +236,14 @@ export default function Admin360UploadPage() {
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-              </div>
+              </button>
 
               {/* Selected Files */}
               {selectedFiles.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-gray-700">
-                      {selectedFiles.length} frame{selectedFiles.length !== 1 ? "s" : ""} selected
+                      {selectedFiles.length} frame{selectedFiles.length === 1 ? "" : "s"} selected
                     </p>
                     <Button variant="ghost" size="sm" onClick={clearFiles}>
                       <Trash2 className="w-4 h-4 mr-1" />
@@ -257,7 +260,7 @@ export default function Admin360UploadPage() {
                               {String(i + 1).padStart(2, "0")}
                             </span>
                             <span className="truncate">{file.name}</span>
-                            <span className="text-gray-400 text-xs flex-shrink-0">
+                            <span className="text-gray-400 text-xs shrink-0">
                               {(file.size / 1024).toFixed(0)} KB
                             </span>
                           </div>
@@ -267,7 +270,7 @@ export default function Admin360UploadPage() {
                               const originalIndex = selectedFiles.indexOf(file)
                               if (originalIndex >= 0) removeFile(originalIndex)
                             }}
-                            className="text-gray-400 hover:text-red-500 flex-shrink-0 ml-2"
+                            className="text-gray-400 hover:text-red-500 shrink-0 ml-2"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -292,7 +295,7 @@ export default function Admin360UploadPage() {
                 ) : (
                   <>
                     <Upload className="w-4 h-4 mr-2" />
-                    Upload {selectedFiles.length} Frame{selectedFiles.length !== 1 ? "s" : ""}
+                    Upload {selectedFiles.length} Frame{selectedFiles.length === 1 ? "" : "s"}
                   </>
                 )}
               </Button>
@@ -301,7 +304,7 @@ export default function Admin360UploadPage() {
               {uploadResult && (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                   <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium text-green-800">{uploadResult.message}</p>
                       <p className="text-sm text-green-600 mt-1">
@@ -310,8 +313,8 @@ export default function Admin360UploadPage() {
                       {uploadResult.errors && uploadResult.errors.length > 0 && (
                         <div className="mt-2 text-sm text-red-600">
                           <p className="font-medium">Errors:</p>
-                          {uploadResult.errors.map((err, i) => (
-                            <p key={i}>• {err}</p>
+                          {uploadResult.errors.map((err) => (
+                            <p key={err}>• {err}</p>
                           ))}
                         </div>
                       )}
@@ -324,7 +327,7 @@ export default function Admin360UploadPage() {
               {uploadError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
                     <p className="text-red-800">{uploadError}</p>
                   </div>
                 </div>
@@ -394,19 +397,26 @@ export default function Admin360UploadPage() {
                 </Button>
               </div>
               <CardDescription>
-                {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} with 360° frames
+                {vehicles.length} vehicle{vehicles.length === 1 ? "" : "s"} with 360° frames
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {loadingVehicles ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                </div>
-              ) : vehicles.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-8">
-                  No 360° vehicles found
-                </p>
-              ) : (
+              {(() => {
+                if (loadingVehicles) {
+                  return (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                    </div>
+                  )
+                }
+                if (vehicles.length === 0) {
+                  return (
+                    <p className="text-sm text-gray-500 text-center py-8">
+                      No 360° vehicles found
+                    </p>
+                  )
+                }
+                return (
                 <div className="space-y-3">
                   {vehicles.map(v => {
                     const manifestCount = FRAME_MANIFEST[v.mid]
@@ -418,7 +428,7 @@ export default function Admin360UploadPage() {
                       >
                         <div className="flex items-start gap-3">
                           {v.firstFrameUrl ? (
-                            <div className="w-16 h-12 relative rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                            <div className="w-16 h-12 relative rounded overflow-hidden bg-gray-100 shrink-0">
                               <Image
                                 src={v.firstFrameUrl}
                                 alt={`MID ${v.mid}`}
@@ -428,7 +438,7 @@ export default function Admin360UploadPage() {
                               />
                             </div>
                           ) : (
-                            <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                            <div className="w-16 h-12 bg-gray-100 rounded flex items-center justify-center shrink-0">
                               <Camera className="w-5 h-5 text-gray-300" />
                             </div>
                           )}
@@ -496,7 +506,8 @@ export default function Admin360UploadPage() {
                     )
                   })}
                 </div>
-              )}
+                )
+              })()}
             </CardContent>
           </Card>
         </div>

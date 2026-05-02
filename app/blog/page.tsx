@@ -8,6 +8,10 @@ import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { blogPostsMeta } from "@/lib/blog-data"
+import { getBlogPosts } from "@/lib/sanity/fetch"
+import type { NormalisedPost } from "@/components/blog-page-content"
+
+export const revalidate = 300
 
 export const metadata = {
   title: "Blog | Planet Motors - Car Buying Tips & Industry News",
@@ -18,12 +22,34 @@ export const metadata = {
   },
 }
 
-// Compute the featured (newest) post at build time — this is a Server Component
-// so the featured image is in the initial HTML with a preload hint for fast LCP.
-const featuredPost = [...blogPostsMeta]
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+// BlogPage is a Server Component — fetches from Sanity, falls back to static data.
+export default async function BlogPage() {
+  // Fetch from Sanity CMS (returns [] when dataset is empty — static fallback kicks in)
+  const { posts: sanityPosts } = await getBlogPosts(1, 100)
 
-export default function BlogPage() {
+  // Build slug→image lookup from static data for posts missing Sanity cover images
+  const staticImageBySlug = new Map(blogPostsMeta.map((m) => [m.slug, m.image]))
+
+  // Normalise Sanity posts, then merge with static posts that aren't in Sanity
+  const sanityNormalised: NormalisedPost[] = sanityPosts.map((p) => {
+    const slug = typeof p.slug === "object" ? (p.slug as { current: string }).current : p.slug ?? ""
+    return {
+      slug,
+      title: p.title ?? "",
+      excerpt: p.excerpt ?? "",
+      date: p.publishedAt ? new Date(p.publishedAt).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "2-digit" }) : "",
+      readTime: "5 min read",
+      category: p.categories?.[0] ?? "General",
+      image: p.coverImage ?? staticImageBySlug.get(slug) ?? "/images/blog/blog-1.png",
+    }
+  })
+  const sanitySlugs = new Set(sanityNormalised.map((p) => p.slug))
+  const staticOnly = blogPostsMeta.filter((m) => !sanitySlugs.has(m.slug))
+  const allPosts: NormalisedPost[] = [...sanityNormalised, ...staticOnly]
+
+  const featuredPost = [...allPosts]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+
   return (
     <div className="min-h-screen bg-background">
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }]} />
@@ -59,6 +85,7 @@ export default function BlogPage() {
                         alt={featuredPost.title}
                         fill
                         priority
+                        quality={90}
                         sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
@@ -92,7 +119,7 @@ export default function BlogPage() {
         )}
 
         {/* Interactive search/filter + grid — client component */}
-        <BlogPageContent featuredSlug={featuredPost?.slug} />
+        <BlogPageContent featuredSlug={featuredPost?.slug} initialPosts={allPosts} />
       </main>
 
       <Footer />

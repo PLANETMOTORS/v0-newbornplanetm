@@ -21,7 +21,7 @@ export function VirtualizedVehicleGrid({
   itemCount,
   renderItem,
   viewMode,
-}: VirtualizedVehicleGridProps) {
+}: Readonly<VirtualizedVehicleGridProps>) {
   return (
     <div
       className={

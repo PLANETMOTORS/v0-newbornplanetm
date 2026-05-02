@@ -1,3 +1,4 @@
+ 
 "use client"
 
 import { useState } from "react"
@@ -6,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Send, Bot, User, Sparkles, Mail, Phone, CheckCircle, Loader2 } from "lucide-react"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
+import { isEmailLike } from "@/lib/validation/email"
 
 interface Message {
   role: "user" | "assistant"
@@ -29,7 +31,7 @@ export function PriceNegotiator({
   vehicleName,
   daysListed = 30,
   viewsLastWeek = 25,
-}: PriceNegotiatorProps) {
+}: Readonly<PriceNegotiatorProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState<"contact" | "verify" | "negotiate">("contact")
   const [contactInfo, setContactInfo] = useState({ name: "", email: "", phone: "" })
@@ -43,10 +45,11 @@ export function PriceNegotiator({
   const [isLoading, setIsLoading] = useState(false)
   const [currentOffer, setCurrentOffer] = useState<number | null>(null)
 
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-  const isValidPhone = (phone: string) => phone.replace(/\D/g, "").length >= 10
+  // Structural, ReDoS-free check (S5852/S2631).
+  const isValidEmail = (email: string) => isEmailLike(email)
+  const isValidPhone = (phone: string) => phone.replaceAll(/\D/g, "").length >= 10
   const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 10)
+    const digits = value.replaceAll(/\D/g, "").slice(0, 10)
     if (digits.length <= 3) return digits
     if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
@@ -97,63 +100,76 @@ export function PriceNegotiator({
     }
   }
 
+  const extractDeltaFromSseLine = (line: string): string => {
+    if (!line.startsWith("data:")) return ""
+    const data = line.slice(5).trim()
+    if (!data || data === "[DONE]") return ""
+    try {
+      const parsed = JSON.parse(data)
+      if (parsed.type === "text-delta" && parsed.delta) return parsed.delta as string
+    } catch { /* ignore parse errors for non-JSON lines */ }
+    return ""
+  }
+
+  const consumeNegotiateStream = async (response: Response): Promise<string> => {
+    const reader = response.body?.getReader()
+    if (!reader) return ""
+    const decoder = new TextDecoder()
+    let fullContent = ""
+    let buffer = ""
+    let done = false
+    while (!done) {
+      const result = await reader.read()
+      done = result.done
+      if (done) break
+      buffer += decoder.decode(result.value, { stream: true })
+      const lines = buffer.split(/\r?\n/)
+      buffer = lines.pop() ?? ""
+      for (const line of lines) fullContent += extractDeltaFromSseLine(line)
+    }
+    fullContent += extractDeltaFromSseLine(buffer)
+    return fullContent
+  }
+
+  const appendAssistantFromStream = (fullContent: string) => {
+    try {
+      const result = JSON.parse(fullContent)
+      setMessages((prev) => [...prev, { role: "assistant", content: result.response, counterOffer: result.counterOffer, status: result.status }])
+    } catch {
+      setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
+    }
+  }
+
+  const postNegotiateRequest = (offerAmount: number, userMessage: string) => fetch("/api/negotiate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      vehicleId,
+      vehiclePrice,
+      customerOffer: offerAmount,
+      customerMessage: userMessage,
+      customerName: contactInfo.name,
+      customerEmail: contactInfo.email,
+      customerPhone: contactInfo.phone,
+      vehicleInfo: { name: vehicleName, daysListed, viewsLastWeek },
+    }),
+  })
+
   const handleSubmitOffer = async () => {
-    const offerAmount = parseFloat(offer.replace(/[^0-9.]/g, ""))
-    if (isNaN(offerAmount) || offerAmount <= 0) return
+    const offerAmount = Number.parseFloat(offer.replaceAll(/[^0-9.]/g, ""))
+    if (Number.isNaN(offerAmount) || offerAmount <= 0) return
 
     setCurrentOffer(offerAmount)
     const userMessage = customMessage || `I'd like to offer $${offerAmount.toLocaleString()} for this vehicle.`
-
     setMessages((prev) => [...prev, { role: "user", content: userMessage }])
     setIsLoading(true)
     setOffer("")
     setCustomMessage("")
 
     try {
-      const response = await fetch("/api/negotiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicleId,
-          vehiclePrice,
-          customerOffer: offerAmount,
-          customerMessage: userMessage,
-          customerName: contactInfo.name,
-          customerEmail: contactInfo.email,
-          customerPhone: contactInfo.phone,
-          vehicleInfo: { name: vehicleName, daysListed, viewsLastWeek },
-        }),
-      })
-
+      const response = await postNegotiateRequest(offerAmount, userMessage)
       if (!response.ok) throw new Error("Failed")
-
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-      let fullContent = ""
-
-      while (reader) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const chunk = decoder.decode(value, { stream: true })
-        const lines = chunk.split("\n")
-        for (const line of lines) {
-          if (line.startsWith("data:")) {
-            const data = line.slice(5).trim()
-            if (data === "[DONE]") continue
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.type === "text-delta" && parsed.delta) fullContent += parsed.delta
-            } catch { /* ignore parse errors for streaming chunks */ }
-          }
-        }
-      }
-
-      try {
-        const result = JSON.parse(fullContent)
-        setMessages((prev) => [...prev, { role: "assistant", content: result.response, counterOffer: result.counterOffer, status: result.status }])
-      } catch {
-        setMessages((prev) => [...prev, { role: "assistant", content: fullContent || "I'd be happy to discuss pricing. What price did you have in mind?", status: "negotiating" }])
-      }
+      appendAssistantFromStream(await consumeNegotiateStream(response))
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: `I'm having trouble processing. Please try again or call ${PHONE_LOCAL}.`, status: "escalate" }])
     } finally {
@@ -178,7 +194,11 @@ export function PriceNegotiator({
           AI Price Negotiator
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          {step === "contact" ? "Verify your identity to start negotiating" : step === "verify" ? "Enter verification code" : "Negotiate directly with our AI"}
+          {(() => {
+            if (step === "contact") return "Verify your identity to start negotiating"
+            if (step === "verify") return "Enter verification code"
+            return "Negotiate directly with our AI"
+          })()}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -220,7 +240,7 @@ export function PriceNegotiator({
             </div>
             <div>
               <Label htmlFor="verify-code">Verification Code</Label>
-              <Input id="verify-code" placeholder="123456" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="text-center text-lg tracking-widest" maxLength={6} />
+              <Input id="verify-code" placeholder="123456" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))} className="text-center text-lg tracking-widest" maxLength={6} />
             </div>
             <Button className="w-full" onClick={verifyCode} disabled={verificationCode.length !== 6 || isVerifying}>
               {isVerifying && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -235,9 +255,9 @@ export function PriceNegotiator({
           <>
             <div className="max-h-64 overflow-y-auto space-y-3">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div key={`msg-${msg.role}-${i}-${msg.content.slice(0, 8)}`} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   {msg.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <Bot className="w-4 h-4 text-primary" />
                     </div>
                   )}
@@ -247,7 +267,7 @@ export function PriceNegotiator({
                     {msg.status === "accepted" && <p className="mt-2 text-green-600 font-semibold">Offer Accepted!</p>}
                   </div>
                   {msg.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
                       <User className="w-4 h-4 text-white" />
                     </div>
                   )}
@@ -274,7 +294,7 @@ export function PriceNegotiator({
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <Input type="text" placeholder="Enter your offer" value={offer} onChange={(e) => setOffer(e.target.value)} className="pl-7" disabled={isLoading} />
                 </div>
-                <Button onClick={handleSubmitOffer} disabled={isLoading || !offer} size="icon">
+                <Button onClick={handleSubmitOffer} disabled={isLoading || !offer} size="icon" aria-label="Submit offer">
                   <Send className="w-4 h-4" />
                 </Button>
               </div>

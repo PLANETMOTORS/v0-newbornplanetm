@@ -5,8 +5,8 @@ import { cityData } from "./city-data"
 const SITE_URL = getPublicSiteUrl()
 
 interface Props {
-  children: React.ReactNode
-  params: Promise<{ city: string }>
+  readonly children: React.ReactNode
+  readonly params: Promise<{ city: string }>
 }
 
 export function generateStaticParams() {
@@ -48,9 +48,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       images: [
         {
-          url: `${SITE_URL}/images/planet-motors-logo.png`,
-          width: 800,
-          height: 320,
+          url: `${SITE_URL}/brand/og-image.png`,
+          width: 1200,
+          height: 630,
           alt: `Planet Motors - Used Cars in ${city.name}`,
         },
       ],
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title,
       description,
-      images: [`${SITE_URL}/images/planet-motors-logo.png`],
+      images: [`${SITE_URL}/brand/og-image.png`],
     },
   }
 }

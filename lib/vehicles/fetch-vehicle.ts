@@ -80,11 +80,14 @@ export const fetchVehicleForSSR = cache(async (
   try {
     const supabase = createStaticClient()
 
-    const lookupColumn = UUID_RE.test(idOrVinOrStock)
-      ? "id"
-      : VIN_RE.test(idOrVinOrStock)
-        ? "vin"
-        : "stock_number"
+    let lookupColumn: string
+    if (UUID_RE.test(idOrVinOrStock)) {
+      lookupColumn = "id"
+    } else if (VIN_RE.test(idOrVinOrStock)) {
+      lookupColumn = "vin"
+    } else {
+      lookupColumn = "stock_number"
+    }
 
     const { data: row, error } = await supabase
       .from("vehicles")
@@ -96,11 +99,11 @@ export const fetchVehicleForSSR = cache(async (
 
     // Only show publicly visible statuses
     const status = (row as Record<string, unknown>).status as string
-    if (!["available", "reserved", "pending"].includes(status)) return null
+    if (!["available", "reserved", "pending", "sold"].includes(status)) return null
 
     const v = row as Record<string, unknown>
     const priceInDollars = safeNum(v.price) / 100
-    const msrpInDollars = typeof v.msrp === "number" ? (v.msrp as number) / 100 : null
+    const msrpInDollars = typeof v.msrp === "number" ? v.msrp / 100 : null
     const vin = typeof v.vin === "string" ? v.vin : ""
 
     const driveeMid = await getDriveeMidFromDb(vin)

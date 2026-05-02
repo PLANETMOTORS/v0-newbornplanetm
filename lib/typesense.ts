@@ -3,6 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getSearchClient, isTypesenseConfigured, VEHICLES_COLLECTION } from './typesense/client'
+import { asNum, asOptStr, asStr } from './safe-coerce'
 
 // ── Public interfaces (unchanged) ──────────────────────────────────────────
 
@@ -100,7 +101,7 @@ export function sanitizeTypesenseFilterValue(raw: string): string {
   }
 
   // Escape backslashes first (so we don't double-escape the ones we insert for backticks)
-  const escaped = raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`')
+  const escaped = raw.replaceAll("\\", "\\\\").replaceAll("`", "\\`")
 
   // Always backtick-wrap — safe for single-word values too and required
   // for multi-word values like "Land Rover".
@@ -136,7 +137,7 @@ function resolveBodyStyleAlias(value: string): string {
 
 /** Sanitize a body style value for safe interpolation into PostgREST filters. */
 function sanitizeBodyStyleValue(value: string): string {
-  return value.replace(/[^a-zA-Z0-9 -]/g, '').trim().slice(0, 100)
+  return value.replaceAll(/[^a-zA-Z0-9 -]/g, '').trim().slice(0, 100)
 }
 
 // ── Typesense search ───────────────────────────────────────────────────────
@@ -144,7 +145,9 @@ function sanitizeBodyStyleValue(value: string): string {
 const FACET_FIELDS = 'make,model,body_style,fuel_type,drivetrain,year,is_ev,is_certified'
 
 function buildFilterBy(params: VehicleSearchParams): string {
-  const filters: string[] = ['status:=available']
+  // Exclude sold from Typesense — schema lacks sold_at so we can't enforce the 7-day window.
+  // Sold vehicles appear via the Supabase V1 API which correctly filters by sold_at.
+  const filters: string[] = ['status:=[available,reserved]']
 
   const makes = asArray(params.make)
   if (makes.length) filters.push(`make:=[${sanitizeFilterValues(makes)}]`)
@@ -209,22 +212,22 @@ async function searchTypesense(params: VehicleSearchParams): Promise<SearchRespo
     const doc = hit.document as Record<string, unknown>
     return {
       document: {
-        id: String(doc.id || ''),
-        stock_number: String(doc.stock_number || ''),
-        year: Number(doc.year || 0),
-        make: String(doc.make || ''),
-        model: String(doc.model || ''),
-        trim: doc.trim ? String(doc.trim) : undefined,
-        body_style: doc.body_style ? String(doc.body_style) : undefined,
-        exterior_color: doc.exterior_color ? String(doc.exterior_color) : undefined,
-        price: Math.round(Number(doc.price || 0) / 100), // cents → dollars
-        mileage: Number(doc.mileage || 0),
-        drivetrain: doc.drivetrain ? String(doc.drivetrain) : undefined,
-        fuel_type: doc.fuel_type ? String(doc.fuel_type) : undefined,
+        id: asStr(doc.id),
+        stock_number: asStr(doc.stock_number),
+        year: asNum(doc.year),
+        make: asStr(doc.make),
+        model: asStr(doc.model),
+        trim: asOptStr(doc.trim),
+        body_style: asOptStr(doc.body_style),
+        exterior_color: asOptStr(doc.exterior_color),
+        price: Math.round(asNum(doc.price) / 100), // cents → dollars
+        mileage: asNum(doc.mileage),
+        drivetrain: asOptStr(doc.drivetrain),
+        fuel_type: asOptStr(doc.fuel_type),
         is_ev: Boolean(doc.is_ev),
         is_certified: Boolean(doc.is_certified),
-        status: String(doc.status || 'available'),
-        primary_image_url: doc.primary_image_url ? String(doc.primary_image_url) : undefined,
+        status: asStr(doc.status, "available"),
+        primary_image_url: asOptStr(doc.primary_image_url),
       } as VehicleSearchResult,
     }
   })
@@ -253,31 +256,27 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
 
-async function searchSupabase(params: VehicleSearchParams): Promise<SearchResponse> {
-  if (!supabase) {
-    return { hits: [], found: 0, page: params.page || 1, facet_counts: [] }
+// Supabase query builder. Typed broadly so helper functions can accept and
+// return the PostgrestFilterBuilder chain without importing internal Supabase
+// generics that change across patch versions.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseQuery = Record<string, any>
+
+/** Apply text search to a Supabase query if a search term is provided. */
+function applySupabaseTextSearch(query: SupabaseQuery, searchQuery?: string): SupabaseQuery {
+  if (!searchQuery) return query
+  // Sanitize user input to prevent PostgREST filter injection via commas/parens.
+  // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
+  // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
+  const sanitizedQ = searchQuery.trim().slice(0, 200).replaceAll(/[^a-zA-Z0-9\s]/g, ' ').replaceAll(/\s+/g, ' ').trim()
+  if (sanitizedQ) {
+    return query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
   }
+  return query
+}
 
-  const page = Math.max(1, params.page || 1)
-  const perPage = Math.min(Math.max(1, params.per_page || 20), 100)
-  const start = (page - 1) * perPage
-  const end = start + perPage - 1
-
-  let query = supabase
-    .from('vehicles')
-    .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
-    .eq('status', 'available')
-
-  if (params.query) {
-    // Sanitize user input to prevent PostgREST filter injection via commas/parens.
-    // Strip hyphens too — websearch_to_tsquery treats "-word" as NOT operator,
-    // breaking searches for "CR-V", "RAV-4", "PM-2024-001", etc.
-    const sanitizedQ = params.query.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
-    if (sanitizedQ) {
-      query = query.textSearch('search_vector', sanitizedQ, { type: 'websearch', config: 'english' })
-    }
-  }
-
+/** Apply all array/scalar filters to a Supabase query. */
+function applySupabaseFilters(query: SupabaseQuery, params: VehicleSearchParams): SupabaseQuery {
   const makes = asArray(params.make)
   if (makes.length > 0) query = query.in('make', makes)
 
@@ -288,7 +287,6 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   if (bodyStyles.length > 0) {
     // Use .or() with .ilike() instead of .in() because DB values have prefixes
     // (e.g. "4dr Sport Utility Vehicle", "4dr Car") — exact match would return 0 results.
-    // Sanitize values to prevent PostgREST filter injection via commas/parens.
     const bodyFilter = bodyStyles.map(bs => `body_style.ilike.%${sanitizeBodyStyleValue(bs)}%`).join(',')
     query = query.or(bodyFilter)
   }
@@ -306,6 +304,27 @@ async function searchSupabase(params: VehicleSearchParams): Promise<SearchRespon
   if (typeof params.price_min === 'number') query = query.gte('price', params.price_min * 100)
   if (typeof params.price_max === 'number') query = query.lte('price', params.price_max * 100)
   if (typeof params.mileage_max === 'number') query = query.lte('mileage', params.mileage_max)
+
+  return query
+}
+
+async function searchSupabase(params: VehicleSearchParams): Promise<SearchResponse> {
+  if (!supabase) {
+    return { hits: [], found: 0, page: params.page || 1, facet_counts: [] }
+  }
+
+  const page = Math.max(1, params.page || 1)
+  const perPage = Math.min(Math.max(1, params.per_page || 20), 100)
+  const start = (page - 1) * perPage
+  const end = start + perPage - 1
+
+  let query: SupabaseQuery = supabase
+    .from('vehicles')
+    .select('id, stock_number, year, make, model, trim, body_style, exterior_color, price, mileage, drivetrain, fuel_type, is_ev, is_certified, status, primary_image_url', { count: 'exact' })
+    .in('status', ['available', 'reserved'])
+
+  query = applySupabaseTextSearch(query, params.query)
+  query = applySupabaseFilters(query, params)
 
   const [sortField, sortDirection] = (params.sort_by || 'created_at:desc').split(':') as [string, 'asc' | 'desc']
   query = query.order(sortField, { ascending: sortDirection === 'asc' })
@@ -352,7 +371,7 @@ export async function getVehicleFacets() {
           .search({
             q: '*',
             query_by: 'make',
-            filter_by: 'status:=available',
+            filter_by: 'status:=[available,reserved]',
             facet_by: FACET_FIELDS,
             max_facet_values: 100,
             per_page: 0, // we only want facets, not documents
@@ -377,7 +396,7 @@ export async function getVehicleFacets() {
   const { data } = await supabase
     .from('vehicles')
     .select('make, fuel_type')
-    .eq('status', 'available')
+    .in('status', ['available', 'reserved'])
     .limit(5000)
 
   const rows = data || []

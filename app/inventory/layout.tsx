@@ -1,5 +1,11 @@
 import { Metadata } from "next"
 
+// Post-launch P2 (see docs/POST_LAUNCH_FIXES.md item #9):
+//   Convert this to `generateMetadata({ searchParams })` and self-canonicalise
+//   the curated filter URLs already listed in lib/sitemap-builders.ts (e.g.
+//   /inventory?fuelType=Electric, /inventory?make=Tesla). Today every variant
+//   collapses to /inventory base, which protects against index bloat but
+//   prevents curated landing pages from ranking separately.
 export const metadata: Metadata = {
   title: "Used EVs & Certified Pre-Owned Vehicles in Canada | Planet Motors",
   description: "Browse Aviloo-certified used EVs, hybrids, and SUVs. 210-point inspected, free Carfax. Canada-wide delivery. Financing from 6.29% APR. Filter by make, model, price, and fuel type.",

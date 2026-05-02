@@ -1,3 +1,4 @@
+ 
 "use client"
 
 import { useState } from "react"
@@ -15,14 +16,95 @@ import {
 } from "@/lib/validation"
 import { trackFormSubmission } from "@/components/analytics/google-tag-manager"
 import { trackLead } from "@/components/analytics/google-analytics"
-import { trackMetaLead } from "@/components/analytics/meta-pixel"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 interface ContactFormProps {
   onSuccess?: () => void
 }
 
-export function ContactForm({ onSuccess }: ContactFormProps) {
+type FieldRule = (value: string) => string
+
+function requiredText(label: string): FieldRule {
+  return (value) => (value.trim() ? "" : `${label} is required`)
+}
+
+function patternText(
+  label: string,
+  invalidMsg: string,
+  isValid: (value: string) => boolean,
+): FieldRule {
+  return (value) => {
+    if (!value) return `${label} is required`
+    if (!isValid(value)) return invalidMsg
+    return ""
+  }
+}
+
+const FIELD_RULES: Record<string, FieldRule> = {
+  firstName: requiredText("First name"),
+  lastName: requiredText("Last name"),
+  message: requiredText("Message"),
+  email: patternText("Email", "Please enter a valid email", isValidEmail),
+  phone: patternText("Phone number", "Please enter a valid 10-digit phone number", isValidCanadianPhone),
+  postalCode: patternText("Postal code", "Please enter a valid postal code (e.g., M5V 3L9)", isValidCanadianPostalCode),
+}
+
+function getFieldErrorMessage(field: string, value: string): string {
+  const rule = FIELD_RULES[field]
+  return rule ? rule(value) : ""
+}
+
+function FieldError({ message }: Readonly<{ message?: string }>) {
+  if (!message) return null
+  return (
+    <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+      <AlertCircle className="h-3 w-3" /> {message}
+    </p>
+  )
+}
+
+interface TextFieldProps {
+  id: string
+  label: string
+  type?: string
+  placeholder: string
+  value: string
+  error?: string
+  required?: boolean
+  maxLength?: number
+  onChange: (value: string) => void
+}
+function TextField({ id, label, type = "text", placeholder, value, error, required, maxLength, onChange }: Readonly<TextFieldProps>) {
+  return (
+    <div>
+      <Label htmlFor={id}>
+        {label} {required ? <span className="text-destructive">*</span> : null}
+      </Label>
+      <Input
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={error ? "border-destructive" : ""}
+        maxLength={maxLength}
+      />
+      <FieldError message={error} />
+    </div>
+  )
+}
+
+function SubmittedConfirmation() {
+  return (
+    <div className="text-center py-8">
+      <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+      <h3 className="font-semibold text-xl mb-2">Message Sent!</h3>
+      <p className="text-muted-foreground">We&apos;ll get back to you within 2 hours during business hours.</p>
+    </div>
+  )
+}
+
+export function ContactForm({ onSuccess }: Readonly<ContactFormProps>) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -38,33 +120,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
   const [submitError, setSubmitError] = useState("")
 
   const validateField = (field: string, value: string) => {
-    const newErrors = { ...errors }
-    switch (field) {
-      case "firstName":
-        newErrors.firstName = !value.trim() ? "First name is required" : ""
-        break
-      case "lastName":
-        newErrors.lastName = !value.trim() ? "Last name is required" : ""
-        break
-      case "email":
-        if (!value) newErrors.email = "Email is required"
-        else if (!isValidEmail(value)) newErrors.email = "Please enter a valid email"
-        else newErrors.email = ""
-        break
-      case "phone":
-        if (!value) newErrors.phone = "Phone number is required"
-        else if (!isValidCanadianPhone(value)) newErrors.phone = "Please enter a valid 10-digit phone number"
-        else newErrors.phone = ""
-        break
-      case "postalCode":
-        if (!value) newErrors.postalCode = "Postal code is required"
-        else if (!isValidCanadianPostalCode(value)) newErrors.postalCode = "Please enter a valid postal code (e.g., M5V 3L9)"
-        else newErrors.postalCode = ""
-        break
-      case "message":
-        newErrors.message = !value.trim() ? "Message is required" : ""
-        break
-    }
+    const newErrors = { ...errors, [field]: getFieldErrorMessage(field, value) }
     setErrors(newErrors)
     return !newErrors[field]
   }
@@ -91,7 +147,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
     )
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!isFormValid()) return
 
@@ -109,7 +165,6 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
 
       trackFormSubmission("contact_form", { subject: formData.subject || "General Inquiry" })
       trackLead("contact_form")
-      trackMetaLead("contact_form")
       setIsSubmitted(true)
       onSuccess?.()
     } catch {
@@ -120,101 +175,31 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
   }
 
   if (isSubmitted) {
-    return (
-      <div className="text-center py-8">
-        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-        <h3 className="font-semibold text-xl mb-2">Message Sent!</h3>
-        <p className="text-muted-foreground">We&apos;ll get back to you within 2 hours during business hours.</p>
-      </div>
-    )
+    return <SubmittedConfirmation />
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
-          <Input
-            id="firstName"
-            placeholder="John"
-            value={formData.firstName}
-            onChange={(e) => handleInputChange("firstName", e.target.value)}
-            className={errors.firstName ? "border-destructive" : ""}
-          />
-          {errors.firstName && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.firstName}
-            </p>
-          )}
-        </div>
-        <div>
-          <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
-          <Input
-            id="lastName"
-            placeholder="Smith"
-            value={formData.lastName}
-            onChange={(e) => handleInputChange("lastName", e.target.value)}
-            className={errors.lastName ? "border-destructive" : ""}
-          />
-          {errors.lastName && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.lastName}
-            </p>
-          )}
-        </div>
+        <TextField id="firstName" label="First Name" placeholder="John" required
+          value={formData.firstName} error={errors.firstName}
+          onChange={(v) => handleInputChange("firstName", v)} />
+        <TextField id="lastName" label="Last Name" placeholder="Smith" required
+          value={formData.lastName} error={errors.lastName}
+          onChange={(v) => handleInputChange("lastName", v)} />
       </div>
 
-      <div>
-        <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="john@example.com"
-          value={formData.email}
-          onChange={(e) => handleInputChange("email", e.target.value)}
-          className={errors.email ? "border-destructive" : ""}
-        />
-        {errors.email && (
-          <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" /> {errors.email}
-          </p>
-        )}
-      </div>
+      <TextField id="email" label="Email Address" type="email" placeholder="john@example.com" required
+        value={formData.email} error={errors.email}
+        onChange={(v) => handleInputChange("email", v)} />
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
-          <Input
-            id="phone"
-            type="tel"
-            placeholder="(416) 555-0123"
-            value={formData.phone}
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            className={errors.phone ? "border-destructive" : ""}
-          />
-          {errors.phone && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.phone}
-            </p>
-          )}
-        </div>
-        <div>
-          <Label htmlFor="postalCode">Postal Code <span className="text-destructive">*</span></Label>
-          <Input
-            id="postalCode"
-            type="text"
-            placeholder="M5V 3L9"
-            value={formData.postalCode}
-            onChange={(e) => handleInputChange("postalCode", e.target.value)}
-            className={errors.postalCode ? "border-destructive" : ""}
-            maxLength={7}
-          />
-          {errors.postalCode && (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.postalCode}
-            </p>
-          )}
-        </div>
+        <TextField id="phone" label="Phone Number" type="tel" placeholder="(416) 555-0123" required
+          value={formData.phone} error={errors.phone}
+          onChange={(v) => handleInputChange("phone", v)} />
+        <TextField id="postalCode" label="Postal Code" placeholder="M5V 3L9" required maxLength={7}
+          value={formData.postalCode} error={errors.postalCode}
+          onChange={(v) => handleInputChange("postalCode", v)} />
       </div>
 
       <div>
@@ -243,11 +228,7 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
           value={formData.message}
           onChange={(e) => handleInputChange("message", e.target.value)}
         />
-        {errors.message && (
-          <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-            <AlertCircle className="h-3 w-3" /> {errors.message}
-          </p>
-        )}
+        <FieldError message={errors.message} />
       </div>
 
       {submitError && (

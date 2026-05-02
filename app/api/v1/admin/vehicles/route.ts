@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import {
+  authenticateAdmin,
+  getSearchParams,
+  parsePagination,
+  sanitizeSearch,
+} from "@/lib/admin-api"
+import { pingVehicleChange } from "@/lib/seo/indexnow"
 
 /**
  * Admin Vehicle Management API
@@ -11,28 +15,16 @@ import { ADMIN_EMAILS } from "@/lib/admin"
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const auth = await authenticateAdmin()
+    if (!auth.ok) return auth.response
+    const { adminClient } = auth
 
-    const { searchParams } = new URL(request.url)
+    const searchParams = getSearchParams(request)
     const search = searchParams.get("search") || ""
     const status = searchParams.get("status") || "all"
     const sort = searchParams.get("sort") || "updated_at"
     const order = searchParams.get("order") || "desc"
-    const rawLimit = parseInt(searchParams.get("limit") || "50")
-    const limit = Math.min(Math.max(1, isNaN(rawLimit) ? 50 : rawLimit), 200)
-    const rawOffset = parseInt(searchParams.get("offset") || "0")
-    const offset = Math.max(0, isNaN(rawOffset) ? 0 : rawOffset)
-
-    let adminClient: ReturnType<typeof createAdminClient>
-    try {
-      adminClient = createAdminClient()
-    } catch {
-      return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
-    }
+    const { limit, offset } = parsePagination(searchParams)
 
     // Build query
     let query = adminClient
@@ -48,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // Search filter
     if (search) {
-      const s = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s-]/g, "").trim()
+      const s = sanitizeSearch(search)
       if (s) {
         query = query.or(
           `vin.ilike.%${s}%,stock_number.ilike.%${s}%,make.ilike.%${s}%,model.ilike.%${s}%,trim.ilike.%${s}%`
@@ -98,18 +90,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    let adminClient: ReturnType<typeof createAdminClient>
-    try {
-      adminClient = createAdminClient()
-    } catch {
-      return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
-    }
+    const auth = await authenticateAdmin()
+    if (!auth.ok) return auth.response
+    const { adminClient } = auth
 
     const body = await request.json()
 
@@ -140,25 +123,25 @@ export async function POST(request: NextRequest) {
     const vehicle = {
       stock_number: body.stock_number,
       vin: body.vin.toUpperCase(),
-      year: parseInt(body.year),
+      year: Number.parseInt(body.year),
       make: body.make,
       model: body.model,
       trim: body.trim || null,
       body_style: body.body_style || null,
       exterior_color: body.exterior_color || null,
       interior_color: body.interior_color || null,
-      price: parseInt(body.price),
-      msrp: body.msrp ? parseInt(body.msrp) : null,
-      mileage: parseInt(body.mileage),
+      price: Number.parseInt(body.price),
+      msrp: body.msrp ? Number.parseInt(body.msrp) : null,
+      mileage: Number.parseInt(body.mileage),
       drivetrain: body.drivetrain || null,
       transmission: body.transmission || null,
       engine: body.engine || null,
       fuel_type: body.fuel_type || null,
-      fuel_economy_city: body.fuel_economy_city ? parseInt(body.fuel_economy_city) : null,
-      fuel_economy_highway: body.fuel_economy_highway ? parseInt(body.fuel_economy_highway) : null,
+      fuel_economy_city: body.fuel_economy_city ? Number.parseInt(body.fuel_economy_city) : null,
+      fuel_economy_highway: body.fuel_economy_highway ? Number.parseInt(body.fuel_economy_highway) : null,
       is_ev: body.is_ev ?? false,
-      battery_capacity_kwh: body.battery_capacity_kwh ? parseFloat(body.battery_capacity_kwh) : null,
-      range_miles: body.range_miles ? parseInt(body.range_miles) : null,
+      battery_capacity_kwh: body.battery_capacity_kwh ? Number.parseFloat(body.battery_capacity_kwh) : null,
+      range_miles: body.range_miles ? Number.parseInt(body.range_miles) : null,
       status: body.status || "available",
       is_certified: body.is_certified ?? false,
       is_new_arrival: body.is_new_arrival ?? true,
@@ -181,7 +164,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create vehicle", details: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, vehicle: data }, { status: 201 })
+    // Notify search engines that a new VDP + the inventory listing
+    // exist. Do not let a slow/unreachable IndexNow endpoint delay
+    // the admin response; only wait briefly, then fall back.
+    const indexNowPromise = pingVehicleChange(data.id).catch(error => {
+      console.error("IndexNow ping failed after vehicle creation:", error)
+      return { ok: false, count: 0 }
+    })
+    const indexNow = await Promise.race([
+      indexNowPromise,
+      new Promise<{ ok: boolean; count: number }>(resolve =>
+        setTimeout(() => resolve({ ok: false, count: 0 }), 250),
+      ),
+    ])
+
+    return NextResponse.json(
+      {
+        success: true,
+        vehicle: data,
+        indexNow: { ok: indexNow.ok, count: indexNow.count },
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Admin vehicles POST error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

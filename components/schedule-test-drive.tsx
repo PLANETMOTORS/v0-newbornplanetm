@@ -1,3 +1,4 @@
+ 
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Calendar, MapPin, Car, CheckCircle, Phone, AlertCircle } from "lucide-react"
 import { isValidEmail, isValidCanadianPhone, formatCanadianPhone, isValidCanadianPostalCode, formatCanadianPostalCode } from "@/lib/validation"
-import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { PHONE_TOLL_FREE, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 interface ScheduleTestDriveProps {
   vehicleTitle: string
@@ -32,7 +33,7 @@ const locations = [
   { id: "home", name: "At Your Home/Office", address: "We come to you (GTA only)" },
 ]
 
-export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: ScheduleTestDriveProps) {
+export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Readonly<ScheduleTestDriveProps>) {
   const [step, setStep] = useState(1)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [availableDates, setAvailableDates] = useState<string[]>([])
@@ -85,7 +86,7 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Schedule
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError("")

@@ -6,7 +6,7 @@ import {
   Plus, Search, MoreVertical, Edit, Trash2, Eye,
   Download, Upload, ChevronLeft, ChevronRight, CheckCircle,
   Clock, AlertCircle, Car, RefreshCw, Loader2, X,
-  Scan, ImagePlus, ExternalLink, Camera
+  Scan, ImagePlus, ExternalLink, Camera, RotateCcw
 } from "lucide-react"
 import VehiclePhotoManager from "@/components/admin/vehicle-photo-manager"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { VehicleRow } from "@/types/supabase"
 import { safeNum } from "@/lib/pricing/format"
@@ -120,6 +124,59 @@ function formatPrice(cents: number): string {
   return "$" + Math.round(safe / 100).toLocaleString()
 }
 
+// ─── Sub-components (extracted to satisfy SonarCloud rule typescript:S2004) ──
+
+const VEHICLE_STATUSES = ["available", "reserved", "pending", "sold"] as const
+type VehicleStatus = (typeof VEHICLE_STATUSES)[number]
+
+interface VehicleStatusMenuProps {
+  vehicleId: string
+  currentStatus: string
+  onChange: (vehicleId: string, newStatus: string) => void
+}
+
+/**
+ * Status sub-menu rendered inside each row of the inventory table.
+ * Hoisted to module scope so the inline arrow handler that fires
+ * `onChange` no longer pushes the per-row nesting depth above the
+ * SonarCloud S2004 threshold (4 levels).
+ */
+function VehicleStatusMenu({ vehicleId, currentStatus, onChange }: Readonly<VehicleStatusMenuProps>) {
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <RotateCcw className="w-4 h-4 mr-2" />
+        Change Status
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent>
+        {VEHICLE_STATUSES.map((s: VehicleStatus) => (
+          <VehicleStatusMenuItem
+            key={s}
+            status={s}
+            currentStatus={currentStatus}
+            onSelect={() => onChange(vehicleId, s)}
+          />
+        ))}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  )
+}
+
+interface VehicleStatusMenuItemProps {
+  status: VehicleStatus
+  currentStatus: string
+  onSelect: () => void
+}
+
+function VehicleStatusMenuItem({ status, currentStatus, onSelect }: Readonly<VehicleStatusMenuItemProps>) {
+  return (
+    <DropdownMenuItem disabled={currentStatus === status} onClick={onSelect}>
+      <Badge variant={statusBadgeVariant(status)} className="mr-2">{status}</Badge>
+      {currentStatus === status && <span className="ml-auto text-xs text-gray-400">current</span>}
+    </DropdownMenuItem>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────
 
 export default function AdminInventoryPage() {
@@ -205,7 +262,7 @@ export default function AdminInventoryPage() {
     fetch("/api/v1/admin/vehicles/homenet-sync")
       .then(r => r.json())
       .then(setSyncStatus)
-      .catch(() => {})
+      .catch((err) => console.warn("[silent-catch]", err))
   }, [])
 
   // ─── VIN Decode ───────────────────────────────────────────────────────
@@ -294,7 +351,7 @@ export default function AdminInventoryPage() {
 
     // Guard: reject blank or non-numeric price (required field)
     const priceNum = Number(formData.price)
-    if (!formData.price.trim() || isNaN(priceNum) || priceNum <= 0) {
+    if (!formData.price.trim() || Number.isNaN(priceNum) || priceNum <= 0) {
       setFormError("Price is required and must be greater than zero")
       setSaving(false)
       return
@@ -303,12 +360,12 @@ export default function AdminInventoryPage() {
     // Build payload — prices stored as cents in DB
     const payload = {
       ...formData,
-      year: parseInt(formData.year),
+      year: Number.parseInt(formData.year),
       price: Math.round(priceNum * 100),
-      msrp: formData.msrp?.trim() && !isNaN(Number(formData.msrp)) ? Math.round(Number(formData.msrp) * 100) : null,
-      mileage: parseInt(formData.mileage),
-      battery_capacity_kwh: formData.battery_capacity_kwh ? parseFloat(formData.battery_capacity_kwh) : null,
-      range_miles: formData.range_miles ? parseInt(formData.range_miles) : null,
+      msrp: formData.msrp?.trim() && !Number.isNaN(Number(formData.msrp)) ? Math.round(Number(formData.msrp) * 100) : null,
+      mileage: Number.parseInt(formData.mileage),
+      battery_capacity_kwh: formData.battery_capacity_kwh ? Number.parseFloat(formData.battery_capacity_kwh) : null,
+      range_miles: formData.range_miles ? Number.parseInt(formData.range_miles) : null,
       primary_image_url: formData.primary_image_url || null,
       video_url: formData.video_url || null,
     }
@@ -353,10 +410,28 @@ export default function AdminInventoryPage() {
         setDeleteConfirm(null)
         fetchVehicles()
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("[inventory] Delete vehicle failed:", err)
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleStatusChange = async (vehicleId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/v1/admin/vehicles/${vehicleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        fetchVehicles()
+      } else {
+        const data = await res.json()
+        console.error("[inventory] Status change failed:", data.error)
+      }
+    } catch (err) {
+      console.error("[inventory] Status change failed:", err)
     }
   }
 
@@ -394,7 +469,8 @@ export default function AdminInventoryPage() {
       const res = await fetch("/api/v1/inventory/import", { method: "POST", body: fd })
       const data = await res.json()
       if (res.ok) {
-        setCsvResult(`Imported ${data.imported} vehicles${data.errors?.length ? ` (${data.errors.length} errors)` : ""}`)
+        const errorSuffix = data.errors?.length ? ` (${data.errors.length} errors)` : ""
+        setCsvResult(`Imported ${data.imported} vehicles${errorSuffix}`)
         fetchVehicles()
       } else {
         setCsvResult(`Import failed: ${data.error}`)
@@ -439,7 +515,7 @@ export default function AdminInventoryPage() {
       (safeNum(v.price) / 100).toFixed(2), v.mileage, v.status, v.exterior_color || "",
       v.drivetrain || "", v.fuel_type || ""
     ])
-    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n")
+    const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c).replaceAll('"', '""')}"`).join(","))].join("\n")
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -453,9 +529,12 @@ export default function AdminInventoryPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const toggleSelectAll = () => {
-    const allCurrentSelected = vehicles.length > 0 && vehicles.every(v => selectedVehicles.includes(v.id))
-    if (allCurrentSelected) setSelectedVehicles(prev => prev.filter(id => !vehicles.some(v => v.id === id)))
-    else setSelectedVehicles(prev => [...new Set([...prev, ...vehicles.map(v => v.id)])])
+    const visibleIds = vehicles.map(v => v.id)
+    const allCurrentSelected = visibleIds.length > 0 && visibleIds.every(id => selectedVehicles.includes(id))
+    const visibleSet = new Set(visibleIds)
+    const dropVisible = (prev: string[]) => prev.filter(id => !visibleSet.has(id))
+    const addVisible = (prev: string[]) => [...new Set([...prev, ...visibleIds])]
+    setSelectedVehicles(allCurrentSelected ? dropVisible : addVisible)
   }
   const toggleSelect = (id: string) => {
     setSelectedVehicles(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id])
@@ -626,30 +705,39 @@ export default function AdminInventoryPage() {
       {/* Vehicle Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center p-12">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            </div>
-          ) : error ? (
-            <div className="text-center p-12 text-gray-500">
-              <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">{error}</p>
-              <Button variant="outline" onClick={fetchVehicles} className="mt-4">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Retry
-              </Button>
-            </div>
-          ) : vehicles.length === 0 ? (
-            <div className="text-center p-12 text-gray-500">
-              <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="font-medium">No vehicles found</p>
-              <p className="text-sm">
-                {searchQuery || statusFilter !== "all"
-                  ? "Try adjusting your search or filters"
-                  : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"}
-              </p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center p-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              )
+            }
+            if (error) {
+              return (
+                <div className="text-center p-12 text-gray-500">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="font-medium">{error}</p>
+                  <Button variant="outline" onClick={fetchVehicles} className="mt-4">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              )
+            }
+            if (vehicles.length === 0) {
+              const emptyHint = searchQuery || statusFilter !== "all"
+                ? "Try adjusting your search or filters"
+                : "Click \"Add Vehicle\" or trigger a HomeNet sync to get started"
+              return (
+                <div className="text-center p-12 text-gray-500">
+                  <Car className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="font-medium">No vehicles found</p>
+                  <p className="text-sm">{emptyHint}</p>
+                </div>
+              )
+            }
+            return (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -755,6 +843,13 @@ export default function AdminInventoryPage() {
                                   <span className="ml-auto text-xs text-gray-400">{vehicle.image_urls.length}</span>
                                 ) : null}
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <VehicleStatusMenu
+                                vehicleId={vehicle.id}
+                                currentStatus={vehicle.status}
+                                onChange={handleStatusChange}
+                              />
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => setDeleteConfirm(vehicle)}
@@ -789,7 +884,8 @@ export default function AdminInventoryPage() {
                 </div>
               </div>
             </>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 
@@ -852,12 +948,12 @@ export default function AdminInventoryPage() {
               {/* Identity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stock Number *</label>
-                  <Input value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />
+                  <label htmlFor="inv-stock-number" className="text-sm font-medium text-gray-700">Stock Number *</label>
+                  <Input id="inv-stock-number" value={formData.stock_number} onChange={e => setFormData(prev => ({ ...prev, stock_number: e.target.value }))} placeholder="PM-2024-001" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Status</label>
-                  <select value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full px-3 py-2 border rounded-lg">
+                  <label htmlFor="inv-status" className="text-sm font-medium text-gray-700">Status</label>
+                  <select id="inv-status" value={formData.status} onChange={e => setFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full px-3 py-2 border rounded-lg">
                     <option value="available">Available</option>
                     <option value="reserved">Reserved</option>
                     <option value="pending">Pending</option>
@@ -871,20 +967,20 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Vehicle Information</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Year *</label>
-                    <Input type="number" value={formData.year} onChange={e => setFormData(prev => ({ ...prev, year: e.target.value }))} placeholder="2024" />
+                    <label htmlFor="inv-year" className="text-sm font-medium text-gray-700">Year *</label>
+                    <Input id="inv-year" type="number" value={formData.year} onChange={e => setFormData(prev => ({ ...prev, year: e.target.value }))} placeholder="2024" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Make *</label>
-                    <Input value={formData.make} onChange={e => setFormData(prev => ({ ...prev, make: e.target.value }))} placeholder="Tesla" />
+                    <label htmlFor="inv-make" className="text-sm font-medium text-gray-700">Make *</label>
+                    <Input id="inv-make" value={formData.make} onChange={e => setFormData(prev => ({ ...prev, make: e.target.value }))} placeholder="Tesla" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Model *</label>
-                    <Input value={formData.model} onChange={e => setFormData(prev => ({ ...prev, model: e.target.value }))} placeholder="Model 3" />
+                    <label htmlFor="inv-model" className="text-sm font-medium text-gray-700">Model *</label>
+                    <Input id="inv-model" value={formData.model} onChange={e => setFormData(prev => ({ ...prev, model: e.target.value }))} placeholder="Model 3" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Trim</label>
-                    <Input value={formData.trim} onChange={e => setFormData(prev => ({ ...prev, trim: e.target.value }))} placeholder="Long Range" />
+                    <label htmlFor="inv-trim" className="text-sm font-medium text-gray-700">Trim</label>
+                    <Input id="inv-trim" value={formData.trim} onChange={e => setFormData(prev => ({ ...prev, trim: e.target.value }))} placeholder="Long Range" />
                   </div>
                 </div>
               </div>
@@ -894,32 +990,32 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Specifications</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Body Style</label>
-                    <Input value={formData.body_style} onChange={e => setFormData(prev => ({ ...prev, body_style: e.target.value }))} placeholder="Sedan" />
+                    <label htmlFor="inv-body-style" className="text-sm font-medium text-gray-700">Body Style</label>
+                    <Input id="inv-body-style" value={formData.body_style} onChange={e => setFormData(prev => ({ ...prev, body_style: e.target.value }))} placeholder="Sedan" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Drivetrain</label>
-                    <Input value={formData.drivetrain} onChange={e => setFormData(prev => ({ ...prev, drivetrain: e.target.value }))} placeholder="AWD" />
+                    <label htmlFor="inv-drivetrain" className="text-sm font-medium text-gray-700">Drivetrain</label>
+                    <Input id="inv-drivetrain" value={formData.drivetrain} onChange={e => setFormData(prev => ({ ...prev, drivetrain: e.target.value }))} placeholder="AWD" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Transmission</label>
-                    <Input value={formData.transmission} onChange={e => setFormData(prev => ({ ...prev, transmission: e.target.value }))} placeholder="Automatic" />
+                    <label htmlFor="inv-transmission" className="text-sm font-medium text-gray-700">Transmission</label>
+                    <Input id="inv-transmission" value={formData.transmission} onChange={e => setFormData(prev => ({ ...prev, transmission: e.target.value }))} placeholder="Automatic" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Engine</label>
-                    <Input value={formData.engine} onChange={e => setFormData(prev => ({ ...prev, engine: e.target.value }))} placeholder="Electric Motor" />
+                    <label htmlFor="inv-engine" className="text-sm font-medium text-gray-700">Engine</label>
+                    <Input id="inv-engine" value={formData.engine} onChange={e => setFormData(prev => ({ ...prev, engine: e.target.value }))} placeholder="Electric Motor" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Fuel Type</label>
-                    <Input value={formData.fuel_type} onChange={e => setFormData(prev => ({ ...prev, fuel_type: e.target.value }))} placeholder="Electric" />
+                    <label htmlFor="inv-fuel-type" className="text-sm font-medium text-gray-700">Fuel Type</label>
+                    <Input id="inv-fuel-type" value={formData.fuel_type} onChange={e => setFormData(prev => ({ ...prev, fuel_type: e.target.value }))} placeholder="Electric" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Ext. Color</label>
-                    <Input value={formData.exterior_color} onChange={e => setFormData(prev => ({ ...prev, exterior_color: e.target.value }))} placeholder="White" />
+                    <label htmlFor="inv-ext-color" className="text-sm font-medium text-gray-700">Ext. Color</label>
+                    <Input id="inv-ext-color" value={formData.exterior_color} onChange={e => setFormData(prev => ({ ...prev, exterior_color: e.target.value }))} placeholder="White" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Int. Color</label>
-                    <Input value={formData.interior_color} onChange={e => setFormData(prev => ({ ...prev, interior_color: e.target.value }))} placeholder="Black" />
+                    <label htmlFor="inv-int-color" className="text-sm font-medium text-gray-700">Int. Color</label>
+                    <Input id="inv-int-color" value={formData.interior_color} onChange={e => setFormData(prev => ({ ...prev, interior_color: e.target.value }))} placeholder="Black" />
                   </div>
                 </div>
               </div>
@@ -929,16 +1025,16 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Pricing & Mileage</h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Price (CAD) *</label>
-                    <Input type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="39990.50" />
+                    <label htmlFor="inv-price" className="text-sm font-medium text-gray-700">Price (CAD) *</label>
+                    <Input id="inv-price" type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} placeholder="39990.50" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">MSRP (CAD)</label>
-                    <Input type="number" step="0.01" value={formData.msrp} onChange={e => setFormData(prev => ({ ...prev, msrp: e.target.value }))} placeholder="45990.00" />
+                    <label htmlFor="inv-msrp" className="text-sm font-medium text-gray-700">MSRP (CAD)</label>
+                    <Input id="inv-msrp" type="number" step="0.01" value={formData.msrp} onChange={e => setFormData(prev => ({ ...prev, msrp: e.target.value }))} placeholder="45990.00" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Mileage (km) *</label>
-                    <Input type="number" value={formData.mileage} onChange={e => setFormData(prev => ({ ...prev, mileage: e.target.value }))} placeholder="15000" />
+                    <label htmlFor="inv-mileage" className="text-sm font-medium text-gray-700">Mileage (km) *</label>
+                    <Input id="inv-mileage" type="number" value={formData.mileage} onChange={e => setFormData(prev => ({ ...prev, mileage: e.target.value }))} placeholder="15000" />
                   </div>
                 </div>
               </div>
@@ -955,12 +1051,12 @@ export default function AdminInventoryPage() {
                 {formData.is_ev && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Battery (kWh)</label>
-                      <Input type="number" step="0.1" value={formData.battery_capacity_kwh} onChange={e => setFormData(prev => ({ ...prev, battery_capacity_kwh: e.target.value }))} placeholder="75" />
+                      <label htmlFor="inv-battery-kwh" className="text-sm font-medium text-gray-700">Battery (kWh)</label>
+                      <Input id="inv-battery-kwh" type="number" step="0.1" value={formData.battery_capacity_kwh} onChange={e => setFormData(prev => ({ ...prev, battery_capacity_kwh: e.target.value }))} placeholder="75" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Range (miles)</label>
-                      <Input type="number" value={formData.range_miles} onChange={e => setFormData(prev => ({ ...prev, range_miles: e.target.value }))} placeholder="358" />
+                      <label htmlFor="inv-range-miles" className="text-sm font-medium text-gray-700">Range (miles)</label>
+                      <Input id="inv-range-miles" type="number" value={formData.range_miles} onChange={e => setFormData(prev => ({ ...prev, range_miles: e.target.value }))} placeholder="358" />
                     </div>
                   </div>
                 )}
@@ -994,16 +1090,16 @@ export default function AdminInventoryPage() {
                 <h3 className="font-semibold text-gray-700 mb-3">Media</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Primary Image URL</label>
-                    <Input value={formData.primary_image_url} onChange={e => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))} placeholder="https://..." />
+                    <label htmlFor="inv-primary-image-url" className="text-sm font-medium text-gray-700">Primary Image URL</label>
+                    <Input id="inv-primary-image-url" value={formData.primary_image_url} onChange={e => setFormData(prev => ({ ...prev, primary_image_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Video URL</label>
-                    <Input value={formData.video_url} onChange={e => setFormData(prev => ({ ...prev, video_url: e.target.value }))} placeholder="https://..." />
+                    <label htmlFor="inv-video-url" className="text-sm font-medium text-gray-700">Video URL</label>
+                    <Input id="inv-video-url" value={formData.video_url} onChange={e => setFormData(prev => ({ ...prev, video_url: e.target.value }))} placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Location</label>
-                    <Input value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Richmond Hill, ON" />
+                    <label htmlFor="inv-location" className="text-sm font-medium text-gray-700">Location</label>
+                    <Input id="inv-location" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} placeholder="Richmond Hill, ON" />
                   </div>
                 </div>
               </div>

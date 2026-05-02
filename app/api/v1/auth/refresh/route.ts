@@ -1,10 +1,14 @@
 import { NextRequest } from "next/server"
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { apiSuccess, apiError, ErrorCode } from "@/lib/api-response"
-
-const SUPABASE_URL = "https://ldervbcvkoawwknsemuz.supabase.co"
+import { createAnonClientOrError } from "@/lib/supabase/anon-client"
+import { AUTH_RATE_LIMITS, checkAuthRateLimit } from "@/lib/security/auth-rate-limit"
 
 // POST /api/v1/auth/refresh - Refresh JWT token
+//
+// SECURITY: rate-limited by (client IP + sha256(refresh-token)) at
+// 60 attempts / hour. This kills credential-stuffing variants that
+// pelt /refresh with stolen tokens to validate which ones are still
+// alive without ever logging in.
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -14,12 +18,19 @@ export async function POST(request: NextRequest) {
       return apiError(ErrorCode.VALIDATION_ERROR, "Refresh token is required", 400)
     }
 
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!supabaseAnonKey) {
-      return apiError(ErrorCode.CONFIG_ERROR, "Server configuration error")
+    const rate = await checkAuthRateLimit(request, String(refreshToken), AUTH_RATE_LIMITS.REFRESH)
+    if (!rate.allowed) {
+      return apiError(
+        ErrorCode.RATE_LIMITED,
+        "Too many refresh attempts. Please try again later.",
+        429,
+        { retryAfterSeconds: rate.retryAfterSeconds }
+      )
     }
 
-    const supabase = createSupabaseClient(SUPABASE_URL, supabaseAnonKey)
+    const result = createAnonClientOrError()
+    if ('error' in result) return result.error
+    const supabase = result.client
     const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken })
 
     if (error || !data.session) {
@@ -33,7 +44,8 @@ export async function POST(request: NextRequest) {
         expiresIn: data.session.expires_in,
       },
     })
-  } catch (_error) {
+  } catch (error) {
+    console.error("[auth/refresh] failed:", error)
     return apiError(ErrorCode.INTERNAL_ERROR, "Token refresh failed")
   }
 }

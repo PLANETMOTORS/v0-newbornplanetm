@@ -30,8 +30,76 @@ export interface SyncResult {
   frameCount: number
   framesInStorage: boolean
   framesMigrated: number
-  status: "synced" | "no_mid" | "error"
+  status: "synced" | "no_mid" | "error" | "mid_collision"
   error?: string
+  /**
+   * When set, indicates the resolved MID was already mapped to a different
+   * VIN — almost always a sign of Pirelly returning the wrong photo session.
+   * The mapping is rejected and `frames_in_storage` defaults to false.
+   * See PR fix/drivee-prevent-mid-collisions for the smoking-gun case
+   * (1C4JJXP6XMW777356 vs 1C4JJXP60MW777382 — both VINs were sharing
+   * MID 190171976531 because of a stock-number-fallback collision).
+   */
+  collisionWith?: string
+}
+
+/**
+ * Result returned by `findExistingMidConflict`. We separate "no row" from
+ * "row exists for the same VIN" (no conflict) from "row exists for a
+ * different VIN" (collision — bad).
+ */
+export type MidConflictCheck =
+  | { conflict: false }
+  | { conflict: true; existingVin: string }
+
+/**
+ * Internal chainable shape representing the subset of the Supabase query
+ * builder we use. We only depend on the `.from()` method of the public
+ * client and treat every step after that as opaque so the production
+ * Supabase types (whose generated chain is deep enough to trip
+ * TS2589 "excessively deep") don't leak into this helper's signature.
+ */
+interface SupabaseClientWithFrom {
+  from: (table: string) => unknown
+}
+
+interface SupabaseChain {
+  select: (cols: string) => SupabaseChain
+  eq: (col: string, value: string) => SupabaseChain
+  neq: (col: string, value: string) => SupabaseChain
+  limit: (n: number) => SupabaseChain
+  maybeSingle: () => Promise<{
+    data: { vin: string } | null
+    error: { message: string } | null
+  }>
+}
+
+/**
+ * Returns whether storing `mid` for `currentVin` would collide with an
+ * existing mapping for a DIFFERENT VIN. This is our defence against the
+ * Pirelly-stock-fallback bug where stock# collisions cause two VINs to
+ * resolve to the same photo session.
+ *
+ * Implementation note: we query for any row with this `mid` whose `vin` is
+ * NOT the current VIN. Limit 1 + maybeSingle gives us "first conflicting
+ * VIN" without choking on the (impossible-but-defensive) case where the
+ * same MID is already mapped to multiple other VINs.
+ */
+export async function findExistingMidConflict(
+  supabase: SupabaseClientWithFrom,
+  mid: string,
+  currentVin: string,
+): Promise<MidConflictCheck> {
+  const chain = supabase.from("drivee_mappings") as SupabaseChain
+  const { data, error } = await chain
+    .select("vin")
+    .eq("mid", mid)
+    .neq("vin", currentVin)
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) return { conflict: false }
+  return { conflict: true, existingVin: data.vin }
 }
 
 /** Query Pirelly API to resolve a VIN to a Drivee media ID. */
@@ -43,7 +111,7 @@ export async function resolveMidFromPirelly(vin: string): Promise<string | null>
 
     const data = await res.json()
     const src = data?.iframeAttrs?.src ?? ""
-    const match = src.match(/mid=(\d+)/)
+    const match = /mid=(\d+)/.exec(src)
     return match ? match[1] : null
   } catch {
     return null
@@ -61,7 +129,7 @@ export async function resolveMidFromPirellyByStock(
 
     const data = await res.json()
     const src = data?.iframeAttrs?.src ?? ""
-    const match = src.match(/mid=(\d+)/)
+    const match = /mid=(\d+)/.exec(src)
     return match ? match[1] : null
   } catch {
     return null

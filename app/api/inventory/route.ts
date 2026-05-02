@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCachedSearchResults, cacheSearchResults } from "@/lib/redis"
+import { buildPublicStatusFilter } from "@/lib/vehicles/status-filter"
 
 export async function GET(request: NextRequest) {
   const make = request.nextUrl.searchParams.get("make") || ""
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey)
-  let query = supabase.from("vehicles").select("*").eq("status", "available")
+  let query = supabase.from("vehicles").select("*").or(buildPublicStatusFilter())
   if (make) query = query.ilike("make", `%${make}%`)
   if (model) query = query.ilike("model", `%${model}%`)
 

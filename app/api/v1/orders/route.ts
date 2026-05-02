@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from "node:crypto"
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { PROVINCE_TAX_RATES } from '@/lib/tax/canada'
@@ -31,186 +32,248 @@ function fromCents(value: number | null | undefined): number {
 
 function generateOrderNumber() {
   const ts = Date.now().toString(36).toUpperCase()
-  const rand = Math.floor(Math.random() * 36 ** 3).toString(36).toUpperCase().padStart(3, '0')
+  const rand = randomBytes(2).toString("hex").toUpperCase()
   return `PM-${ts}-${rand}`
+}
+
+// S3776 helpers extracted from the POST handler.
+
+type AdminClient = ReturnType<typeof createAdminClient>
+
+function bootAdminClient(): AdminClient | NextResponse {
+  try {
+    return createAdminClient()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Admin client is not configured'
+    return NextResponse.json(
+      { success: false, error: { code: 'CONFIG_ERROR', message } },
+      { status: 500 },
+    )
+  }
+}
+
+function resolveProvinceOrError(province: unknown, userId: string):
+  | { ok: true; province: string }
+  | { ok: false; res: NextResponse } {
+  const hasProvince = typeof province === 'string' && province.trim() !== ''
+  if (hasProvince && !(province.toUpperCase() in PROVINCE_TAX_RATES)) {
+    return {
+      ok: false,
+      res: NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'INVALID_PROVINCE',
+            message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`,
+          },
+        },
+        { status: 400 },
+      ),
+    }
+  }
+  if (!hasProvince) {
+    console.warn(`[orders] Province not provided for order by user ${userId}. Defaulting to ON.`)
+    return { ok: true, province: 'ON' }
+  }
+  return { ok: true, province: province.toUpperCase() }
+}
+
+function validateOrderInputs(body: { vehicleId?: unknown; paymentMethod?: unknown; customerId?: unknown }, userId: string):
+  | { ok: true; effectiveCustomerId: string }
+  | { ok: false; res: NextResponse } {
+  if (!body.vehicleId || !body.paymentMethod) {
+    return {
+      ok: false,
+      res: NextResponse.json(
+        { success: false, error: { code: 'MISSING_FIELDS', message: 'vehicleId and paymentMethod are required' } },
+        { status: 400 },
+      ),
+    }
+  }
+  const effectiveCustomerId = typeof body.customerId === 'string' && body.customerId ? body.customerId : userId
+  if (effectiveCustomerId !== userId) {
+    return {
+      ok: false,
+      res: NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
+        { status: 403 },
+      ),
+    }
+  }
+  const paymentMethod = typeof body.paymentMethod === 'string' ? body.paymentMethod : ''
+  if (!['financing', 'cash', 'bank_draft'].includes(paymentMethod)) {
+    return {
+      ok: false,
+      res: NextResponse.json(
+        { success: false, error: { code: 'INVALID_PAYMENT_METHOD', message: 'paymentMethod must be one of financing, cash, bank_draft' } },
+        { status: 400 },
+      ),
+    }
+  }
+  return { ok: true, effectiveCustomerId }
+}
+
+type VehicleClaim = {
+  id: string; year: number; make: string; model: string; trim: string; price: number; status: string
+}
+
+async function claimVehicleOrError(adminClient: AdminClient, vehicleId: string, userId: string):
+  | Promise<{ ok: true; vehicle: VehicleClaim } | { ok: false; res: NextResponse }> {
+  const { data: claimResult, error: claimError } = await adminClient
+    .rpc('claim_vehicle_for_order', { p_vehicle_id: vehicleId, p_user_id: userId })
+  if (claimError) {
+    return {
+      ok: false,
+      res: NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: claimError.message } }, { status: 500 }),
+    }
+  }
+  const claim = claimResult as {
+    success: boolean; error?: string;
+    vehicle_id?: string; year?: number; make?: string; model?: string; trim?: string; price?: number;
+    previous_status?: string;
+  }
+  if (!claim?.success) {
+    const errorMsg = claim?.error || 'Vehicle is not available for ordering'
+    const isNotFound = errorMsg.includes('not found')
+    return {
+      ok: false,
+      res: NextResponse.json(
+        { success: false, error: { code: isNotFound ? 'NOT_FOUND' : 'VEHICLE_UNAVAILABLE', message: errorMsg } },
+        { status: isNotFound ? 404 : 409 },
+      ),
+    }
+  }
+  return {
+    ok: true,
+    vehicle: {
+      id: claim.vehicle_id as string,
+      year: claim.year as number,
+      make: claim.make as string,
+      model: claim.model as string,
+      trim: claim.trim as string,
+      price: claim.price as number,
+      status: claim.previous_status as string,
+    },
+  }
+}
+
+interface OrderPricing {
+  vehiclePriceCents: number
+  documentationFeeCents: number
+  omvicFeeCents: number
+  deliveryFeeCents: number
+  protectionPlanFeeCents: number
+  taxRate: number
+  subtotalCents: number
+  taxAmountCents: number
+  totalBeforeCreditsCents: number
+  tradeInCreditCents: number
+  downPaymentCents: number
+  totalCreditsCents: number
+  totalPriceCents: number
+  amountFinancedCents: number
+}
+
+function computeOrderPricing(
+  vehiclePrice: number,
+  protectionPlanId: string | undefined,
+  downPayment: unknown,
+  paymentMethod: string,
+  taxInfo: { total: number },
+): OrderPricing {
+  const vehiclePriceCents = validateCentsAmount(vehiclePrice)
+  const documentationFeeCents = 49900
+  const omvicFeeCents = 1000
+  const deliveryFeeCents = 0
+  const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
+  const taxRate = taxInfo.total
+  const subtotalCents = vehiclePriceCents + documentationFeeCents + omvicFeeCents + deliveryFeeCents + protectionPlanFeeCents
+  const taxAmountCents = Math.round(subtotalCents * taxRate)
+  const totalBeforeCreditsCents = subtotalCents + taxAmountCents
+  const tradeInCreditCents = 0
+  const downPaymentCents = parseDollarsToCents(downPayment)
+  const totalCreditsCents = tradeInCreditCents + downPaymentCents
+  const totalPriceCents = Math.max(0, totalBeforeCreditsCents - totalCreditsCents)
+  const amountFinancedCents = paymentMethod === 'financing' ? totalPriceCents : 0
+  return {
+    vehiclePriceCents, documentationFeeCents, omvicFeeCents, deliveryFeeCents,
+    protectionPlanFeeCents, taxRate, subtotalCents, taxAmountCents, totalBeforeCreditsCents,
+    tradeInCreditCents, downPaymentCents, totalCreditsCents, totalPriceCents, amountFinancedCents,
+  }
+}
+
+async function rollbackVehicleStatus(adminClient: AdminClient, vehicleId: string, previousStatus: string): Promise<void> {
+  await adminClient
+    .from('vehicles')
+    .update({ status: previousStatus, updated_at: new Date().toISOString() })
+    .eq('id', vehicleId)
+    .eq('status', 'pending')
+}
+
+function handleInsertOrderError(insertError: { code?: string; message?: string } | null) {
+  if (insertError?.code === '23505') {
+    return NextResponse.json(
+      { success: false, error: { code: 'VEHICLE_UNAVAILABLE', message: 'An active order already exists for this vehicle' } },
+      { status: 409 },
+    )
+  }
+  return NextResponse.json(
+    { success: false, error: { code: 'DB_ERROR', message: insertError?.message || 'Failed to create order' } },
+    { status: 500 },
+  )
 }
 
 // POST /api/v1/orders - Create order
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
-  let adminClient: ReturnType<typeof createAdminClient>
-  try {
-    adminClient = createAdminClient()
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Admin client is not configured'
-    return NextResponse.json(
-      { success: false, error: { code: 'CONFIG_ERROR', message } },
-      { status: 500 }
-    )
-  }
+  const adminClientOrError = bootAdminClient()
+  if (adminClientOrError instanceof NextResponse) return adminClientOrError
+  const adminClient: AdminClient = adminClientOrError
+
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } }, { status: 401 })
   }
 
   const body = await request.json()
-
   const {
-    customerId,
-    vehicleId,
-    financingOfferId,
-    paymentMethod,
-    tradeInOfferId,
-    deliveryType,
-    deliveryAddressId,
-    hubId,
-    preferredDate,
-    preferredTimeSlot,
-    protectionPlanId,
-    downPayment,
-    province,
+    vehicleId, financingOfferId, paymentMethod, tradeInOfferId,
+    deliveryType, deliveryAddressId, hubId, preferredDate, preferredTimeSlot,
+    protectionPlanId, downPayment, province,
   } = body
 
-  // Validate province and resolve tax rate.
-  // If province is explicitly provided but unrecognised, reject immediately.
-  // If province is absent, default to ON for backward-compat and log a warning.
-  const hasProvince = typeof province === 'string' && province.trim() !== ''
-  if (hasProvince && !(province.toUpperCase() in PROVINCE_TAX_RATES)) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'INVALID_PROVINCE',
-          message: `Unknown province code "${province}". Use a valid 2-letter Canadian province code (e.g. ON, BC, AB).`,
-        },
-      },
-      { status: 400 }
-    )
-  }
-  if (!hasProvince) {
-    console.warn(
-      `[orders] Province not provided for order by user ${user.id}. Defaulting to ON.`
-    )
-  }
-  const resolvedProvince = hasProvince ? province.toUpperCase() : 'ON'
+  const provinceResult = resolveProvinceOrError(province, user.id)
+  if (!provinceResult.ok) return provinceResult.res
+  const resolvedProvince = provinceResult.province
   const taxInfo = PROVINCE_TAX_RATES[resolvedProvince]
 
-  if (!vehicleId || !paymentMethod) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'MISSING_FIELDS',
-          message: 'vehicleId and paymentMethod are required',
-        },
-      },
-      { status: 400 }
-    )
-  }
-
-  const effectiveCustomerId = customerId || user.id
-  if (effectiveCustomerId !== user.id) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'FORBIDDEN',
-          message: 'customerId must match authenticated user',
-        },
-      },
-      { status: 403 }
-    )
-  }
-
-  if (!['financing', 'cash', 'bank_draft'].includes(String(paymentMethod))) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'INVALID_PAYMENT_METHOD',
-          message: 'paymentMethod must be one of financing, cash, bank_draft',
-        },
-      },
-      { status: 400 }
-    )
-  }
+  const inputResult = validateOrderInputs(body, user.id)
+  if (!inputResult.ok) return inputResult.res
+  const { effectiveCustomerId } = inputResult
 
   const normalizedDeliveryType = deliveryType === 'delivery' ? 'delivery' : 'pickup'
 
-  // --- ATOMIC claim via DB-level SELECT FOR UPDATE ---
-  // Replaces the old read-then-update pattern that allowed two concurrent requests
-  // to both read status='available' before either transitioned to 'pending'.
-  const { data: claimResult, error: claimError } = await adminClient
-    .rpc('claim_vehicle_for_order', {
-      p_vehicle_id: vehicleId,
-      p_user_id: user.id,
-    })
-
-  if (claimError) {
-    return NextResponse.json({ success: false, error: { code: 'DB_ERROR', message: claimError.message } }, { status: 500 })
-  }
-
-  const claim = claimResult as {
-    success: boolean; error?: string;
-    vehicle_id?: string; stock_number?: string;
-    year?: number; make?: string; model?: string; trim?: string; price?: number;
-    previous_status?: string;
-  }
-
-  if (!claim?.success) {
-    const errorMsg = claim?.error || 'Vehicle is not available for ordering'
-    const isNotFound = errorMsg.includes('not found')
-    return NextResponse.json(
-      { success: false, error: { code: isNotFound ? 'NOT_FOUND' : 'VEHICLE_UNAVAILABLE', message: errorMsg } },
-      { status: isNotFound ? 404 : 409 }
-    )
-  }
-
-  const vehicle = {
-    id: claim.vehicle_id as string,
-    year: claim.year as number,
-    make: claim.make as string,
-    model: claim.model as string,
-    trim: claim.trim as string,
-    price: claim.price as number,
-    status: claim.previous_status as string,
-  }
+  // ATOMIC claim via DB-level SELECT FOR UPDATE — prevents two concurrent
+  // requests both reading status='available' before either transitions to 'pending'.
+  const claimResult = await claimVehicleOrError(adminClient, vehicleId, user.id)
+  if (!claimResult.ok) return claimResult.res
+  const vehicle = claimResult.vehicle
   const currentVehicleStatus = vehicle.status
+  const pricing = computeOrderPricing(vehicle.price, protectionPlanId, downPayment, paymentMethod, taxInfo)
 
-  const vehiclePriceCents = validateCentsAmount(vehicle.price)
-
-  if (vehiclePriceCents <= 0) {
-    // Rollback the provisional vehicle status lock.
-    await adminClient
-      .from('vehicles')
-      .update({ status: currentVehicleStatus, updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
-      .eq('status', 'pending')
-
+  if (pricing.vehiclePriceCents <= 0) {
+    await rollbackVehicleStatus(adminClient, vehicleId, currentVehicleStatus)
     return NextResponse.json(
       { success: false, error: { code: 'INVALID_VEHICLE', message: 'Vehicle does not have a valid price' } },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
-  const documentationFeeCents = 49900
-  const omvicFeeCents = 1000
-  const deliveryFeeCents = normalizedDeliveryType === 'delivery' ? 0 : 0
-  const protectionPlanFeeCents = protectionPlanId ? (PROTECTION_PLAN_PRICES_CENTS[String(protectionPlanId)] || 0) : 0
-  // taxInfo.total is the full decimal rate (e.g. 0.14975 for QC).
-  // taxAmountCents and the stored/returned taxRate both derive from it directly
-  // so that taxRate * subtotal always equals taxAmount with no rounding disagreement.
-  const taxRate = taxInfo.total  // e.g. 0.13, 0.14975
-
-  const subtotalCents = vehiclePriceCents + documentationFeeCents + omvicFeeCents + deliveryFeeCents + protectionPlanFeeCents
-  const taxAmountCents = Math.round(subtotalCents * taxRate)
-  const totalBeforeCreditsCents = subtotalCents + taxAmountCents
-
-  const tradeInCreditCents = 0
-  const downPaymentCents = parseDollarsToCents(downPayment)
-  const totalCreditsCents = tradeInCreditCents + downPaymentCents
-  const totalPriceCents = Math.max(0, totalBeforeCreditsCents - totalCreditsCents)
-  const amountFinancedCents = paymentMethod === 'financing' ? totalPriceCents : 0
+  const {
+    vehiclePriceCents, documentationFeeCents, omvicFeeCents, deliveryFeeCents,
+    protectionPlanFeeCents, taxRate, subtotalCents, taxAmountCents, totalBeforeCreditsCents,
+    tradeInCreditCents, downPaymentCents, totalCreditsCents, totalPriceCents, amountFinancedCents,
+  } = pricing
 
   const orderNumber = generateOrderNumber()
   const nowIso = new Date().toISOString()
@@ -278,36 +341,8 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (insertError || !insertedOrder) {
-    // Best-effort rollback of the provisional vehicle status lock.
-    await adminClient
-      .from('vehicles')
-      .update({ status: currentVehicleStatus, updated_at: new Date().toISOString() })
-      .eq('id', vehicleId)
-      .eq('status', 'pending')
-
-    if (insertError?.code === '23505') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VEHICLE_UNAVAILABLE',
-            message: 'An active order already exists for this vehicle',
-          },
-        },
-        { status: 409 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: 'DB_ERROR',
-          message: insertError?.message || 'Failed to create order',
-        },
-      },
-      { status: 500 }
-    )
+    await rollbackVehicleStatus(adminClient, vehicleId, currentVehicleStatus)
+    return handleInsertOrderError(insertError)
   }
 
   return NextResponse.json({

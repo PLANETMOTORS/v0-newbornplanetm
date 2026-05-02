@@ -98,7 +98,7 @@ export default function ClutchGuideCanadaPage() {
       
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-teal-800 via-teal-700 to-slate-800 text-white py-16 md:py-24">
+        <section className="bg-linear-to-br from-teal-800 via-teal-700 to-slate-800 text-white py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <Badge className="bg-teal-500 text-white mb-4">Complete Guide</Badge>
@@ -188,8 +188,8 @@ export default function ClutchGuideCanadaPage() {
               </p>
               
               <div className="space-y-4">
-                {clutchProblems.map((problem, index) => (
-                  <Card key={index} className="overflow-hidden">
+                {clutchProblems.map((problem) => (
+                  <Card key={problem.symptom} className="overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row md:items-center gap-4">
                         <div className="flex-1">
@@ -226,8 +226,8 @@ export default function ClutchGuideCanadaPage() {
               </p>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {clutchCostsByProvince.map((item, index) => (
-                  <Card key={index}>
+                {clutchCostsByProvince.map((item) => (
+                  <Card key={item.province}>
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3 mb-4">
                         <MapPin className="w-5 h-5 text-teal-600" />
@@ -276,8 +276,8 @@ export default function ClutchGuideCanadaPage() {
               </p>
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {manualCars.map((car, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-shadow">
+                {manualCars.map((car) => (
+                  <Card key={car.name} className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
                       <h3 className="font-bold text-lg mb-2">{car.name}</h3>
                       <div className="space-y-2 text-sm">
@@ -322,11 +322,11 @@ export default function ClutchGuideCanadaPage() {
               </p>
               
               <div className="space-y-4">
-                {faqs.map((faq, index) => (
-                  <Card key={index}>
+                {faqs.map((faq) => (
+                  <Card key={faq.question}>
                     <CardContent className="p-6">
                       <h3 className="font-semibold text-lg mb-2 flex items-start gap-3">
-                        <HelpCircle className="w-5 h-5 text-teal-600 mt-1 flex-shrink-0" />
+                        <HelpCircle className="w-5 h-5 text-teal-600 mt-1 shrink-0" />
                         {faq.question}
                       </h3>
                       <p className="text-muted-foreground ml-8">{faq.answer}</p>

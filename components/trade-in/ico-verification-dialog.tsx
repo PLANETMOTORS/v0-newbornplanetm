@@ -36,7 +36,7 @@ export function ICOVerificationDialog({
   formData,
   onFormDataChange,
   onProceed,
-}: ICOVerificationDialogProps) {
+}: Readonly<ICOVerificationDialogProps>) {
   const [step, setStep] = useState<"contact" | "verify" | "result">("contact")
   const [verificationCode, setVerificationCode] = useState("")
   const [verifyMethod, setVerifyMethod] = useState<"email" | "phone">("email")
@@ -175,7 +175,7 @@ export function ICOVerificationDialog({
                 id="ico-verify-code"
                 placeholder="123456"
                 value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))}
                 className="text-center text-lg tracking-widest"
                 maxLength={6}
               />
@@ -222,7 +222,7 @@ export function ICOVerificationDialog({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Mileage:</span>
-                  <span>{parseInt(formData.mileage).toLocaleString()} km</span>
+                  <span>{Number.parseInt(formData.mileage).toLocaleString()} km</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Location:</span>

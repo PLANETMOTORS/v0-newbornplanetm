@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   MessageSquare, Search, RefreshCw, Phone, Mail,
-  Clock, Bot, DollarSign, Car, CalendarCheck, ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight,
   User
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { timeAgo, sourceIcon, leadStatusVariant as statusVariant } from "@/lib/admin/lead-utils"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface Lead {
   id: string
@@ -45,45 +47,13 @@ const SOURCE_LABELS: Record<string, string> = {
   reservation: "Reservation",
   test_drive: "Test Drive",
   walk_in: "Walk-In",
+  newsletter: "Newsletter",
   referral: "Referral",
   other: "Other",
 }
 
 const STATUS_OPTIONS = ["all", "new", "contacted", "qualified", "negotiating", "converted", "lost", "archived"]
-const SOURCE_OPTIONS = ["all", "contact_form", "chat", "finance_app", "trade_in", "reservation", "test_drive"]
-
-function timeAgo(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return "just now"
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
-}
-
-function sourceIcon(source: string) {
-  switch (source) {
-    case "contact_form": return MessageSquare
-    case "chat": return Bot
-    case "finance_app": return DollarSign
-    case "reservation": return CalendarCheck
-    case "trade_in": return Car
-    case "test_drive": return Clock
-    default: return MessageSquare
-  }
-}
-
-function statusVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
-  switch (status) {
-    case "new": return "default"
-    case "contacted": return "secondary"
-    case "qualified": return "outline"
-    case "converted": return "default"
-    case "lost": return "destructive"
-    default: return "secondary"
-  }
-}
+const SOURCE_OPTIONS = ["all", "contact_form", "chat", "finance_app", "trade_in", "reservation", "test_drive", "newsletter"]
 
 function priorityColor(priority: string): string {
   switch (priority) {
@@ -131,6 +101,13 @@ export default function AdminLeadsPage() {
   }, [statusFilter, sourceFilter, search, page])
 
   useEffect(() => { fetchLeads() }, [fetchLeads])
+
+  const handleLeadDeleted = useCallback((leadId: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId))
+    setStats((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }))
+    setTotal((prev) => Math.max(0, prev - 1))
+    setSelectedLead((prev) => (prev?.id === leadId ? null : prev))
+  }, [])
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
@@ -184,7 +161,7 @@ export default function AdminLeadsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-50">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search by name, email, phone..."
@@ -219,52 +196,69 @@ export default function AdminLeadsPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-0">
-              {loading ? (
-                <div className="p-8 text-center text-gray-500">Loading leads...</div>
-              ) : leads.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p>No leads found</p>
-                  <p className="text-xs mt-1">Leads will appear when customers submit inquiries, chat with Anna, or apply for financing</p>
-                </div>
-              ) : (
+              {(() => {
+                if (loading) {
+                  return <div className="p-8 text-center text-gray-500">Loading leads...</div>
+                }
+                if (leads.length === 0) {
+                  return (
+                    <div className="p-8 text-center text-gray-500">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No leads found</p>
+                      <p className="text-xs mt-1">Leads will appear when customers submit inquiries, chat with Anna, or apply for financing</p>
+                    </div>
+                  )
+                }
+                return (
                 <div className="divide-y">
                   {leads.map(lead => {
                     const Icon = sourceIcon(lead.source)
                     return (
                       <div
                         key={lead.id}
-                        className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
-                        onClick={() => setSelectedLead(lead)}
+                        className={`flex items-start gap-2 p-4 hover:bg-gray-50 transition-colors ${selectedLead?.id === lead.id ? "bg-blue-50" : ""}`}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Icon className="w-4 h-4 text-blue-600" />
+                        <button
+                          type="button"
+                          className="flex-1 text-left cursor-pointer"
+                          onClick={() => setSelectedLead(lead)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                                <Icon className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email || "Unknown"}</p>
+                                <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
+                                {lead.vehicle_info && (
+                                  <p className="text-xs text-gray-400 truncate">{lead.vehicle_info}</p>
+                                )}
+                              </div>
                             </div>
-                            <div className="min-w-0">
-                              <p className="font-medium text-sm truncate">{lead.customer_name || lead.customer_email || "Unknown"}</p>
-                              <p className="text-xs text-gray-500 truncate">{lead.subject}</p>
-                              {lead.vehicle_info && (
-                                <p className="text-xs text-gray-400 truncate">{lead.vehicle_info}</p>
+                            <div className="text-right shrink-0 ml-2">
+                              <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
+                              {lead.priority && lead.priority !== "medium" && (
+                                <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>
+                                  {lead.priority}
+                                </span>
                               )}
+                              <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0 ml-2">
-                            <Badge variant={statusVariant(lead.status)} className="text-xs">{lead.status}</Badge>
-                            {lead.priority && lead.priority !== "medium" && (
-                              <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded mt-1 ${priorityColor(lead.priority)}`}>
-                                {lead.priority}
-                              </span>
-                            )}
-                            <p className="text-xs text-gray-400 mt-1">{timeAgo(lead.created_at)}</p>
-                          </div>
-                        </div>
+                        </button>
+                        <DeleteRowButton
+                          endpoint={`/api/v1/admin/leads/${lead.id}`}
+                          id={lead.id}
+                          label={`lead from ${lead.customer_name || lead.customer_email || "Unknown"}`}
+                          onDeleted={handleLeadDeleted}
+                        />
                       </div>
                     )
                   })}
                 </div>
-              )}
+                )
+              })()}
             </CardContent>
           </Card>
 

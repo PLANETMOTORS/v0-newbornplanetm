@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { mapDrivetrain, mapFuelType } from "@/lib/vin/mappers"
 
 /**
  * Public VIN Decoder for trade-in flow.
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const vin = searchParams.get("vin")?.trim().toUpperCase()
 
-    if (!vin || vin.length !== 17) {
+    if (vin?.length !== 17) {
       return NextResponse.json(
         { success: false, error: "VIN must be exactly 17 characters" },
         { status: 400 }
@@ -83,20 +84,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function mapDrivetrain(raw: string): string {
-  const lower = raw.toLowerCase()
-  if (lower.includes("all wheel") || lower.includes("awd") || lower.includes("4wd")) return "AWD"
-  if (lower.includes("front wheel") || lower.includes("fwd")) return "FWD"
-  if (lower.includes("rear wheel") || lower.includes("rwd")) return "RWD"
-  if (lower.includes("4x4") || lower.includes("four wheel")) return "4WD"
-  return raw
-}
-
-function mapFuelType(raw: string): string {
-  const lower = raw.toLowerCase()
-  if (lower.includes("gasoline")) return "Gasoline"
-  if (lower.includes("diesel")) return "Diesel"
-  if (lower.includes("electric")) return "Electric"
-  if (lower.includes("hybrid") || lower.includes("plug-in")) return "Hybrid"
-  return raw
-}

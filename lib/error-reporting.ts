@@ -11,6 +11,16 @@ function isSentryInitialized(): boolean {
 }
 
 /**
+ * Pick a console method for the given log level. Extracted from a nested
+ * ternary to satisfy SonarCloud rule typescript:S3358.
+ */
+function pickLogFn(level: "info" | "warning" | "error"): (...args: unknown[]) => void {
+  if (level === "error") return console.error
+  if (level === "warning") return console.warn
+  return console.info
+}
+
+/**
  * Report an error to the error reporting service.
  * Uses Sentry.captureException when available, console.error as fallback.
  */
@@ -19,7 +29,7 @@ export function reportError(
   context?: Record<string, unknown>,
 ): void {
   // Sentry capture would go here when @sentry/nextjs is installed
-  void isSentryInitialized()
+  isSentryInitialized()
 
   // Always log to console for local development visibility
   if (context) {
@@ -39,15 +49,10 @@ export function reportMessage(
   context?: Record<string, unknown>,
 ): void {
   // Sentry capture would go here when @sentry/nextjs is installed
-  void isSentryInitialized()
+  isSentryInitialized()
 
   // Always log to console for local development visibility
-  const logFn =
-    level === "error"
-      ? console.error
-      : level === "warning"
-        ? console.warn
-        : console.info
+  const logFn = pickLogFn(level)
 
   if (context) {
     logFn(`[reportMessage:${level}]`, message, context)

@@ -17,8 +17,8 @@ export function AuthRequiredModal({
   onClose, 
   action = "continue",
   redirectTo = ""
-}: AuthRequiredModalProps) {
-  const encodedRedirect = encodeURIComponent(redirectTo || window.location.pathname)
+}: Readonly<AuthRequiredModalProps>) {
+  const encodedRedirect = encodeURIComponent(redirectTo || globalThis.location.pathname)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -51,7 +51,7 @@ export function AuthRequiredModal({
 
         <div className="mt-4 pt-4 border-t">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+            <ShieldCheck className="w-4 h-4 shrink-0" />
             <p>Your information is protected with industry-standard encryption</p>
           </div>
         </div>

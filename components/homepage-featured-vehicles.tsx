@@ -27,6 +27,16 @@ type FeaturedVehicle = {
   imageUrl: string | null
 }
 
+/**
+ * Choose a featured-vehicle badge label. Extracted from a nested ternary
+ * to satisfy SonarCloud rule typescript:S3358.
+ */
+function pickFeaturedBadge(featured: boolean | null | undefined, isEV: boolean): string {
+  if (featured) return "Popular"
+  if (isEV) return "Electric"
+  return "Certified"
+}
+
 const fallbackVehicles: FeaturedVehicle[] = [
   {
     id: "fallback-1",
@@ -160,7 +170,7 @@ const featuredFetcher = async (): Promise<FeaturedVehicle[]> => {
       priceCents,
       monthlyPayment,
       mileageLabel: `${Math.max(0, Math.round(Number(vehicle.mileage || 0))).toLocaleString()} km`,
-      badge: vehicle.featured ? "Popular" : (isEV ? "Electric" : "Certified"),
+      badge: pickFeaturedBadge(vehicle.featured, isEV),
       isEV,
       isSUV,
       isAvilooCertified: isEV && Number(vehicle.inspection_score || 0) >= 200,
@@ -222,23 +232,25 @@ export function HomepageFeaturedVehicles() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVehicles.map((vehicle) => (
+          {filteredVehicles.map((vehicle, vehicleIndex) => {
+            const imageLoadingProps = vehicleIndex < 3
+              ? { priority: true } as const
+              : { loading: "lazy" } as const
+            return (
             <div
               key={vehicle.id}
               className="bg-white rounded-xl border border-[#dce3ed] overflow-hidden hover:shadow-lg transition-shadow group"
             >
-              <div className="relative aspect-[4/3] bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] overflow-hidden">
-                {/* Vehicle image or gradient fallback */}
+              <div className="relative aspect-4/3 bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] overflow-hidden">
                 {vehicle.imageUrl ? (
                   <Image
                     src={vehicle.imageUrl}
                     alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     fill
-                    loading="lazy"
+                    {...imageLoadingProps}
                     className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={(e) => {
-                      // Hide broken image, fallback gradient + icon shows through
                       (e.target as HTMLImageElement).style.display = "none"
                     }}
                   />
@@ -282,7 +294,7 @@ export function HomepageFeaturedVehicles() {
                     <div className="text-xl font-bold text-[#1e3a8a] tabular-nums">
                       ${(safeNum(vehicle.priceCents) / 100).toLocaleString()}
                     </div>
-                    <div className="text-sm font-semibold text-gray-700 tabular-nums">
+                    <div className="text-sm font-semibold text-gray-900 tabular-nums">
                       or <span className="font-bold">${vehicle.monthlyPayment}/mo</span>
                     </div>
                   </div>
@@ -294,7 +306,8 @@ export function HomepageFeaturedVehicles() {
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="text-center mt-10">

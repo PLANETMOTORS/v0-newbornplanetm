@@ -2,70 +2,77 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PROVINCE_TAX_RATES as taxRates } from '@/lib/tax/canada'
 import { rateLimit } from '@/lib/redis'
 
+type ValidatedInputs = {
+  vehiclePrice: number
+  tradeInValue: number
+  downPayment: number
+  interestRate: number
+  termMonths: number
+  warrantyPrice: number
+  protectionPrice: number
+  includeWarranty: boolean
+  includeProtection: boolean
+  province: string
+}
+
+function jsonError(code: string, message: string, status: number) {
+  return NextResponse.json({ success: false, error: { code, message } }, { status })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateCalculatorInputs(body: any): { ok: true; v: ValidatedInputs } | { ok: false; res: NextResponse } {
+  const v: ValidatedInputs = {
+    vehiclePrice: Number(body.vehiclePrice),
+    tradeInValue: Number(body.tradeInValue ?? 0),
+    downPayment: Number(body.downPayment ?? 0),
+    interestRate: Number(body.interestRate ?? 5.99),
+    termMonths: Number(body.termMonths ?? 72),
+    warrantyPrice: Number(body.warrantyPrice ?? 0),
+    protectionPrice: Number(body.protectionPrice ?? 0),
+    includeWarranty: !!body.includeWarranty,
+    includeProtection: !!body.includeProtection,
+    province: body.province ?? 'ON',
+  }
+  if (!Number.isFinite(v.vehiclePrice) || v.vehiclePrice <= 0) {
+    return { ok: false, res: jsonError('INVALID_PRICE', 'Valid vehicle price is required', 400) }
+  }
+  if (!Number.isFinite(v.termMonths) || v.termMonths < 12 || v.termMonths > 96) {
+    return { ok: false, res: jsonError('INVALID_TERM', 'termMonths must be between 12 and 96', 400) }
+  }
+  if (!Number.isFinite(v.interestRate) || v.interestRate < 0 || v.interestRate > 29.99) {
+    return { ok: false, res: jsonError('INVALID_RATE', 'interestRate must be between 0 and 29.99', 400) }
+  }
+  if (v.tradeInValue < 0 || v.downPayment < 0 || v.warrantyPrice < 0 || v.protectionPrice < 0) {
+    return { ok: false, res: jsonError('INVALID_INPUT', 'Price and credit inputs cannot be negative', 400) }
+  }
+  return { ok: true, v }
+}
+
 // POST /api/v1/financing/calculator - Calculate payments
 export async function POST(request: NextRequest) {
-  // Rate limit: 30 calculations per hour per IP
   const forwarded = request.headers.get("x-forwarded-for") || ""
   const ip = forwarded.split(",")[0]?.trim() || "unknown"
   const limiter = await rateLimit(`calc:${ip}`, 30, 3600)
   if (!limiter.success) {
-    return NextResponse.json(
-      { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again later.' } },
-      { status: 429 }
-    )
+    return jsonError('RATE_LIMITED', 'Too many requests. Please try again later.', 429)
   }
 
   const body = await request.json()
-  
+  const validation = validateCalculatorInputs(body)
+  if (!validation.ok) return validation.res
+  const { v } = validation
   const {
-    vehiclePrice,
-    tradeInValue = 0,
-    downPayment = 0,
-    interestRate = 5.99,
-    termMonths = 72,
-    province = 'ON',
-    includeWarranty = false,
-    warrantyPrice = 0,
-    includeProtection = false,
-    protectionPrice = 0,
-  } = body
-
-  const numericVehiclePrice = Number(vehiclePrice)
-  const numericTradeInValue = Number(tradeInValue)
-  const numericDownPayment = Number(downPayment)
-  const numericInterestRate = Number(interestRate)
-  const numericTermMonths = Number(termMonths)
-  const numericWarrantyPrice = Number(warrantyPrice)
-  const numericProtectionPrice = Number(protectionPrice)
-
-  // Validate
-  if (!Number.isFinite(numericVehiclePrice) || numericVehiclePrice <= 0) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_PRICE', message: 'Valid vehicle price is required' } },
-      { status: 400 }
-    )
-  }
-
-  if (!Number.isFinite(numericTermMonths) || numericTermMonths < 12 || numericTermMonths > 96) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_TERM', message: 'termMonths must be between 12 and 96' } },
-      { status: 400 }
-    )
-  }
-
-  if (!Number.isFinite(numericInterestRate) || numericInterestRate < 0 || numericInterestRate > 29.99) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_RATE', message: 'interestRate must be between 0 and 29.99' } },
-      { status: 400 }
-    )
-  }
-
-  if (numericTradeInValue < 0 || numericDownPayment < 0 || numericWarrantyPrice < 0 || numericProtectionPrice < 0) {
-    return NextResponse.json(
-      { success: false, error: { code: 'INVALID_INPUT', message: 'Price and credit inputs cannot be negative' } },
-      { status: 400 }
-    )
-  }
+    vehiclePrice: numericVehiclePrice,
+    tradeInValue: numericTradeInValue,
+    downPayment: numericDownPayment,
+    interestRate: numericInterestRate,
+    termMonths: numericTermMonths,
+    warrantyPrice: numericWarrantyPrice,
+    protectionPrice: numericProtectionPrice,
+    includeWarranty,
+    includeProtection,
+    province,
+  } = v
 
   const tax = taxRates[province] || taxRates.ON
   

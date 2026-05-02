@@ -60,9 +60,12 @@ export function CompareBar() {
               ))}
 
               {/* Empty Slots */}
-              {Array.from({ length: 3 - compareList.length }).map((_, i) => (
+              {Array.from(
+                { length: 3 - compareList.length },
+                (_, i) => `compare-slot-${compareList.length + i}`
+              ).map((slotKey) => (
                 <Link
-                  key={`empty-${i}`}
+                  key={slotKey}
                   href="/inventory"
                   className="w-[200px] h-16 border-2 border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center hover:border-primary/40 hover:bg-muted/40 transition-colors"
                 >
@@ -72,7 +75,7 @@ export function CompareBar() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="flex items-center gap-3 shrink-0">
               <Button variant="ghost" size="sm" onClick={clearCompare}>
                 Clear All
               </Button>

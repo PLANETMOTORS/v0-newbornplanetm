@@ -34,41 +34,34 @@ const ALL_PHASES: readonly Phase[] = [
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseEnabledPhases(): Set<Phase> {
-  const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_ENABLED_PHASES
-      : undefined
+  const raw = globalThis.process?.env?.NEXT_PUBLIC_ENABLED_PHASES
 
-  if (!raw || raw.trim() === "") {
-    // Default: all phases enabled
-    return new Set(ALL_PHASES)
-  }
-
-  const parsed = new Set<Phase>()
-  for (const token of raw.split(",")) {
-    const num = Number(token.trim())
-    if (!Number.isNaN(num) && Object.values(Phase).includes(num as Phase)) {
-      parsed.add(num as Phase)
+  // S7735: positive condition first — bail out only when the env var
+  // contains a usable value.
+  if (raw && raw.trim() !== "") {
+    const parsed = new Set<Phase>()
+    for (const token of raw.split(",")) {
+      const num = Number(token.trim())
+      if (!Number.isNaN(num) && Object.values(Phase).includes(num as Phase)) {
+        parsed.add(num as Phase)
+      }
     }
+    return parsed
   }
-  return parsed
+  return new Set(ALL_PHASES)
 }
 
 function parseEnabledFeatures(): Set<string> {
-  const raw =
-    typeof process !== "undefined"
-      ? process.env.NEXT_PUBLIC_FEATURES
-      : undefined
+  const raw = globalThis.process?.env?.NEXT_PUBLIC_FEATURES
 
-  if (!raw || raw.trim() === "") {
-    return new Set()
-  }
-
+  // S7735: positive condition first — only parse when env var is non-empty.
   const features = new Set<string>()
-  for (const token of raw.split(",")) {
-    const trimmed = token.trim()
-    if (trimmed) {
-      features.add(trimmed)
+  if (raw && raw.trim() !== "") {
+    for (const token of raw.split(",")) {
+      const trimmed = token.trim()
+      if (trimmed) {
+        features.add(trimmed)
+      }
     }
   }
   return features
@@ -97,12 +90,12 @@ export function isFeatureEnabled(feature: string): boolean {
 
 export interface FeatureGateProps {
   /** Render children only when this phase is enabled. */
-  phase?: Phase
+  readonly phase?: Phase
   /** Render children only when this feature key is enabled. */
-  feature?: string
+  readonly feature?: string
   /** Optional fallback UI when the gate is closed. */
-  fallback?: React.ReactNode
-  children: React.ReactNode
+  readonly fallback?: React.ReactNode
+  readonly children: React.ReactNode
 }
 
 /**

@@ -1,3 +1,4 @@
+ 
 'use client'
 
 import { useState } from 'react'
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowRight, Car } from 'lucide-react'
-import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 const currentYear = new Date().getFullYear()
 const earliestYear = 1980
@@ -48,14 +49,14 @@ export function SellYourCarForm() {
     Boolean(formData.mileage) &&
     Boolean(formData.condition)
 
-  const handleStepOneSubmit = (e: React.FormEvent) => {
+  const handleStepOneSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (canContinue) {
       setStep(2)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')

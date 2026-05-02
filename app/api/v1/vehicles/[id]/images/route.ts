@@ -6,9 +6,39 @@ async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user || !ADMIN_EMAILS.includes(user.email || "")) {
-    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+    return { supabase, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
   }
-  return { supabase }
+  return { supabase, error: null }
+}
+
+interface AdminVehicleRow {
+  id: string
+  stock_number: string
+  vin?: string
+  primary_image_url: string | null
+  image_urls: string[] | null
+  has_360_spin: boolean
+  [key: string]: unknown
+}
+
+async function fetchVehicleForAdmin(
+  id: string,
+  fields: string,
+) {
+  const { supabase, error: adminError } = await requireAdmin()
+  if (adminError) return { supabase, vehicle: null as AdminVehicleRow | null, error: adminError }
+
+  const { data, error } = await supabase
+    .from('vehicles')
+    .select(fields)
+    .eq('id', id)
+    .single()
+
+  if (error || !data) {
+    return { supabase, vehicle: null as AdminVehicleRow | null, error: NextResponse.json({ error: 'Vehicle not found' }, { status: 404 }) }
+  }
+  const vehicle = data as unknown as AdminVehicleRow
+  return { supabase, vehicle, error: null }
 }
 
 // Scrape images from Planet Motors VDP page
@@ -33,21 +63,22 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     
     // Extract image URLs from the HTML
     // Look for common patterns in dealer websites
+    // Patterns use negated character classes ([^"'\s]) with a bounded suffix
+    // so there are no nested quantifiers and no catastrophic backtracking risk.
     const imagePatterns = [
-      // HomeNet IOL pattern
-      /https:\/\/photos\.homenetiol\.com\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
-      // CDN patterns
-      /https:\/\/cdn[^"'\s]*\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
-      // General image patterns
-      /https:\/\/[^"'\s]*inventory[^"'\s]*\.(?:jpg|jpeg|png|webp)/gi,
+      // HomeNet IOL pattern — fixed host, path chars are [^"'\s]
+      /https:\/\/photos\.homenetiol\.com\/[^"'\s]{1,500}\.(?:jpg|jpeg|png|webp)/gi,
+      // CDN patterns — cdn prefix, then path chars
+      /https:\/\/cdn[^"'\s]{0,200}\/[^"'\s]{1,300}\.(?:jpg|jpeg|png|webp)/gi,
+      // General image patterns — "inventory" keyword in URL
+      /https:\/\/[^"'\s]{0,100}inventory[^"'\s]{0,400}\.(?:jpg|jpeg|png|webp)/gi,
     ]
     
     const allImages: Set<string> = new Set()
     
     for (const pattern of imagePatterns) {
-      const matches = html.match(pattern)
-      if (matches) {
-        matches.forEach(url => allImages.add(url))
+      for (const match of html.matchAll(pattern)) {
+        allImages.add(match[0])
       }
     }
     
@@ -56,7 +87,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     
     // Extract 360 spin URL if available
     let spin360Url: string | undefined
-    const spinMatch = html.match(/https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i)
+    const spinMatch = /https:\/\/[^"'\s]*(?:spin|360)[^"'\s]*\.(?:xml|json|js)/i.exec(html)
     if (spinMatch) {
       spin360Url = spinMatch[0]
     }
@@ -64,7 +95,7 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
     // Filter and sort images
     const images = Array.from(allImages)
       .filter(url => !url.includes('thumb') && !url.includes('icon'))
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
     
     return {
       images,
@@ -77,29 +108,39 @@ async function scrapeImagesFromVDP(vdpUrl: string): Promise<{
   }
 }
 
+type ScrapedImages = Awaited<ReturnType<typeof scrapeImagesFromVDP>>
+
+async function scrapeAndPersist(
+  supabase: Awaited<ReturnType<typeof requireAdmin>>['supabase'],
+  vehicleId: string,
+  vdpUrl: string,
+): Promise<ScrapedImages> {
+  const result = await scrapeImagesFromVDP(vdpUrl)
+  if (result.images.length > 0 && supabase) {
+    await supabase
+      .from('vehicles')
+      .update({
+        primary_image_url: result.images[0],
+        image_urls: result.images,
+        has_360_spin: result.has360,
+      })
+      .eq('id', vehicleId)
+  }
+  return result
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const { supabase, error: adminError } = await requireAdmin()
-  if (adminError) {
-    return adminError
-  }
-  
-  // Fetch vehicle
-  const { data: vehicle, error } = await supabase
-    .from('vehicles')
-    .select('id, stock_number, vin, primary_image_url, image_urls, has_360_spin')
-    .eq('id', id)
-    .single()
-  
-  if (error || !vehicle) {
-    return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 })
-  }
+  const { supabase, vehicle, error: fetchErr } = await fetchVehicleForAdmin(
+    id, 'id, stock_number, vin, primary_image_url, image_urls, has_360_spin',
+  )
+  if (fetchErr) return fetchErr
   
   // If we already have images cached, return them
-  if (vehicle.image_urls && vehicle.image_urls.length > 0) {
+  if (vehicle.image_urls?.length) {
     return NextResponse.json({
       vehicleId: vehicle.id,
       stockNumber: vehicle.stock_number,
@@ -113,7 +154,7 @@ export async function GET(
   // Otherwise, scrape from VDP URL
   const vdpUrl = vehicle.primary_image_url
   
-  if (!vdpUrl || !vdpUrl.startsWith('http')) {
+  if (!vdpUrl?.startsWith('http')) {
     return NextResponse.json({
       vehicleId: vehicle.id,
       stockNumber: vehicle.stock_number,
@@ -125,20 +166,8 @@ export async function GET(
   }
   
   // Scrape images
-  const { images, has360, spin360Url } = await scrapeImagesFromVDP(vdpUrl)
-  
-  // Update vehicle with scraped images
-  if (images.length > 0) {
-    await supabase
-      .from('vehicles')
-      .update({
-        primary_image_url: images[0],
-        image_urls: images,
-        has_360_spin: has360
-      })
-      .eq('id', id)
-  }
-  
+  const { images, has360, spin360Url } = await scrapeAndPersist(supabase, id, vdpUrl)
+
   return NextResponse.json({
     vehicleId: vehicle.id,
     stockNumber: vehicle.stock_number,
@@ -156,43 +185,20 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const { supabase, error: adminError } = await requireAdmin()
-  if (adminError) {
-    return adminError
-  }
-  
-  // Fetch vehicle
-  const { data: vehicle, error } = await supabase
-    .from('vehicles')
-    .select('id, stock_number, primary_image_url')
-    .eq('id', id)
-    .single()
-  
-  if (error || !vehicle) {
-    return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 })
-  }
+  const { supabase, vehicle, error: fetchErr } = await fetchVehicleForAdmin(
+    id, 'id, stock_number, primary_image_url',
+  )
+  if (fetchErr) return fetchErr
   
   const vdpUrl = vehicle.primary_image_url
   
-  if (!vdpUrl || !vdpUrl.startsWith('http')) {
+  if (!vdpUrl?.startsWith('http')) {
     return NextResponse.json({ error: 'No VDP URL available' }, { status: 400 })
   }
   
   // Force scrape images
-  const { images, has360, spin360Url } = await scrapeImagesFromVDP(vdpUrl)
-  
-  // Update vehicle
-  if (images.length > 0) {
-    await supabase
-      .from('vehicles')
-      .update({
-        primary_image_url: images[0],
-        image_urls: images,
-        has_360_spin: has360
-      })
-      .eq('id', id)
-  }
-  
+  const { images, has360, spin360Url } = await scrapeAndPersist(supabase, id, vdpUrl)
+
   return NextResponse.json({
     vehicleId: vehicle.id,
     stockNumber: vehicle.stock_number,

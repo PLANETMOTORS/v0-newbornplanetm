@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { RATE_FLOOR } from '@/lib/rates'
 
+/**
+ * Bucket a credit score into a confidence label. Extracted from a nested
+ * ternary to satisfy SonarCloud rule typescript:S3358.
+ */
+function getConfidenceLevel(creditScore: number): 'high' | 'medium' | 'low' {
+  if (creditScore >= 700) return 'high'
+  if (creditScore >= 650) return 'medium'
+  return 'low'
+}
+
 // Partner lenders configuration
 const lenders = [
   { id: 'lender_a', name: 'Partner Lender A', code: 'PLA', type: 'bank', minScore: 600, maxTerm: 84, baseRate: RATE_FLOOR },
@@ -55,7 +65,14 @@ export async function POST(request: NextRequest) {
 
   // Soft credit pull (calls Equifax/TransUnion in production)
   // Use income-based estimation for pre-qualification
-  const creditScore = annualIncome >= 80000 ? 750 : annualIncome >= 50000 ? 700 : 680
+  let creditScore: number
+  if (annualIncome >= 80000) {
+    creditScore = 750
+  } else if (annualIncome >= 50000) {
+    creditScore = 700
+  } else {
+    creditScore = 680
+  }
   const creditBureau = 'Equifax'
 
   // Calculate debt-to-income ratio
@@ -86,7 +103,7 @@ export async function POST(request: NextRequest) {
         estimatedTerm: term,
         estimatedMonthlyPayment: Math.round(monthlyPayment * 100) / 100,
         prequalified: true,
-        confidence: creditScore >= 700 ? 'high' : creditScore >= 650 ? 'medium' : 'low',
+        confidence: getConfidenceLevel(creditScore),
       }
     })
     .sort((a, b) => a.estimatedRate - b.estimatedRate)
@@ -136,11 +153,11 @@ export function GET() {
         maxTermMonths: l.maxTerm,
         rateFrom: l.baseRate - 0.5,
         rateTo: l.baseRate + 1.5,
-        features: l.code === 'TD' 
-          ? ['Lowest rates', 'No prepayment penalty', 'Flexible terms']
-          : l.code === 'DESJ'
-          ? ['Longest terms available', 'Credit union rates', 'Quebec specialty']
-          : ['Competitive rates', 'Fast approval', 'Online management'],
+        features: (() => {
+          if (l.code === 'TD') return ['Lowest rates', 'No prepayment penalty', 'Flexible terms']
+          if (l.code === 'DESJ') return ['Longest terms available', 'Credit union rates', 'Quebec specialty']
+          return ['Competitive rates', 'Fast approval', 'Online management']
+        })(),
       })),
     },
   })

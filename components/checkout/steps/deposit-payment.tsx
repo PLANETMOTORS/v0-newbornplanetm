@@ -19,12 +19,12 @@ const EmbeddedCheckout = dynamic(
 
 function StripeLoadingFallback() {
   return (
-    <div className="flex items-center justify-center py-16" role="status" aria-label="Loading payment form">
+    <output className="flex items-center justify-center py-16" aria-label="Loading payment form">
       <div className="text-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
         <p className="text-sm text-muted-foreground">Loading secure payment form…</p>
       </div>
-    </div>
+    </output>
   )
 }
 
@@ -55,7 +55,7 @@ export function DepositPaymentStep({
   customerPhone,
   protectionPlanId,
   licenseStoragePath,
-}: DepositPaymentStepProps) {
+}: Readonly<DepositPaymentStepProps>) {
   const [error, setError] = useState("")
   const depositAmount = 250
 
@@ -65,7 +65,7 @@ export function DepositPaymentStep({
       const secret = await startVehicleCheckout({
         vehicleId,
         vehicleName,
-        protectionPlanId: protectionPlanId !== "none" ? protectionPlanId : undefined,
+        protectionPlanId: protectionPlanId === "none" ? undefined : protectionPlanId,
         customerEmail: customerEmail || undefined,
         customerName: customerName || undefined,
         customerPhone: customerPhone || undefined,
@@ -131,7 +131,7 @@ export function DepositPaymentStep({
               variant="outline"
               size="sm"
               className="mt-2"
-              onClick={() => { setError(""); window.location.reload() }}
+              onClick={() => { setError(""); globalThis.location.reload() }}
             >
               Try again
             </Button>

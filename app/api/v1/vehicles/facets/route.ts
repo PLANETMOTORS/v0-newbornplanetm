@@ -27,6 +27,38 @@ interface FacetsPayload {
   cachedAt: string
 }
 
+function addToSetIfPresent(set: Set<string>, value: string | null) {
+  if (value) set.add(value)
+}
+
+function aggregateFacetRows(rows: FacetRow[]) {
+  const makesSet = new Set<string>()
+  const bodyStylesSet = new Set<string>()
+  const fuelTypesSet = new Set<string>()
+  const transmissionsSet = new Set<string>()
+  const drivetrainsSet = new Set<string>()
+  let minPrice = Infinity
+  let maxPrice = -Infinity
+  let minYear = Infinity
+  let maxYear = -Infinity
+  for (const row of rows) {
+    addToSetIfPresent(makesSet, row.make)
+    addToSetIfPresent(bodyStylesSet, row.body_style)
+    addToSetIfPresent(fuelTypesSet, row.fuel_type)
+    addToSetIfPresent(transmissionsSet, row.transmission)
+    addToSetIfPresent(drivetrainsSet, row.drivetrain)
+    if (row.price != null) {
+      minPrice = Math.min(minPrice, row.price)
+      maxPrice = Math.max(maxPrice, row.price)
+    }
+    if (row.year != null) {
+      minYear = Math.min(minYear, row.year)
+      maxYear = Math.max(maxYear, row.year)
+    }
+  }
+  return { makesSet, bodyStylesSet, fuelTypesSet, transmissionsSet, drivetrainsSet, minPrice, maxPrice, minYear, maxYear }
+}
+
 // GET /api/v1/vehicles/facets
 // Returns distilled filter options for the inventory sidebar.
 // Response is Redis-cached for 15 min and CDN-cached for the same window.
@@ -56,39 +88,14 @@ export async function GET() {
   }
 
   const rows = (data ?? []) as FacetRow[]
-
-  const makesSet = new Set<string>()
-  const bodyStylesSet = new Set<string>()
-  const fuelTypesSet = new Set<string>()
-  const transmissionsSet = new Set<string>()
-  const drivetrainsSet = new Set<string>()
-  let minPrice = Infinity
-  let maxPrice = -Infinity
-  let minYear = Infinity
-  let maxYear = -Infinity
-
-  for (const row of rows) {
-    if (row.make) makesSet.add(row.make)
-    if (row.body_style) bodyStylesSet.add(row.body_style)
-    if (row.fuel_type) fuelTypesSet.add(row.fuel_type)
-    if (row.transmission) transmissionsSet.add(row.transmission)
-    if (row.drivetrain) drivetrainsSet.add(row.drivetrain)
-    if (row.price != null) {
-      if (row.price < minPrice) minPrice = row.price
-      if (row.price > maxPrice) maxPrice = row.price
-    }
-    if (row.year != null) {
-      if (row.year < minYear) minYear = row.year
-      if (row.year > maxYear) maxYear = row.year
-    }
-  }
+  const { makesSet, bodyStylesSet, fuelTypesSet, transmissionsSet, drivetrainsSet, minPrice, maxPrice, minYear, maxYear } = aggregateFacetRows(rows)
 
   const payload: FacetsPayload = {
-    makes: [...makesSet].sort(),
-    bodyStyles: [...bodyStylesSet].sort(),
-    fuelTypes: [...fuelTypesSet].sort(),
-    transmissions: [...transmissionsSet].sort(),
-    drivetrains: [...drivetrainsSet].sort(),
+    makes: [...makesSet].sort((a, b) => a.localeCompare(b)),
+    bodyStyles: [...bodyStylesSet].sort((a, b) => a.localeCompare(b)),
+    fuelTypes: [...fuelTypesSet].sort((a, b) => a.localeCompare(b)),
+    transmissions: [...transmissionsSet].sort((a, b) => a.localeCompare(b)),
+    drivetrains: [...drivetrainsSet].sort((a, b) => a.localeCompare(b)),
     priceRange: {
       min: minPrice === Infinity ? 0 : minPrice / 100,
       max: maxPrice === -Infinity ? 0 : maxPrice / 100,

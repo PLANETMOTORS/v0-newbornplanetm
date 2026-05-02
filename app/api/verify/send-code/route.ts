@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { sendNotificationEmail } from "@/lib/email"
 import { validateOrigin } from "@/lib/csrf"
 import { rateLimit, storeVerificationCode } from "@/lib/redis"
-import crypto from "crypto"
+import crypto from "node:crypto"
 
 export async function POST(req: NextRequest) {
   // CSRF origin validation

@@ -17,18 +17,22 @@ interface HeroImageServerProps {
   > | null
 }
 
-export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
+export function HeroImageServer({ firstVehicle }: Readonly<HeroImageServerProps>) {
   const imageUrl =
     firstVehicle?.primary_image_url ||
-    (firstVehicle?.image_urls && firstVehicle.image_urls[0]) ||
+    firstVehicle?.image_urls?.[0] ||
     null
 
-  const alt = firstVehicle
-    ? `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${firstVehicle.trim ? ` ${firstVehicle.trim}` : ""}`
-    : "Featured vehicle"
+  let alt: string
+  if (firstVehicle) {
+    const trimSuffix = firstVehicle.trim ? ` ${firstVehicle.trim}` : ""
+    alt = `${firstVehicle.year} ${firstVehicle.make} ${firstVehicle.model}${trimSuffix}`
+  } else {
+    alt = "Featured vehicle"
+  }
 
   return (
-    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
+    <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
       {imageUrl ? (
         <Image
           src={imageUrl}
@@ -60,7 +64,7 @@ export function HeroImageServer({ firstVehicle }: HeroImageServerProps) {
         </div>
       )}
       {/* Gradient overlay — matches VehicleShowcase */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
     </div>
   )
 }

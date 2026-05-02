@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -5,7 +6,59 @@ import { isAdminEmail } from "@/lib/admin"
 
 const BUCKET = "vehicle-photos"
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB per image
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"]
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
+
+type AdminClient = ReturnType<typeof createAdminClient>
+
+async function requireAdminAndAdminClient():
+  Promise<{ ok: true; adminClient: AdminClient } | { ok: false; res: NextResponse }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !isAdminEmail(user.email)) {
+    return { ok: false, res: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  try {
+    return { ok: true, adminClient: createAdminClient() }
+  } catch {
+    return { ok: false, res: NextResponse.json({ error: "Admin client not configured" }, { status: 500 }) }
+  }
+}
+
+function collectPhotos(formData: FormData):
+  | { ok: true; photos: File[] }
+  | { ok: false; res: NextResponse } {
+  const photos: File[] = []
+  for (const [key, value] of formData.entries()) {
+    if (key !== "photos" || !(value instanceof File)) continue
+    if (value.size > MAX_FILE_SIZE) {
+      return { ok: false, res: NextResponse.json({ error: `File "${value.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` }, { status: 400 }) }
+    }
+    if (!ALLOWED_TYPES.has(value.type)) {
+      return { ok: false, res: NextResponse.json({ error: `File "${value.name}" has unsupported type "${value.type}". Allowed: JPEG, PNG, WebP, AVIF.` }, { status: 400 }) }
+    }
+    photos.push(value)
+  }
+  if (photos.length === 0) {
+    return { ok: false, res: NextResponse.json({ error: "No photos provided" }, { status: 400 }) }
+  }
+  return { ok: true, photos }
+}
+
+async function uploadOnePhoto(
+  adminClient: AdminClient,
+  vehicleId: string,
+  photo: File,
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const ext = photo.name.split(".").pop()?.toLowerCase() || "jpg"
+  const storagePath = `${vehicleId}/${Date.now()}-${randomBytes(3).toString("hex")}.${ext}`
+  const buffer = Buffer.from(await photo.arrayBuffer())
+  const { error } = await adminClient.storage
+    .from(BUCKET)
+    .upload(storagePath, buffer, { contentType: photo.type, upsert: false })
+  if (error) return { ok: false, error: `${photo.name}: ${error.message}` }
+  const { data: urlData } = adminClient.storage.from(BUCKET).getPublicUrl(storagePath)
+  return { ok: true, url: urlData.publicUrl }
+}
 
 /**
  * POST /api/v1/admin/vehicles/[id]/photos
@@ -22,21 +75,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !isAdminEmail(user.email)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+  const auth = await requireAdminAndAdminClient()
+  if (!auth.ok) return auth.res
+  const { adminClient } = auth
   const { id } = await params
-
-  let adminClient: ReturnType<typeof createAdminClient>
-  try {
-    adminClient = createAdminClient()
-  } catch {
-    return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
-  }
 
   // Verify vehicle exists
   const { data: vehicle, error: vehicleError } = await adminClient
@@ -44,7 +86,6 @@ export async function POST(
     .select("id, image_urls, primary_image_url")
     .eq("id", id)
     .single()
-
   if (vehicleError || !vehicle) {
     return NextResponse.json({ error: "Vehicle not found" }, { status: 404 })
   }
@@ -58,58 +99,16 @@ export async function POST(
 
   const setPrimary = formData.get("setPrimary") === "true"
 
-  // Collect photo files
-  const photos: File[] = []
-  for (const [key, value] of formData.entries()) {
-    if (key === "photos" && value instanceof File) {
-      if (value.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
-          { error: `File "${value.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` },
-          { status: 400 },
-        )
-      }
-      if (!ALLOWED_TYPES.includes(value.type)) {
-        return NextResponse.json(
-          { error: `File "${value.name}" has unsupported type "${value.type}". Allowed: JPEG, PNG, WebP, AVIF.` },
-          { status: 400 },
-        )
-      }
-      photos.push(value)
-    }
-  }
-
-  if (photos.length === 0) {
-    return NextResponse.json({ error: "No photos provided" }, { status: 400 })
-  }
+  const collected = collectPhotos(formData)
+  if (!collected.ok) return collected.res
+  const { photos } = collected
 
   const uploaded: string[] = []
   const errors: string[] = []
-
   for (const photo of photos) {
-    // Generate unique filename
-    const ext = photo.name.split(".").pop()?.toLowerCase() || "jpg"
-    const timestamp = Date.now()
-    const randomSuffix = Math.random().toString(36).substring(2, 8)
-    const storagePath = `${id}/${timestamp}-${randomSuffix}.${ext}`
-
-    const arrayBuffer = await photo.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    const { error } = await adminClient.storage
-      .from(BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: photo.type,
-        upsert: false,
-      })
-
-    if (error) {
-      errors.push(`${photo.name}: ${error.message}`)
-    } else {
-      const { data: urlData } = adminClient.storage
-        .from(BUCKET)
-        .getPublicUrl(storagePath)
-      uploaded.push(urlData.publicUrl)
-    }
+    const result = await uploadOnePhoto(adminClient, id, photo)
+    if (result.ok) uploaded.push(result.url)
+    else errors.push(result.error)
   }
 
   // Update vehicle record with new image URLs
@@ -157,21 +156,10 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !isAdminEmail(user.email)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+  const auth = await requireAdminAndAdminClient()
+  if (!auth.ok) return auth.res
+  const { adminClient } = auth
   const { id } = await params
-
-  let adminClient: ReturnType<typeof createAdminClient>
-  try {
-    adminClient = createAdminClient()
-  } catch {
-    return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
-  }
 
   const { data: vehicle } = await adminClient
     .from("vehicles")
@@ -210,26 +198,15 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user || !isAdminEmail(user.email)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+  const auth = await requireAdminAndAdminClient()
+  if (!auth.ok) return auth.res
+  const { adminClient } = auth
   const { id } = await params
   const body = await request.json()
   const urlToRemove = body.url
 
   if (!urlToRemove || typeof urlToRemove !== "string") {
     return NextResponse.json({ error: "URL is required" }, { status: 400 })
-  }
-
-  let adminClient: ReturnType<typeof createAdminClient>
-  try {
-    adminClient = createAdminClient()
-  } catch {
-    return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
   }
 
   // Update vehicle record

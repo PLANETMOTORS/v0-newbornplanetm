@@ -341,11 +341,11 @@ describe('searchVehicles — filters', () => {
     expect(dtIn?.[1]).toEqual(['AWD', '4WD'])
   })
 
-  it('always filters by status = available', async () => {
+  it('always filters by available+reserved statuses (sold excluded from search)', async () => {
     await searchVehicles({})
-    const eqArgs = mockChain.getCallArgs('eq')
-    const statusEq = eqArgs.find(a => a[0] === 'status')
-    expect(statusEq?.[1]).toBe('available')
+    const inArgs = mockChain.getCallArgs('in')
+    const statusIn = inArgs.find(a => a[0] === 'status')
+    expect(statusIn?.[1]).toEqual(['available', 'reserved'])
   })
 })
 

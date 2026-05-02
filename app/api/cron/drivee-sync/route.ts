@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { verifyCronSecret } from "@/lib/security/cron-auth"
 import {
   resolveMidFromPirelly,
   resolveMidFromPirellyByStock,
   countFramesInStorage,
+  findExistingMidConflict,
   type SyncResult,
 } from "@/lib/drivee-sync"
 import { invalidateDriveeCache } from "@/lib/drivee-db"
@@ -24,16 +26,73 @@ import { invalidateDriveeCache } from "@/lib/drivee-db"
 export const maxDuration = 120
 export const dynamic = "force-dynamic"
 
+type AdminClient = ReturnType<typeof createAdminClient>
+type UnmappedVehicle = { vin: string; stock_number: string | null; year: number; make: string; model: string }
+
+async function resolveMidForVehicle(vin: string, stockNumber: string | null): Promise<string | null> {
+  let mid = await resolveMidFromPirelly(vin)
+  if (!mid && stockNumber) {
+    mid = await resolveMidFromPirellyByStock(stockNumber)
+  }
+  return mid
+}
+
+async function syncOneVehicle(supabase: AdminClient, vehicle: UnmappedVehicle): Promise<SyncResult> {
+  const { vin, stock_number, year, make, model } = vehicle
+  const vehicleName = `${year} ${make} ${model}`
+  try {
+    const mid = await resolveMidForVehicle(vin, stock_number)
+    if (!mid) {
+      return { vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" }
+    }
+
+    // Collision guard: if another VIN already owns this MID, refuse to store.
+    // This prevents the Pirelly stock-number-fallback bug where multiple VINs
+    // resolve to the same photo session and customers see the wrong vehicle.
+    const conflict = await findExistingMidConflict(supabase, mid, vin)
+    if (conflict.conflict) {
+      console.warn(
+        `[Drivee Cron] MID collision for VIN ${vin}: MID ${mid} is already ` +
+          `mapped to ${conflict.existingVin}. Refusing to store duplicate.`,
+      )
+      return {
+        vin,
+        mid,
+        frameCount: 0,
+        framesInStorage: false,
+        framesMigrated: 0,
+        status: "mid_collision",
+        collisionWith: conflict.existingVin,
+      }
+    }
+
+    const storageCount = await countFramesInStorage(mid)
+    const framesInStorage = storageCount > 0
+    const { error: upsertError } = await supabase
+      .from("drivee_mappings")
+      .upsert(
+        {
+          vin, mid, frame_count: storageCount, frames_in_storage: framesInStorage,
+          vehicle_name: vehicleName, source: "pirelly",
+          verified_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+        },
+        { onConflict: "vin" },
+      )
+    if (upsertError) throw upsertError
+    return { vin, mid, frameCount: storageCount, framesInStorage, framesMigrated: 0, status: "synced" }
+  } catch (err) {
+    return {
+      vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0,
+      status: "error", error: err instanceof Error ? err.message : "Unknown error",
+    }
+  }
+}
+
 export async function GET(request: Request) {
   const startTime = Date.now()
 
-  // Verify cron secret (Vercel sets CRON_SECRET automatically)
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.error("[Drivee Cron] Unauthorized request")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const auth = verifyCronSecret(request)
+  if (!auth.ok) return auth.response
 
   try {
     const supabase = createAdminClient()
@@ -75,69 +134,35 @@ export async function GET(request: Request) {
     )
 
     const results: SyncResult[] = []
-    let synced = 0
-    let noMid = 0
-    let errors = 0
-
     for (const vehicle of unmappedVehicles) {
-      const { vin, stock_number, year, make, model } = vehicle
-      const vehicleName = `${year} ${make} ${model}`
-
-      try {
-        // Resolve MID from Pirelly (try VIN first, then stock number)
-        let mid = await resolveMidFromPirelly(vin)
-        if (!mid && stock_number) {
-          mid = await resolveMidFromPirellyByStock(stock_number)
-        }
-
-        if (!mid) {
-          results.push({ vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0, status: "no_mid" })
-          noMid++
-          continue
-        }
-
-        // Check frames in Supabase Storage
-        const storageCount = await countFramesInStorage(mid)
-        const framesInStorage = storageCount > 0
-
-        // Upsert to drivee_mappings
-        const { error: upsertError } = await supabase
-          .from("drivee_mappings")
-          .upsert(
-            {
-              vin,
-              mid,
-              frame_count: storageCount,
-              frames_in_storage: framesInStorage,
-              vehicle_name: vehicleName,
-              source: "pirelly",
-              verified_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "vin" },
-          )
-        if (upsertError) throw upsertError
-
-        results.push({ vin, mid, frameCount: storageCount, framesInStorage, framesMigrated: 0, status: "synced" })
-        synced++
-      } catch (err) {
-        results.push({
-          vin, mid: null, frameCount: 0, framesInStorage: false, framesMigrated: 0,
-          status: "error", error: err instanceof Error ? err.message : "Unknown error",
-        })
-        errors++
-      }
+      results.push(await syncOneVehicle(supabase, vehicle))
     }
+
+    const synced = results.filter((r) => r.status === "synced").length
+    const noMid = results.filter((r) => r.status === "no_mid").length
+    const errors = results.filter((r) => r.status === "error").length
+    const collisions = results.filter((r) => r.status === "mid_collision").length
 
     // Invalidate cache so subsequent requests see new data
     if (synced > 0) invalidateDriveeCache()
 
     const duration = Date.now() - startTime
-    console.info(`[Drivee Cron] Complete in ${duration}ms: ${synced} synced, ${noMid} no MID, ${errors} errors`)
+    console.info(
+      `[Drivee Cron] Complete in ${duration}ms: ${synced} synced, ${noMid} no MID, ` +
+        `${collisions} collisions skipped, ${errors} errors`,
+    )
 
     return NextResponse.json({
       success: true,
-      summary: { total: allVehicles.length, alreadyMapped: mappedVins.size, attempted: unmappedVehicles.length, synced, noMid, errors },
+      summary: {
+        total: allVehicles.length,
+        alreadyMapped: mappedVins.size,
+        attempted: unmappedVehicles.length,
+        synced,
+        noMid,
+        collisions,
+        errors,
+      },
       results: results.slice(0, 50), // Cap response size
       duration_ms: duration,
       timestamp: new Date().toISOString(),

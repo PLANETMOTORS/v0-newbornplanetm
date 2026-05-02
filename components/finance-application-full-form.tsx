@@ -1,8 +1,8 @@
+ 
 "use client"
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
 import { useAuth } from "@/contexts/auth-context"
 import { startVehicleCheckout } from "@/app/actions/stripe"
 import { Button } from "@/components/ui/button"
@@ -16,24 +16,7 @@ import {
   ArrowRight, ArrowLeft, CheckCircle, Loader2, Shield, AlertCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const EmbeddedCheckoutProvider = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
-  { ssr: false }
-)
-const EmbeddedCheckout = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
-  { ssr: false }
-)
-
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
-function getStripePromise() {
-  if (!stripePromise && stripeKey) {
-    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
-  }
-  return stripePromise
-}
+import { EmbeddedCheckoutProvider, EmbeddedCheckout, getStripePromise } from "@/lib/stripe/embedded-checkout"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import {
   type ApplicantData, type VehicleInfo, type TradeInInfo,
@@ -45,6 +28,8 @@ import { ApplicantForm } from "@/components/finance-application/applicant-form"
 import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
 import { ReviewStep } from "@/components/finance-application/review-step"
 import { DocumentsStep } from "@/components/finance-application/documents-step"
+import { buildSubmitError } from "@/lib/finance/build-submit-error"
+import { uploadDocuments } from "@/lib/finance/upload-documents"
 
 // Types, sub-components, and emptyApplicant imported from @/components/finance-application/
 
@@ -71,16 +56,63 @@ interface FinanceApplicationFullFormProps {
   }
 }
 
-export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: FinanceApplicationFullFormProps) {
-  const router = useRouter()
+const FREQ_MULTIPLIER: Record<string, number> = {
+  weekly: 52,
+  'bi-weekly': 26,
+  'semi-monthly': 24,
+  monthly: 12,
+  annually: 1,
+}
+
+function annualizeIncome(amount: number, frequency: string, fallback = 12): number {
+  if (amount <= 0 || !frequency) return 0
+  return amount * (FREQ_MULTIPLIER[frequency] ?? fallback)
+}
+
+export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData }: Readonly<FinanceApplicationFullFormProps>) {
+  useRouter()
   const { user, isLoading: isAuthLoading } = useAuth()
   const draftLoadedRef = useRef(false)
   const serverSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `pm:finance-draft:${vehicleId || "general"}`, [vehicleId])
+  // Capture UTM params from URL on mount (persisted to submission payload)
+  const utmParams = useRef<Record<string, string>>({})
+  useEffect(() => {
+    if (globalThis.window === undefined) return
+    const sp = new URLSearchParams(globalThis.location.search)
+    const utm: Record<string, string> = {}
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+      const val = sp.get(key)
+      if (val) utm[key] = val
+    }
+    // Also check sessionStorage for previously captured UTMs
+    try {
+      const stored = sessionStorage.getItem("pm:utm")
+      if (stored) Object.assign(utm, JSON.parse(stored))
+      if (Object.keys(utm).length > 0) sessionStorage.setItem("pm:utm", JSON.stringify(utm))
+    } catch { /* noop */ }
+    utmParams.current = utm
+  }, [])
+
+  // GA4 form_start — fires once on first user interaction (called on first field focus)
+  const formStartFired = useRef(false)
+  const _handleFormStart = useCallback(() => {
+    if (formStartFired.current) return
+    formStartFired.current = true
+    if (globalThis.window?.gtag) {
+      globalThis.window.gtag("event", "form_start", {
+        event_category: "finance_application",
+        vehicle_id: vehicleId || "general",
+      })
+    }
+  }, [vehicleId])
+  // handleFormStart is passed to child components via props/callbacks
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  // Idempotency key — generated once per form mount, prevents duplicate submissions
+  const idempotencyKey = useRef<string>(crypto.randomUUID())
   
   // Form state
   const [primaryApplicant, setPrimaryApplicant] = useState<ApplicantData>(emptyApplicant)
@@ -120,36 +152,13 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   
   // Auto-calculate annual income when gross income or frequency changes
   useEffect(() => {
-    const grossAmount = parseFloat(primaryApplicant.grossIncome) || 0
+    const grossAmount = Number.parseFloat(primaryApplicant.grossIncome) || 0
     const frequency = primaryApplicant.incomeFrequency
-    const otherAmount = parseFloat(primaryApplicant.otherIncomeAmount) || 0
+    const otherAmount = Number.parseFloat(primaryApplicant.otherIncomeAmount) || 0
     const otherFreq = primaryApplicant.otherIncomeFrequency
     
-    // Calculate annual gross income based on frequency
-    let annualGross = 0
-    if (grossAmount > 0 && frequency) {
-      switch (frequency) {
-        case 'weekly': annualGross = grossAmount * 52; break
-        case 'bi-weekly': annualGross = grossAmount * 26; break
-        case 'semi-monthly': annualGross = grossAmount * 24; break
-        case 'monthly': annualGross = grossAmount * 12; break
-        case 'annually': annualGross = grossAmount; break
-        default: annualGross = grossAmount * 12 // Default to monthly
-      }
-    }
-    
-    // Calculate annual other income based on frequency
-    let annualOther = 0
-    if (otherAmount > 0 && otherFreq) {
-      switch (otherFreq) {
-        case 'weekly': annualOther = otherAmount * 52; break
-        case 'bi-weekly': annualOther = otherAmount * 26; break
-        case 'semi-monthly': annualOther = otherAmount * 24; break
-        case 'monthly': annualOther = otherAmount * 12; break
-        case 'annually': annualOther = otherAmount; break
-        default: annualOther = otherAmount
-      }
-    }
+    const annualGross = annualizeIncome(grossAmount, frequency, 12)
+    const annualOther = annualizeIncome(otherAmount, otherFreq, 1)
     
     const totalAnnual = annualGross + annualOther
     // Always update annualTotal (even if 0)
@@ -271,11 +280,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 
       // Try sessionStorage (non-PII subset, written after 250ms for unauthenticated users)
       try {
-        const raw = window.sessionStorage.getItem(draftKey) || window.localStorage.getItem(draftKey)
+        const raw = globalThis.sessionStorage.getItem(draftKey) || globalThis.localStorage.getItem(draftKey)
         if (raw) {
           localDraft = JSON.parse(raw) as Record<string, unknown>
           // Clean up any legacy localStorage draft (PII migration)
-          window.localStorage.removeItem(draftKey)
+          globalThis.localStorage.removeItem(draftKey)
         }
       } catch (error) {
         console.error("Failed to restore finance draft:", error)
@@ -372,20 +381,20 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       }, 2000)
 
       // Remove any stale localStorage/sessionStorage PII from before login
-      try { window.localStorage.removeItem(draftKey) } catch { /* noop */ }
-      try { window.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { globalThis.localStorage.removeItem(draftKey) } catch { /* noop */ }
+      try { globalThis.sessionStorage.removeItem(draftKey) } catch { /* noop */ }
     } else {
       // Unauthenticated: save minimal non-PII subset to sessionStorage (tab-scoped)
-      const localTimeout = window.setTimeout(() => {
+      const localTimeout = globalThis.setTimeout(() => {
         try {
-          window.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
+          globalThis.sessionStorage.setItem(draftKey, JSON.stringify(localPayload))
         } catch (error) {
           console.error("Failed to save finance draft to sessionStorage:", error)
         }
       }, 250)
 
       return () => {
-        window.clearTimeout(localTimeout)
+        globalThis.clearTimeout(localTimeout)
       }
     }
 
@@ -419,17 +428,17 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   // Calculate financing details
   const calculateFinancing = () => {
-    const price = parseFloat(vehicleInfo.totalPrice) || 0
-    const downPayment = parseFloat(vehicleInfo.downPayment) || 0
-    const tradeValue = tradeIn.hasTradeIn ? (parseFloat(tradeIn.estimatedValue) || 0) : 0
-    const lienAmount = tradeIn.hasLien ? (parseFloat(tradeIn.lienAmount) || 0) : 0
+    const price = Number.parseFloat(vehicleInfo.totalPrice) || 0
+    const downPayment = Number.parseFloat(vehicleInfo.downPayment) || 0
+    const tradeValue = tradeIn.hasTradeIn ? (Number.parseFloat(tradeIn.estimatedValue) || 0) : 0
+    const lienAmount = tradeIn.hasLien ? (Number.parseFloat(tradeIn.lienAmount) || 0) : 0
     const netTrade = tradeValue - lienAmount
-    const adminFee = financingTerms.agreementType === "finance" ? (parseFloat(financingTerms.adminFee) || 895) : 0
-    const omvicFee = parseFloat(financingTerms.omvicFee) || 22
-    const certificationFee = parseFloat(financingTerms.certificationFee) || 595
-    const licensingFee = parseFloat(financingTerms.licensingFee) || 59
-    const deliveryFee = parseFloat(financingTerms.deliveryFee) || 0
-    const taxRate = parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
+    const adminFee = financingTerms.agreementType === "finance" ? (Number.parseFloat(financingTerms.adminFee) || 895) : 0
+    const omvicFee = Number.parseFloat(financingTerms.omvicFee) || 22
+    const certificationFee = Number.parseFloat(financingTerms.certificationFee) || 595
+    const licensingFee = Number.parseFloat(financingTerms.licensingFee) || 59
+    const deliveryFee = Number.parseFloat(financingTerms.deliveryFee) || 0
+    const taxRate = Number.parseFloat(financingTerms.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
     
     // All fees: Admin Fee (finance only) + OMVIC + Certification + Licensing + Delivery
     const totalFees = adminFee + omvicFee + certificationFee + licensingFee + deliveryFee
@@ -441,7 +450,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const amountFinanced = price + totalFees + tax - downPayment - netTrade
     
     // Calculate payment
-    const rate = (parseFloat(financingTerms.interestRate) || 8.99) / 100
+    const rate = (Number.parseFloat(financingTerms.interestRate) || 8.99) / 100
 
     const term = financingTerms.loanTermMonths
     
@@ -471,9 +480,9 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
       totalFees,
       tax,
       amountFinanced,
-      payment: isNaN(payment) ? 0 : payment,
-      totalToRepay: isNaN(totalToRepay) ? 0 : totalToRepay,
-      totalInterest: isNaN(totalInterest) ? 0 : totalInterest,
+      payment: Number.isNaN(payment) ? 0 : payment,
+      totalToRepay: Number.isNaN(totalToRepay) ? 0 : totalToRepay,
+      totalInterest: Number.isNaN(totalInterest) ? 0 : totalInterest,
       totalPayments
     }
   }
@@ -488,7 +497,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   // Phone number validation - strict rules for real Canadian phone numbers
   const validatePhone = (phone: string): { valid: boolean; error?: string } => {
-    const digitsOnly = phone.replace(/\D/g, '')
+    const digitsOnly = phone.replaceAll(/\D/g, '')
     
     // Must be exactly 10 digits
     if (digitsOnly.length !== 10) {
@@ -500,12 +509,12 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const lineNumber = digitsOnly.slice(6, 10)
     
     // Area code cannot start with 0 or 1 (North American numbering rules)
-    if (areaCode[0] === '0' || areaCode[0] === '1') {
+    if (areaCode.startsWith('0') || areaCode.startsWith('1')) {
       return { valid: false, error: "Invalid area code - cannot start with 0 or 1" }
     }
     
     // Exchange (first 3 digits of local number) cannot start with 0 or 1
-    if (exchange[0] === '0' || exchange[0] === '1') {
+    if (exchange.startsWith('0') || exchange.startsWith('1')) {
       return { valid: false, error: "Invalid phone number format" }
     }
     
@@ -535,8 +544,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     const isSequential = (str: string): boolean => {
       let ascending = true, descending = true
       for (let i = 1; i < str.length; i++) {
-        if (parseInt(str[i]) !== parseInt(str[i-1]) + 1) ascending = false
-        if (parseInt(str[i]) !== parseInt(str[i-1]) - 1) descending = false
+        if (Number.parseInt(str[i]) !== Number.parseInt(str[i-1]) + 1) ascending = false
+        if (Number.parseInt(str[i]) !== Number.parseInt(str[i-1]) - 1) descending = false
       }
       return (ascending || descending) && str.length >= 7
     }
@@ -550,7 +559,7 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 
   
   // Validate Step 1 - Primary Applicant
-  const validateStep1 = (): string[] => {
+  const validateStep1Identity = (): string[] => {
     const errors: string[] = []
     if (!primaryApplicant.firstName.trim()) errors.push("First Name is required")
     if (!primaryApplicant.lastName.trim()) errors.push("Last Name is required")
@@ -565,7 +574,12 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     }
     if (!primaryApplicant.email.trim() && !primaryApplicant.noEmail) errors.push("Email is required")
     if (!primaryApplicant.creditRating) errors.push("Credit Rating is required")
-    if (!primaryApplicant.postalCode.trim() || primaryApplicant.postalCode.replace(/\s/g, '').length < 6) {
+    return errors
+  }
+
+  const validateStep1Address = (): string[] => {
+    const errors: string[] = []
+    if (!primaryApplicant.postalCode.trim() || primaryApplicant.postalCode.replaceAll(/\s/g, '').length < 6) {
       errors.push("Valid Postal Code is required (format: A1A 1A1)")
     }
     if (!primaryApplicant.addressType) errors.push("Address Type is required")
@@ -575,11 +589,16 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     if (!primaryApplicant.province) errors.push("Province is required")
     if (!primaryApplicant.homeStatus) errors.push("Home Status is required")
     if (!primaryApplicant.monthlyPayment) errors.push("Monthly Payment is required")
+    return errors
+  }
+
+  const validateStep1Employment = (): string[] => {
+    const errors: string[] = []
     if (!primaryApplicant.employmentCategory) errors.push("Employment Type is required")
     if (!primaryApplicant.employmentStatus) errors.push("Employment Status is required")
     if (!primaryApplicant.employerName.trim()) errors.push("Employer Name is required")
     if (!primaryApplicant.occupation.trim()) errors.push("Occupation is required")
-    if (!primaryApplicant.employerPostalCode.trim() || primaryApplicant.employerPostalCode.replace(/\s/g, '').length < 6) {
+    if (!primaryApplicant.employerPostalCode.trim() || primaryApplicant.employerPostalCode.replaceAll(/\s/g, '').length < 6) {
       errors.push("Employer Postal Code is required (format: A1A 1A1)")
     }
     const employerPhoneValidation = validatePhone(primaryApplicant.employerPhone)
@@ -590,6 +609,12 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     if (!primaryApplicant.incomeFrequency) errors.push("Income Frequency is required")
     return errors
   }
+
+  const validateStep1 = (): string[] => [
+    ...validateStep1Identity(),
+    ...validateStep1Address(),
+    ...validateStep1Employment(),
+  ]
   
   // Validate Step 2 - Co-Applicant (only if included)
   const validateStep2 = (): string[] => {
@@ -610,9 +635,18 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const validateStep3 = (): string[] => {
     const errors: string[] = []
     // Vehicle must be selected from inventory
-    const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice && parseFloat(vehicleInfo.totalPrice) > 0)
+    const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice && Number.parseFloat(vehicleInfo.totalPrice) > 0)
     if (!isVehicleSelected) {
       errors.push("Please select a vehicle from inventory")
+    }
+    // Down payment validation: must be >= 0 and <= vehicle price
+    const dp = Number.parseFloat(vehicleInfo.downPayment) || 0
+    const price = Number.parseFloat(vehicleInfo.totalPrice) || 0
+    if (dp < 0) {
+      errors.push("Down payment cannot be negative")
+    }
+    if (price > 0 && dp > price) {
+      errors.push("Down payment cannot exceed the vehicle price")
     }
     return errors
   }
@@ -633,21 +667,59 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 if (errors.length > 0) {
   setValidationErrors(errors)
   // Scroll to top to show errors
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  globalThis.scrollTo({ top: 0, behavior: 'smooth' })
   return
   }
     
     setValidationErrors([])
+    // GA4 step complete event
+    if (globalThis.window?.gtag) {
+      globalThis.window.gtag("event", "form_step_complete", {
+        event_category: "finance_application",
+        step_number: currentStep,
+        vehicle_id: vehicleId || "general",
+      })
+    }
     setCurrentStep(prev => prev + 1)
   }
   
+
+  const trackFinanceEvent = (event: string, extra: Record<string, unknown>) => {
+    if (globalThis.window?.gtag) {
+      globalThis.window.gtag("event", event, {
+        event_category: "finance_application",
+        vehicle_id: vehicleId || "general",
+        ...extra,
+      })
+    }
+  }
+
+  const cleanupAfterSubmit = () => {
+    try {
+      globalThis.localStorage.removeItem(draftKey)
+      globalThis.sessionStorage.removeItem(draftKey)
+    } catch { /* ignore */ }
+    if (user) {
+      const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
+      fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch((err) => console.warn("[silent-catch]", err))
+    }
+  }
+
+  // buildSubmitError and uploadDocuments are imported from @/lib/finance/
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
+      trackFinanceEvent("form_submit", {
+        has_co_applicant: includeCoApplicant,
+        has_trade_in: tradeIn.hasTradeIn,
+      })
       const response = await fetch("/api/v1/financing/applications", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey.current,
+        },
         body: JSON.stringify({
           primaryApplicant,
           coApplicant: includeCoApplicant ? coApplicant : null,
@@ -656,26 +728,15 @@ if (errors.length > 0) {
           tradeIn: tradeIn.hasTradeIn ? tradeIn : null,
           financingTerms,
           additionalNotes,
-          vehicleId
+          vehicleId,
+          utm: utmParams.current,
         })
       })
       
       const result = await response.json()
 
       if (!response.ok) {
-        const rawMsg =
-          result?.error?.message ||
-          result?.error ||
-          result?.message ||
-          JSON.stringify(result) ||
-          "Failed to submit application"
-        const friendly =
-          response.status === 403
-            ? "You don't have permission to submit this application. Please log in and try again."
-            : response.status === 401
-              ? "Your session has expired. Please log in again and resubmit."
-              : rawMsg
-        throw new Error(friendly)
+        throw new Error(buildSubmitError(response.status, result))
       }
 
       const applicationId =
@@ -685,43 +746,16 @@ if (errors.length > 0) {
   
   // Upload documents to private Blob storage
   if (applicationId && documents.length > 0) {
-    for (const doc of documents) {
-      if (doc.file) {
-        const formData = new FormData()
-        formData.append("file", doc.file)
-        formData.append("applicationId", applicationId)
-        formData.append("documentType", doc.type)
-        
-        try {
-          const uploadRes = await fetch("/api/v1/financing/documents", {
-            method: "POST",
-            body: formData
-          })
-          if (!uploadRes.ok) {
-            console.error("Document upload failed:", doc.type)
-          }
-        } catch (uploadErr) {
-          console.error("Document upload error:", uploadErr)
-        }
-      }
-    }
+    await uploadDocuments(applicationId, documents)
   }
   
-      // Clean up drafts after successful submission
-      try {
-        window.localStorage.removeItem(draftKey)
-        window.sessionStorage.removeItem(draftKey)
-      } catch {
-        // Ignore storage failures.
-      }
-      if (user) {
-        const deleteParam = vehicleId ? `vehicleId=${vehicleId}` : "vehicleId="
-        fetch(`/api/v1/financing/drafts?${deleteParam}`, { method: "DELETE" }).catch(() => {})
-      }
+      cleanupAfterSubmit()
       setIsSubmitted(true)
   } catch (error) {
       console.error("Submit error:", error)
-      setSubmitError(error instanceof Error ? error.message : "Unable to submit application right now.")
+      const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
+      setSubmitError(errMsg)
+      trackFinanceEvent("form_error", { error_message: errMsg })
   } finally {
     setIsSubmitting(false)
   }
@@ -741,11 +775,11 @@ if (errors.length > 0) {
           <h2 className="text-2xl font-bold mb-2">Application Received!</h2>
           <p className="text-muted-foreground">
             Your finance application has been submitted successfully.
-            {canCheckout
-              ? vehicleId
-                ? " Complete your $250 refundable deposit below to secure this vehicle."
-                : " Complete your $250 refundable deposit below to fast-track your application."
-              : " A team member will contact you shortly to finalize your purchase."}
+            {(() => {
+              if (!canCheckout) return " A team member will contact you shortly to finalize your purchase."
+              if (vehicleId) return " Complete your $250 refundable deposit below to secure this vehicle."
+              return " Complete your $250 refundable deposit below to fast-track your application."
+            })()}
           </p>
         </div>
 
@@ -783,7 +817,7 @@ if (errors.length > 0) {
               </div>
               <Button
                 className="w-full mt-4"
-                onClick={() => window.location.reload()}
+                onClick={() => globalThis.location.reload()}
               >
                 Retry Payment
               </Button>
@@ -801,7 +835,7 @@ if (errors.length > 0) {
   return (
     <div className="max-w-5xl mx-auto">
       {/* Progress Steps */}
-      <div className="mb-8">
+      <div className="mb-8" data-testid="finance-progress-indicator" role="status" aria-live="polite" aria-label={`Step ${currentStep} of 5`}>
         <div className="flex items-center justify-between">
           {steps.map((step, index) => {
             // Skip co-applicant step if not needed
@@ -844,8 +878,15 @@ if (errors.length > 0) {
       <Card>
         <CardContent className="p-6">
           {submitError ? (
-            <div className="mb-6 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-              {submitError}
+            <div
+              data-testid="finance-error-summary"
+              role="alert"
+              aria-live="assertive"
+              tabIndex={-1}
+              className="mb-6 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-2"
+            >
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+              <span>{submitError}</span>
             </div>
           ) : null}
 
@@ -950,12 +991,12 @@ if (errors.length > 0) {
       {validationErrors.length > 0 && (
         <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-4">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-destructive">Please fix the following errors:</p>
               <ul className="list-disc list-inside mt-2 text-sm text-destructive">
-                {validationErrors.map((error, i) => (
-                  <li key={i}>{error}</li>
+                {validationErrors.map((error) => (
+                  <li key={error}>{error}</li>
                 ))}
               </ul>
             </div>
@@ -967,6 +1008,7 @@ if (errors.length > 0) {
       <div className="flex justify-between mt-6">
         <Button
           variant="outline"
+          data-testid="finance-btn-back"
           onClick={() => {
             setValidationErrors([])
             setCurrentStep(prev => Math.max(1, prev - 1))
@@ -978,12 +1020,12 @@ if (errors.length > 0) {
         </Button>
         
         {currentStep < 5 ? (
-          <Button onClick={handleNextStep}>
+          <Button data-testid="finance-btn-continue" onClick={handleNextStep}>
             Continue
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
+          <Button data-testid="finance-btn-submit" aria-busy={isSubmitting} onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

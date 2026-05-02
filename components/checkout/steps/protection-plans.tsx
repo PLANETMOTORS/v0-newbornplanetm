@@ -43,7 +43,7 @@ const PLANS = [
     highlight: true,
     duration: "5 years",
     features: [
-      "5-Year Comprehensive Coverage",
+      "5-Year Total Coverage",
       "24/7 Roadside Assistance",
       "Trip Interruption Coverage",
       "Rental Car Reimbursement",
@@ -122,8 +122,8 @@ const COMPARISON_ROWS = [
   "Deductible",
 ] as const
 
-function ComparisonModal({ onClose }: { onClose: () => void }) {
-  const modalRef = useRef<HTMLDivElement>(null)
+function ComparisonModal({ onClose }: Readonly<{ onClose: () => void }>) {
+  const modalRef = useRef<HTMLDialogElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -157,15 +157,21 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/50"
+        aria-label="Close comparison"
+        onClick={onClose}
+      />
+      {/* S6819: use the native <dialog open> element instead of role="dialog". */}
+      <dialog
+        open
         ref={modalRef}
-        role="dialog"
         aria-modal="true"
         aria-labelledby="comparison-modal-title"
         tabIndex={-1}
-        className="bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
-        onClick={(e) => e.stopPropagation()}
+        className="relative bg-background rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-auto"
       >
         <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-background rounded-t-2xl z-10">
           <h2 id="comparison-modal-title" className="text-xl font-bold">Compare Coverage</h2>
@@ -180,7 +186,7 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
                 <th className="text-left p-4 font-medium text-muted-foreground w-1/4">Feature</th>
                 {PLANS.map((plan) => (
                   <th key={plan.id} className="p-4 text-center">
-                    <p className="font-semibold">{plan.name.replace("PlanetCare ", "")}</p>
+                    <p className="font-semibold">{plan.name.replaceAll("PlanetCare ", "")}</p>
                     <p className="text-muted-foreground font-normal">${plan.price.toLocaleString()}</p>
                   </th>
                 ))}
@@ -194,19 +200,25 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
                     const val = plan.comparisonFeatures[row]
                     return (
                       <td key={plan.id} className="p-4 text-center">
-                        {val === true ? (
-                          <>
-                            <Check className="w-5 h-5 text-green-600 mx-auto" aria-hidden="true" />
-                            <span className="sr-only">Included</span>
-                          </>
-                        ) : val === false ? (
-                          <>
-                            <span className="text-muted-foreground" aria-hidden="true">—</span>
-                            <span className="sr-only">Not included</span>
-                          </>
-                        ) : (
-                          <span className="font-semibold">{val}</span>
-                        )}
+                        {(() => {
+                          if (val === true) {
+                            return (
+                              <>
+                                <Check className="w-5 h-5 text-green-600 mx-auto" aria-hidden="true" />
+                                <span className="sr-only">Included</span>
+                              </>
+                            )
+                          }
+                          if (val === false) {
+                            return (
+                              <>
+                                <span className="text-muted-foreground" aria-hidden="true">—</span>
+                                <span className="sr-only">Not included</span>
+                              </>
+                            )
+                          }
+                          return <span className="font-semibold">{val}</span>
+                        })()}
                       </td>
                     )
                   })}
@@ -215,12 +227,12 @@ function ComparisonModal({ onClose }: { onClose: () => void }) {
             </tbody>
           </table>
         </div>
-      </div>
+      </dialog>
     </div>
   )
 }
 
-export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPlansStepProps) {
+export function ProtectionPlansStep({ data, onChange, onContinue }: Readonly<ProtectionPlansStepProps>) {
   const [showComparison, setShowComparison] = useState(false)
 
   const handleSelect = useCallback((id: ProtectionPlanId) => {
@@ -235,7 +247,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
           PlanetCare Protection
         </h1>
         <p className="text-muted-foreground">
-          Protect your investment with comprehensive coverage designed for Canadian drivers.
+          Protect your investment with total coverage designed for Canadian drivers.
         </p>
       </div>
 
@@ -252,6 +264,14 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
       <div className="grid gap-4" role="radiogroup" aria-label="Protection plan options">
         {PLANS.map((plan) => {
           const selected = data.selectedPlan === plan.id
+          let cardBorderClass: string
+          if (selected) {
+            cardBorderClass = "border-blue-600 bg-blue-50 ring-2 ring-blue-600/20"
+          } else if (plan.highlight) {
+            cardBorderClass = "border-blue-300 hover:border-blue-500"
+          } else {
+            cardBorderClass = "hover:border-blue-300"
+          }
           return (
             <Card
               key={plan.id}
@@ -259,13 +279,7 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
               tabIndex={0}
               aria-checked={selected}
               aria-label={`${plan.name} — $${plan.price.toLocaleString()}`}
-              className={`cursor-pointer transition-all relative ${
-                selected
-                  ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600/20"
-                  : plan.highlight
-                    ? "border-blue-300 hover:border-blue-500"
-                    : "hover:border-blue-300"
-              }`}
+              className={`cursor-pointer transition-all relative ${cardBorderClass}`}
               onClick={() => handleSelect(plan.id as ProtectionPlanId)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -336,7 +350,15 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
           {data.selectedPlan === "none" ? "Continue without protection" : "Continue with protection"}
         </Button>
 
-        {data.selectedPlan !== "none" ? (
+        {data.selectedPlan === "none" ? (
+          <button
+            type="button"
+            className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors"
+            onClick={() => setShowComparison(true)}
+          >
+            Compare all coverage options
+          </button>
+        ) : (
           <button
             type="button"
             className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
@@ -346,14 +368,6 @@ export function ProtectionPlansStep({ data, onChange, onContinue }: ProtectionPl
             }}
           >
             I choose to decline coverage and continue
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="text-sm text-blue-600 underline underline-offset-4 hover:text-blue-700 transition-colors"
-            onClick={() => setShowComparison(true)}
-          >
-            Compare all coverage options
           </button>
         )}
       </div>

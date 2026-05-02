@@ -3,6 +3,7 @@
 
 import type { Redis } from "@upstash/redis"
 
+import { logger } from '@/lib/logger'
 let redisClient: Redis | null = null
 
 async function getRedis(): Promise<Redis | null> {
@@ -14,13 +15,14 @@ async function getRedis(): Promise<Redis | null> {
   
   try {
     const { Redis: UpstashRedis } = await import('@upstash/redis')
+    // S4325: `new UpstashRedis(...)` already returns the imported `Redis` type.
     redisClient = new UpstashRedis({
       url: process.env.KV_REST_API_URL,
       token: process.env.KV_REST_API_TOKEN,
-    }) as Redis
+    })
     return redisClient
   } catch (error) {
-    console.warn("[Redis] Failed to initialize client:", (error as Error).message)
+    logger.warn("[Redis] Failed to initialize client:", (error as Error).message)
     return null
   }
 }
@@ -36,18 +38,28 @@ export async function rateLimit(
   
   try {
     const key = `rate_limit:${identifier}`
-    const current = await redis.incr(key)
-    
-    if (current === 1) {
-      await redis.expire(key, windowSeconds)
-    }
-    
+
+    // Atomic: INCR and conditional EXPIRE execute as a single Lua transaction.
+    // Prevents the race where a crash between INCR and EXPIRE leaves a key
+    // with no TTL, permanently blocking the identifier.
+    const atomicIncrScript = `
+      local current = redis.call('INCR', KEYS[1])
+      if current == 1 then
+        redis.call('EXPIRE', KEYS[1], tonumber(ARGV[1]))
+      end
+      return current
+    `
+
+    const current = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(atomicIncrScript, [key], [String(windowSeconds)])
+
     return {
       success: current <= limit,
-      remaining: Math.max(0, limit - current)
+      remaining: Math.max(0, limit - current),
     }
   } catch (error) {
-    console.warn("[Redis] Rate limit check failed, allowing request:", (error as Error).message)
+    logger.warn("[Redis] Rate limit check failed, allowing request:", (error as Error).message)
     return { success: true, remaining: limit }
   }
 }
@@ -64,7 +76,7 @@ export async function setSession(
   try {
     await redis.set(`session:${sessionId}`, JSON.stringify(data), { ex: expiresInSeconds })
   } catch (error) {
-    console.warn("[Redis] Failed to set session:", (error as Error).message)
+    logger.warn("[Redis] Failed to set session:", (error as Error).message)
   }
 }
 
@@ -76,7 +88,7 @@ export async function getSession(sessionId: string): Promise<Record<string, unkn
     const data = await redis.get<string>(`session:${sessionId}`)
     return data ? JSON.parse(data) : null
   } catch (error) {
-    console.warn("[Redis] Failed to get session:", (error as Error).message)
+    logger.warn("[Redis] Failed to get session:", (error as Error).message)
     return null
   }
 }
@@ -93,7 +105,7 @@ export async function cacheSearchResults(
   try {
     await redis.set(`search:${queryHash}`, JSON.stringify(results), { ex: ttlSeconds })
   } catch (error) {
-    console.warn("[Redis] Failed to cache search results:", (error as Error).message)
+    logger.warn("[Redis] Failed to cache search results:", (error as Error).message)
   }
 }
 
@@ -104,11 +116,11 @@ export async function deleteCachedSearchResults(queryHash: string): Promise<void
   try {
     await redis.del(`search:${queryHash}`)
   } catch (error) {
-    console.warn("[Redis] Failed to delete cached search results:", (error as Error).message)
+    logger.warn("[Redis] Failed to delete cached search results:", (error as Error).message)
   }
 }
 
-export async function getCachedSearchResults(queryHash: string): Promise<unknown | null> {
+export async function getCachedSearchResults(queryHash: string): Promise<unknown> {
   const redis = await getRedis()
   if (!redis) return null
   
@@ -116,7 +128,7 @@ export async function getCachedSearchResults(queryHash: string): Promise<unknown
     const data = await redis.get<string>(`search:${queryHash}`)
     return data ? JSON.parse(data) : null
   } catch (error) {
-    console.warn("[Redis] Failed to get cached search results:", (error as Error).message)
+    logger.warn("[Redis] Failed to get cached search results:", (error as Error).message)
     return null
   }
 }
@@ -133,7 +145,7 @@ export async function lockVehicle(
     // reservations from bypassing the distributed mutex. The DB-level SELECT FOR
     // UPDATE in claim_vehicle_for_reservation is the real guard, but this prevents
     // unnecessary DB contention.
-    console.warn('[Redis] Redis unavailable — denying vehicle lock as a precaution. DB-level lock will still protect against double-booking.')
+    logger.warn('[Redis] Redis unavailable — denying vehicle lock as a precaution. DB-level lock will still protect against double-booking.')
     return false
   }
   
@@ -162,7 +174,7 @@ export async function lockVehicle(
     const result = await redis.set(key, userId, { nx: true, ex: lockDurationSeconds })
     return result === "OK"
   } catch (error) {
-    console.warn("[Redis] Failed to lock vehicle:", (error as Error).message)
+    logger.warn("[Redis] Failed to lock vehicle:", (error as Error).message)
     // Fail closed on error — deny the lock rather than silently allowing concurrent access.
     return false
   }
@@ -191,7 +203,7 @@ export async function unlockVehicle(stockNumber: string, userId: string): Promis
 
     return deleted === 1
   } catch (error) {
-    console.warn("[Redis] Failed to unlock vehicle:", (error as Error).message)
+    logger.warn("[Redis] Failed to unlock vehicle:", (error as Error).message)
     return false
   }
 }
@@ -210,7 +222,7 @@ export async function storeVerificationCode(
     await redis.set(key, code, { ex: ttlSeconds })
     return true
   } catch (error) {
-    console.warn("[Redis] Failed to store verification code:", (error as Error).message)
+    logger.warn("[Redis] Failed to store verification code:", (error as Error).message)
     return false
   }
 }
@@ -222,7 +234,7 @@ export async function getVerificationCode(destination: string): Promise<string |
   try {
     return await redis.get<string>(`verify:${destination}`)
   } catch (error) {
-    console.warn("[Redis] Failed to get verification code:", (error as Error).message)
+    logger.warn("[Redis] Failed to get verification code:", (error as Error).message)
     return null
   }
 }
@@ -234,7 +246,7 @@ export async function deleteVerificationCode(destination: string): Promise<void>
   try {
     await redis.del(`verify:${destination}`)
   } catch (error) {
-    console.warn("[Redis] Failed to delete verification code:", (error as Error).message)
+    logger.warn("[Redis] Failed to delete verification code:", (error as Error).message)
   }
 }
 
@@ -245,7 +257,95 @@ export async function getVehicleLock(stockNumber: string): Promise<string | null
   try {
     return await redis.get<string>(`vehicle_lock:${stockNumber}`)
   } catch (error) {
-    console.warn("[Redis] Failed to get vehicle lock:", (error as Error).message)
+    logger.warn("[Redis] Failed to get vehicle lock:", (error as Error).message)
+    return null
+  }
+}
+
+export async function acquireDistributedLock(
+  key: string,
+  ownerToken: string,
+  ttlSeconds: number = 120
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return true
+
+  try {
+    const result = await redis.set(key, ownerToken, { nx: true, ex: ttlSeconds })
+    return result === 'OK'
+  } catch {
+    return true
+  }
+}
+
+export async function releaseDistributedLock(
+  key: string,
+  ownerToken: string
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return true
+
+  try {
+    const compareAndDeleteScript = `
+      if redis.call('GET', KEYS[1]) == ARGV[1] then
+        return redis.call('DEL', KEYS[1])
+      end
+      return 0
+    `
+
+    const deleted = await (redis as unknown as {
+      eval: (script: string, keys: string[], args: string[]) => Promise<number>
+    }).eval(compareAndDeleteScript, [key], [ownerToken])
+
+    return deleted === 1
+  } catch (error) {
+    logger.warn('[Redis] Failed to release distributed lock:', (error as Error).message)
+    return false
+  }
+}
+
+// ── Generic key/value helpers ──────────────────────────────────────────────
+
+/**
+ * Store an arbitrary JSON-serialisable value under a raw key.
+ * Returns true on success, false if Redis is unavailable or the write fails.
+ */
+export async function setKey(
+  key: string,
+  value: unknown,
+  ttlSeconds?: number
+): Promise<boolean> {
+  const redis = await getRedis()
+  if (!redis) return false
+
+  try {
+    const serialized = JSON.stringify(value)
+    if (ttlSeconds) {
+      await redis.set(key, serialized, { ex: ttlSeconds })
+    } else {
+      await redis.set(key, serialized)
+    }
+    return true
+  } catch (error) {
+    logger.warn("[Redis] Failed to set key:", (error as Error).message)
+    return false
+  }
+}
+
+/**
+ * Retrieve and deserialise a value stored with setKey.
+ * Returns null if Redis is unavailable, the key is missing, or parsing fails.
+ */
+export async function getKey<T = unknown>(key: string): Promise<T | null> {
+  const redis = await getRedis()
+  if (!redis) return null
+
+  try {
+    const raw = await redis.get<string>(key)
+    if (!raw) return null
+    return JSON.parse(raw) as T
+  } catch (error) {
+    logger.warn("[Redis] Failed to get key:", (error as Error).message)
     return null
   }
 }

@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     // Generate unique folder path for this verification
     const timestamp = Date.now()
     const verificationId = `idv_${user.id}_${timestamp}`
-    
+
     // Upload images to Vercel Blob (secure, private access)
     const uploadedDocuments: {
       type: string
@@ -71,68 +71,21 @@ export async function POST(request: NextRequest) {
       uploadedAt: string
     }[] = []
 
-    // Upload primary ID front
-    if (primaryFrontImage) {
+    const uploadIfPresent = async (file: File | null, type: 'primary' | 'secondary', side: 'front' | 'back') => {
+      if (!file) return
+      const ext = file.name.split('.').pop()
       const blob = await put(
-        `id-verification/${user.id}/${verificationId}/primary-front.${primaryFrontImage.name.split('.').pop()}`,
-        primaryFrontImage,
-        { access: "private", addRandomSuffix: true }
+        `id-verification/${user.id}/${verificationId}/${type}-${side}.${ext}`,
+        file,
+        { access: "private", addRandomSuffix: true },
       )
-      uploadedDocuments.push({
-        type: "primary",
-        side: "front",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
+      uploadedDocuments.push({ type, side, url: blob.pathname, uploadedAt: new Date().toISOString() })
       uploadedBlobPaths.push(blob.pathname)
     }
-
-    // Upload primary ID back
-    if (primaryBackImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/primary-back.${primaryBackImage.name.split('.').pop()}`,
-        primaryBackImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "primary",
-        side: "back",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
-    }
-
-    // Upload secondary ID images if provided
-    if (secondaryFrontImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/secondary-front.${secondaryFrontImage.name.split('.').pop()}`,
-        secondaryFrontImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "secondary",
-        side: "front",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
-    }
-
-    if (secondaryBackImage) {
-      const blob = await put(
-        `id-verification/${user.id}/${verificationId}/secondary-back.${secondaryBackImage.name.split('.').pop()}`,
-        secondaryBackImage,
-        { access: "private", addRandomSuffix: true }
-      )
-      uploadedDocuments.push({
-        type: "secondary",
-        side: "back",
-        url: blob.pathname,
-        uploadedAt: new Date().toISOString()
-      })
-      uploadedBlobPaths.push(blob.pathname)
-    }
+    await uploadIfPresent(primaryFrontImage, "primary", "front")
+    await uploadIfPresent(primaryBackImage, "primary", "back")
+    await uploadIfPresent(secondaryFrontImage, "secondary", "front")
+    await uploadIfPresent(secondaryBackImage, "secondary", "back")
 
     // Save verification record to Supabase
     const { error: insertError } = await supabase
@@ -166,37 +119,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update finance application status if applicationId provided
     if (applicationId) {
-      const { data: updatedApplications, error: updateError } = await supabase
-        .from("finance_applications")
-        .update({ 
-          id_verification_status: "submitted",
-          id_verification_id: verificationId
-        })
-        .eq("id", applicationId)
-        .eq("user_id", user.id)
-        .select("id")
-      
-      if (updateError || !updatedApplications || updatedApplications.length === 0) {
-        console.error("Failed to update finance application:", updateError)
-
-        const { error: rollbackError } = await supabase
-          .from("id_verifications")
-          .delete()
-          .eq("id", verificationId)
-          .eq("user_id", user.id)
-
-        if (rollbackError) {
-          console.error("Failed to rollback ID verification after linking failure:", rollbackError)
-        }
-
-        await cleanupUploadedBlobs(uploadedBlobPaths)
-        return NextResponse.json(
-          { error: "Failed to link ID verification to the financing application." },
-          { status: 500 }
-        )
-      }
+      const linkError = await linkVerificationToApplication(supabase, applicationId, user.id, verificationId, uploadedBlobPaths)
+      if (linkError) return linkError
     }
 
     return NextResponse.json({
@@ -273,6 +198,41 @@ function validateIdImageFile(file: File): string | null {
     return "file is too large. Maximum size is 10MB"
   }
 
+  return null
+}
+
+async function linkVerificationToApplication(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  applicationId: string,
+  userId: string,
+  verificationId: string,
+  uploadedBlobPaths: string[],
+): Promise<NextResponse | null> {
+  const { data: updatedApplications, error: updateError } = await supabase
+    .from("finance_applications")
+    .update({
+      id_verification_status: "submitted",
+      id_verification_id: verificationId,
+    })
+    .eq("id", applicationId)
+    .eq("user_id", userId)
+    .select("id")
+  if (updateError || !updatedApplications || updatedApplications.length === 0) {
+    console.error("Failed to update finance application:", updateError)
+    const { error: rollbackError } = await supabase
+      .from("id_verifications")
+      .delete()
+      .eq("id", verificationId)
+      .eq("user_id", userId)
+    if (rollbackError) {
+      console.error("Failed to rollback ID verification after linking failure:", rollbackError)
+    }
+    await cleanupUploadedBlobs(uploadedBlobPaths)
+    return NextResponse.json(
+      { error: "Failed to link ID verification to the financing application." },
+      { status: 500 },
+    )
+  }
   return null
 }
 

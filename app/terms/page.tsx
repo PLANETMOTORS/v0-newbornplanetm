@@ -66,7 +66,7 @@ export default function TermsOfServicePage() {
               
               <h3 className="text-xl font-semibold mb-3">3.4 Vehicle Condition</h3>
               <p className="text-muted-foreground">
-                All vehicles undergo our comprehensive 210-point inspection. We provide detailed condition reports, Carfax Canada vehicle history reports, and EV Battery Health Certifications (for electric vehicles) for complete transparency. Photos and descriptions are accurate to the best of our knowledge, but minor variations may occur.
+                All vehicles undergo our rigorous 210-point mechanical inspection. We provide detailed condition reports, Carfax Canada vehicle history reports, and EV Battery Health Certifications (for electric vehicles) for complete transparency. Photos and descriptions are accurate to the best of our knowledge, but minor variations may occur.
               </p>
             </section>
 

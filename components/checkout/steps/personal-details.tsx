@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle } from "lucide-react"
+import { isEmailLike } from "@/lib/validation/email"
 
 const PROVINCES = [
   "Ontario", "British Columbia", "Alberta", "Quebec", "Nova Scotia",
@@ -58,13 +59,13 @@ interface PersonalDetailsProps {
 }
 
 function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 10)
+  const digits = value.replaceAll(/\D/g, '').slice(0, 10)
   if (digits.length <= 3) return digits
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
 }
 
-export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDetailsProps) {
+export function PersonalDetailsStep({ data, onChange, onContinue }: Readonly<PersonalDetailsProps>) {
   const [errors, setErrors] = useState<string[]>([])
   const [streetSuggestions, setStreetSuggestions] = useState<Array<{ fullAddress: string }>>([])
   const [showStreetDropdown, setShowStreetDropdown] = useState(false)
@@ -94,10 +95,10 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
   }, [showStreetDropdown])
 
   const handlePostalCode = (raw: string) => {
-    let value = raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    let value = raw.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
     if (value.length > 3) value = value.slice(0, 3) + ' ' + value.slice(3, 6)
     const formatted = value.slice(0, 7)
-    const prefix = value.replace(/\s/g, '').slice(0, 3).toUpperCase()
+    const prefix = value.replaceAll(/\s/g, '').slice(0, 3).toUpperCase()
 
     update({ postalCode: formatted })
 
@@ -142,13 +143,13 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
     const errs: string[] = []
     if (!data.firstName.trim()) errs.push("First name is required")
     if (!data.lastName.trim()) errs.push("Last name is required")
-    if (!data.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
-      errs.push("Valid email is required")
-    if (data.phone.replace(/\D/g, '').length !== 10)
+    // Structural, ReDoS-free check (S5852/S2631).
+    if (!isEmailLike(data.email)) errs.push("Valid email is required")
+    if (data.phone.replaceAll(/\D/g, '').length !== 10)
       errs.push("Phone must be 10 digits")
     if (!data.address.trim()) errs.push("Street address is required")
     if (!data.city.trim()) errs.push("City is required")
-    const cleanPostal = data.postalCode.replace(/\s/g, '').toUpperCase()
+    const cleanPostal = data.postalCode.replaceAll(/\s/g, '').toUpperCase()
     if (!cleanPostal || !CANADIAN_POSTAL_REGEX.test(cleanPostal.slice(0, 3) + ' ' + cleanPostal.slice(3)))
       errs.push("Valid Canadian postal code is required (e.g. M5V 1A1)")
 
@@ -178,7 +179,7 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
         <div className="flex gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg" role="alert">
           <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <ul className="text-sm text-destructive space-y-1">
-            {errors.map((e, i) => <li key={i}>{e}</li>)}
+            {errors.map((e) => <li key={e}>{e}</li>)}
           </ul>
         </div>
       )}
@@ -275,13 +276,19 @@ export function PersonalDetailsStep({ data, onChange, onContinue }: PersonalDeta
               aria-controls="street-suggestions"
             />
             {showStreetDropdown && streetSuggestions.length > 0 && (
+              // S6819 / S6842: render a plain styled <ul> of buttons.
+              // Sonar's only accepted alternative for role="listbox" is
+              // <select> / <datalist>, neither of which support this
+              // remote-fetch / styled-row pattern. Each row is already a
+              // semantic <button>, so we drop the listbox/option roles
+              // (and the now-unused aria-selected) and rely on native
+              // button interactivity.
               <ul
                 id="street-suggestions"
-                role="listbox"
                 className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-48 overflow-y-auto"
               >
-                {streetSuggestions.map((s, i) => (
-                  <li key={i} role="option" aria-selected={false}>
+                {streetSuggestions.map((s) => (
+                  <li key={s.fullAddress}>
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"

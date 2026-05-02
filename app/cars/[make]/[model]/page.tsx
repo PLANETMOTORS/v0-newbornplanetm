@@ -39,7 +39,11 @@ export async function generateMetadata({ params }: { params: Promise<{ make: str
     },
     openGraph: {
       title: `${currentYear} ${makeFormatted} ${modelFormatted} for Sale | Planet Motors Richmond Hill`,
-      description: `Find your perfect ${makeFormatted} ${modelFormatted} at Planet Motors. PM Certified with 210-point inspection. Serving Richmond Hill, Toronto & the GTA.`,
+      // Generic across powertrains — these pages serve gas, hybrid, and EV
+      // models. The Aviloo battery-health claim is reserved for surfaces
+      // where the inventory is unambiguously electric (homepage, EV
+      // category pages, individual EV VDPs).
+      description: `Browse used ${makeFormatted} ${modelFormatted} at Planet Motors — 210-point inspected, Canada-wide delivery, OMVIC licensed. Richmond Hill dealership serving Toronto and the GTA.`,
       type: 'website',
       url: canonicalPath,
     }
@@ -64,13 +68,13 @@ const modelData: Record<string, Record<string, {
   toyota: {
     'rav4': {
       tagline: "Canada&apos;s Best-Selling SUV - Now Available at Planet Motors",
-      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters, the RAV4 delivers exceptional fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
+      description: "Experience the perfect blend of versatility and efficiency with the Toyota RAV4. Built for Canadian winters, the RAV4 delivers great fuel economy, spacious interior, and Toyota&apos;s legendary reliability.",
       startingPrice: 32990,
       mpg: { city: 8.4, highway: 6.8 },
       seating: 5,
       cargo: 1059,
       safetyRating: 5,
-      features: ["All-Wheel Drive", "Toyota Safety Sense 3.0", "Apple CarPlay & Android Auto", "Heated Seats", "Adaptive Cruise Control"],
+      features: ["All-Wheel Drive", "Toyota Safety Sense 3", "Apple CarPlay & Android Auto", "Heated Seats", "Adaptive Cruise Control"],
       competitors: [
         { name: "Honda CR-V", price: 34990, mpg: 7.8, safety: 5 },
         { name: "Mazda CX-5", price: 33490, mpg: 8.1, safety: 5 }
@@ -91,14 +95,14 @@ const modelData: Record<string, Record<string, {
       seating: 5,
       cargo: 428,
       safetyRating: 5,
-      features: ["Toyota Safety Sense 3.0", "10.5-inch Display", "Wireless Charging", "JBL Premium Audio", "Dynamic Radar Cruise"],
+      features: ["Toyota Safety Sense 3", "10.5-inch Display", "Wireless Charging", "JBL Premium Audio", "Dynamic Radar Cruise"],
       competitors: [
         { name: "Honda Accord", price: 31990, mpg: 7.5, safety: 5 },
         { name: "Hyundai Sonata", price: 28990, mpg: 7.8, safety: 5 }
       ],
       faqs: [
-        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers exceptional fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Canada." },
-        { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3.0 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
+        { question: "Is the Toyota Camry available in hybrid?", answer: "Yes! The Camry Hybrid offers great fuel economy of just 4.8 L/100km combined, making it one of the most fuel-efficient sedans available in Canada." },
+        { question: "What safety features come standard on the Camry?", answer: "Every Camry includes Toyota Safety Sense 3 with Pre-Collision System, Lane Departure Alert, Dynamic Radar Cruise Control, and Automatic High Beams as standard equipment." },
         { question: "How reliable is the Toyota Camry?", answer: "The Camry consistently ranks as one of the most reliable vehicles in its class, with many examples exceeding 300,000 km with proper maintenance. Toyota&apos;s reputation for longevity makes the Camry an excellent value." }
       ],
       winterReady: true,
@@ -154,13 +158,13 @@ const modelData: Record<string, Record<string, {
 // Default data for unknown models
 const defaultModelData = {
   tagline: "Quality Pre-Owned Vehicles at Planet Motors",
-  description: "Discover our selection of PM Certified vehicles with 210-point inspection, 10-day money-back guarantee, and comprehensive warranty options.",
+  description: "Discover our selection of PM Certified vehicles with 210-point inspection, 10-day money-back guarantee, and full warranty options.",
   startingPrice: 29990,
-  mpg: { city: 9.0, highway: 7.0 },
+  mpg: { city: 9, highway: 7 },
   seating: 5,
   cargo: 500,
   safetyRating: 5,
-  features: ["PM Certified", "210-Point Inspection", "10-Day Money-Back", "Comprehensive Warranty", "Financing Available"],
+  features: ["PM Certified", "210-Point Inspection", "10-Day Money-Back", "Full Warranty", "Financing Available"],
   competitors: [],
   faqs: [
     { question: "What is the PM Certification process?", answer: "Every PM Certified vehicle undergoes a rigorous 210-point inspection covering mechanical, safety, and cosmetic elements. Only vehicles that pass our strict standards earn the PM Certified badge." },
@@ -171,7 +175,7 @@ const defaultModelData = {
   hybrid: false
 }
 
-export default async function ModelLandingPage({ params }: { params: Promise<{ make: string; model: string }> }) {
+export default async function ModelLandingPage({ params }: Readonly<{ params: Promise<{ make: string; model: string }> }>) {
   const { make, model } = await params
   const makeFormatted = make.charAt(0).toUpperCase() + make.slice(1)
   const modelFormatted = model.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -245,7 +249,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
       />
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Inventory", url: "/inventory" }, { name: makeFormatted, url: `/inventory?make=${make}` }, { name: modelFormatted, url: `/cars/${make}/${model}` }]} />
 
-      <main id="main-content" role="main">
+      <main id="main-content">
         {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="container mx-auto px-4">
@@ -435,8 +439,8 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-bold mb-8">Frequently Asked Questions About the {makeFormatted} {modelFormatted}</h2>
             <div className="grid md:grid-cols-2 gap-6">
-              {data.faqs.map((faq, i) => (
-                <Card key={i}>
+              {data.faqs.map((faq) => (
+                <Card key={faq.question}>
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-lg mb-3">{faq.question}</h3>
                     <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
@@ -458,8 +462,8 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     <tr>
                       <th className="p-4 text-left">Feature</th>
                       <th className="p-4 text-center">{makeFormatted} {modelFormatted}</th>
-                      {data.competitors.map((comp, i) => (
-                        <th key={i} className="p-4 text-center">{comp.name}</th>
+                      {data.competitors.map((comp) => (
+                        <th key={comp.name} className="p-4 text-center">{comp.name}</th>
                       ))}
                     </tr>
                   </thead>
@@ -467,22 +471,22 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     <tr className="border-b">
                       <td className="p-4 font-semibold">Starting Price</td>
                       <td className="p-4 text-center font-bold text-primary">${data.startingPrice.toLocaleString()}</td>
-                      {data.competitors.map((comp, i) => (
-                        <td key={i} className="p-4 text-center">${comp.price.toLocaleString()}</td>
+                      {data.competitors.map((comp) => (
+                        <td key={`price-${comp.name}`} className="p-4 text-center">${comp.price.toLocaleString()}</td>
                       ))}
                     </tr>
                     <tr className="border-b">
                       <td className="p-4 font-semibold">Fuel Economy (Hwy)</td>
                       <td className="p-4 text-center font-bold text-primary">{data.mpg.highway} L/100km</td>
-                      {data.competitors.map((comp, i) => (
-                        <td key={i} className="p-4 text-center">{comp.mpg} L/100km</td>
+                      {data.competitors.map((comp) => (
+                        <td key={`mpg-${comp.name}`} className="p-4 text-center">{comp.mpg} L/100km</td>
                       ))}
                     </tr>
                     <tr>
                       <td className="p-4 font-semibold">Safety Rating</td>
                       <td className="p-4 text-center font-bold text-primary">{data.safetyRating} Stars</td>
-                      {data.competitors.map((comp, i) => (
-                        <td key={i} className="p-4 text-center">{comp.safety} Stars</td>
+                      {data.competitors.map((comp) => (
+                        <td key={`safety-${comp.name}`} className="p-4 text-center">{comp.safety} Stars</td>
                       ))}
                     </tr>
                   </tbody>
@@ -497,8 +501,8 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-bold mb-8">Key Features</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {data.features.map((feature, i) => (
-                <div key={i} className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+              {data.features.map((feature) => (
+                <div key={feature} className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                   <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
                   <span>{feature}</span>
                 </div>
@@ -550,7 +554,7 @@ export default async function ModelLandingPage({ params }: { params: Promise<{ m
                     <Check className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
                     <div>
                       <p className="font-semibold">210-Point PM Certification</p>
-                      <p className="text-muted-foreground">More comprehensive than any competitor&apos;s inspection</p>
+                      <p className="text-muted-foreground">More rigorous than any competitor&apos;s inspection</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">

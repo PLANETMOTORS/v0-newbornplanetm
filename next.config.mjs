@@ -1,3 +1,4 @@
+ 
 import withBundleAnalyzer from '@next/bundle-analyzer'
 
 const analyzeBundles = withBundleAnalyzer({
@@ -7,6 +8,12 @@ const analyzeBundles = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 // Planet Motors - Next.js Config
 const nextConfig = {
+  // Enforce React strict mode — catches double-render bugs, deprecated APIs
+  reactStrictMode: true,
+
+  // Enable gzip/brotli compression for all responses
+  compress: true,
+
   // SEC-06: Remove x-powered-by: Next.js header (OWASP WSTG-CONF-08)
   poweredByHeader: false,
 
@@ -33,10 +40,18 @@ const nextConfig = {
       'framer-motion', 'swr',
       '@supabase/supabase-js', '@vercel/analytics', '@vercel/speed-insights',
       'sonner', '@stripe/stripe-js', '@stripe/react-stripe-js',
+      'zod', '@sentry/nextjs',
     ],
   },
   
   images: {
+    // Custom imgix loader: AVIF-first delivery with adaptive quality presets.
+    // Only activated when NEXT_PUBLIC_IMGIX_DOMAIN is set at build time.
+    // When unset, the built-in Vercel image optimizer remains active.
+    ...(process.env.NEXT_PUBLIC_IMGIX_DOMAIN ? {
+      loader: 'custom',
+      loaderFile: './lib/imgix-loader.ts',
+    } : {}),
     formats: ['image/avif', 'image/webp'],
     // Responsive breakpoints tuned for vehicle card grid (1-3 cols)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -54,6 +69,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'www.carpages.ca' },
       { protocol: 'https', hostname: 'ldervbcvkoawwknsemuz.supabase.co' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'cdn.carfax.ca' },
     ],
   },
 
@@ -94,7 +110,81 @@ const nextConfig = {
     // Vercel handles domain-level redirects via project settings.
     // These path-level redirects catch any deep links that resolve here.
 
-    return [...internalRedirects, ...carPagesRedirects]
+    // ── Blog SEO redirects — legacy slugs → canonical blog paths ──
+    // Covers: old tAdvantagesites.com /resources/ paths, original Claude slugs,
+    // and canonical slug variations that differ from current Sanity slugs.
+    const blogSeoRedirects = [
+      { source: '/a-beginners-guide-to-first-time-car-buyer-financing-in-canada', destination: '/blog/first-time-car-buyer-financing', permanent: true },
+      { source: '/awd-vs-rwd-which-is-better-to-drive-in-ontario', destination: '/blog/awd-vs-rwd-ontario', permanent: true },
+      { source: '/best-vehicles-fall-winter-driving', destination: '/blog/top-cars-fall-winter-2024', permanent: true },
+      { source: '/blog/best-vehicles-fall-winter-driving', destination: '/blog/top-cars-fall-winter-2024', permanent: true },
+      { source: '/blog/car-delivery-canada-free-ontario', destination: '/blog/car-deliveries-canada', permanent: true },
+      { source: '/blog/electric-vehicle-trends-future', destination: '/blog/ev-trends-planet-motors', permanent: true },
+      { source: '/blog/equifax-newcomers-import-credit-scores-canada', destination: '/blog/equifax-newcomers-credit-canada', permanent: true },
+      { source: '/blog/first-time-car-buyer-financing-canada', destination: '/blog/first-time-car-buyer-financing', permanent: true },
+      { source: '/blog/how-to-sell-car-for-cash-canada', destination: '/blog/sell-car-for-cash-canada', permanent: true },
+      { source: '/blog/tesla-cybertruck-review', destination: '/blog/tesla-cybertruck-2024', permanent: true },
+      { source: '/blog/tesla-model-y-review', destination: '/blog/tesla-model-y-future-ev', permanent: true },
+      { source: '/blog/tesla-robotaxi-robovan-autonomous-vehicles', destination: '/blog/tesla-robotaxi-robovan', permanent: true },
+      { source: '/blog/understanding-apr-car-loan', destination: '/blog/understanding-apr-car-loans', permanent: true },
+      { source: '/buying-used-tesla-canada', destination: '/blog/buying-used-tesla-canada-2026-guide', permanent: true },
+      { source: '/car-deliveries-in-canada-what-you-need-to-know', destination: '/blog/car-deliveries-canada', permanent: true },
+      { source: '/car-delivery-canada-free-ontario', destination: '/blog/car-deliveries-canada', permanent: true },
+      { source: '/electric-vehicle-trends-future', destination: '/blog/ev-trends-planet-motors', permanent: true },
+      { source: '/equifax-newcomers-import-credit-scores-canada', destination: '/blog/equifax-newcomers-credit-canada', permanent: true },
+      { source: '/equifaxs-new-initiative-lets-newcomers-import-their-credit-scores-to-canada', destination: '/blog/equifax-newcomers-credit-canada', permanent: true },
+      { source: '/everything-you-need-to-know-before-you-sell-your-car', destination: '/blog/sell-everything-before-sell', permanent: true },
+      { source: '/first-time-car-buyer-financing-canada', destination: '/blog/first-time-car-buyer-financing', permanent: true },
+      { source: '/get-a-quote-in-5-minutes-from-planet-motors', destination: '/blog/get-quote-5-minutes', permanent: true },
+      { source: '/honda-says-it-will-bring-back-the-civic-hybrid-in-2024', destination: '/blog/honda-civic-hybrid-2024', permanent: true },
+      { source: '/how-to-maximize-car-resale-value-in-toronto', destination: '/blog/car-resale-value-toronto', permanent: true },
+      { source: '/how-to-sell-a-car-in-toronto-a-comprehensive-guide', destination: '/blog/sell-car-toronto-guide', permanent: true },
+      { source: '/how-to-sell-a-financed-car-in-canada', destination: '/blog/sell-financed-car-canada', permanent: true },
+      { source: '/how-to-sell-car-for-cash-canada', destination: '/blog/sell-car-for-cash-canada', permanent: true },
+      { source: '/how-to-trade-in-your-used-car', destination: '/blog/how-to-trade-in-used-car', permanent: true },
+      { source: '/learn-about-the-best-selling-electric-cars-in-canada-2023', destination: '/blog/best-selling-electric-cars-canada-2023', permanent: true },
+      { source: '/new-trends-in-ev-cars-leading-the-charge-at-planet-motors-canada', destination: '/blog/ev-trends-planet-motors', permanent: true },
+      { source: '/quick-guide-sell-your-car-for-cash-in-canada', destination: '/blog/sell-car-for-cash-canada', permanent: true },
+      { source: '/resources', destination: '/blog', permanent: true },
+      { source: '/resources/best-vehicles-fall-winter', destination: '/blog/top-cars-fall-winter-2024', permanent: true },
+      { source: '/resources/best-vehicles-fall-winter-driving', destination: '/blog/top-cars-fall-winter-2024', permanent: true },
+      { source: '/resources/car-deliveries-canada', destination: '/blog/car-deliveries-canada', permanent: true },
+      { source: '/resources/car-delivery-canada-free-ontario', destination: '/blog/car-deliveries-canada', permanent: true },
+      { source: '/resources/electric-vehicle-trends', destination: '/blog/ev-trends-planet-motors', permanent: true },
+      { source: '/resources/electric-vehicle-trends-future', destination: '/blog/ev-trends-planet-motors', permanent: true },
+      { source: '/resources/equifax-newcomers-credit-scores', destination: '/blog/equifax-newcomers-credit-canada', permanent: true },
+      { source: '/resources/equifax-newcomers-import-credit-scores-canada', destination: '/blog/equifax-newcomers-credit-canada', permanent: true },
+      { source: '/resources/first-time-car-buyer-financing', destination: '/blog/first-time-car-buyer-financing', permanent: true },
+      { source: '/resources/first-time-car-buyer-financing-canada', destination: '/blog/first-time-car-buyer-financing', permanent: true },
+      { source: '/resources/how-to-sell-car-for-cash-canada', destination: '/blog/sell-car-for-cash-canada', permanent: true },
+      { source: '/resources/sell-your-car-for-cash', destination: '/blog/sell-your-car-for-cash', permanent: true },
+      { source: '/resources/tesla-cybertruck-review', destination: '/blog/tesla-cybertruck-2024', permanent: true },
+      { source: '/resources/tesla-model-y-review', destination: '/blog/tesla-model-y-future-ev', permanent: true },
+      { source: '/resources/tesla-robotaxi-robovan', destination: '/blog/tesla-robotaxi-robovan', permanent: true },
+      { source: '/resources/tesla-robotaxi-robovan-autonomous-vehicles', destination: '/blog/tesla-robotaxi-robovan', permanent: true },
+      { source: '/resources/understanding-apr', destination: '/blog/understanding-apr-car-loans', permanent: true },
+      { source: '/resources/understanding-apr-car-loan', destination: '/blog/understanding-apr-car-loans', permanent: true },
+      { source: '/sell-your-car-for-cash', destination: '/blog/sell-your-car-for-cash', permanent: true },
+      { source: '/sell-your-car-for-cash-in-canada', destination: '/blog/sell-car-for-cash-canada', permanent: true },
+      { source: '/sell-your-car-for-cash-planet-motors', destination: '/blog/sell-your-car-for-cash', permanent: true },
+      { source: '/tesla-cybertruck-a-revolutionary-electric-pickup-in-2024', destination: '/blog/tesla-cybertruck-2024', permanent: true },
+      { source: '/tesla-cybertruck-review', destination: '/blog/tesla-cybertruck-2024', permanent: true },
+      { source: '/tesla-full-self-driving-fsd-canada-guide', destination: '/blog/tesla-full-self-driving-guide', permanent: true },
+      { source: '/tesla-model-y-review', destination: '/blog/tesla-model-y-future-ev', permanent: true },
+      { source: '/tesla-model-y-the-future-of-evs-at-your-fingertips', destination: '/blog/tesla-model-y-future-ev', permanent: true },
+      { source: '/tesla-robotaxi-robovan-autonomous-vehicles', destination: '/blog/tesla-robotaxi-robovan', permanent: true },
+      { source: '/the-best-cars-for-fall-and-winter-2024-your-guide-to-staying-safe-and-comfortable-on-the-road', destination: '/blog/top-cars-fall-winter-2024', permanent: true },
+      { source: '/the-future-of-autonomous-vehicles-tesla-unveils-robotaxi-and-robovan', destination: '/blog/tesla-robotaxi-robovan', permanent: true },
+      { source: '/top-pre-owned-vehicles-to-consider-in-2024', destination: '/blog/top-preowned-vehicles-2024', permanent: true },
+      { source: '/trade-in-vs-selling-your-car-in-ontario', destination: '/blog/trade-in-vs-selling-car-ontario', permanent: true },
+      { source: '/understanding-apr-car-loan', destination: '/blog/understanding-apr-car-loans', permanent: true },
+      { source: '/understanding-apr-in-car-loans-what-you-need-to-know', destination: '/blog/understanding-apr-car-loans', permanent: true },
+      { source: '/we-buy-your-car-across-canada', destination: '/blog/we-buy-your-car-canada', permanent: true },
+      { source: '/what-are-the-tax-benefits-of-trading-in-your-car-vs-selling-it-privately', destination: '/blog/tax-benefits-trade-in-vs-selling', permanent: true },
+      { source: '/why-choose-planet-motors-used-car-dealership-in-richmond-hill', destination: '/blog/why-choose-planet-motors', permanent: true },
+    ]
+
+    return [...internalRedirects, ...carPagesRedirects, ...blogSeoRedirects]
   },
 
   // Rewrite /sitemap.xml to the API route handler (works locally + Vercel)
@@ -137,7 +227,6 @@ const nextConfig = {
       'https://va.vercel-scripts.com',    // Vercel Analytics
       'https://www.googletagmanager.com', // GTM
       'https://www.google-analytics.com', // GA4
-      'https://connect.facebook.net',     // Facebook Pixel
       'https://cdn.jsdelivr.net',         // Open-source CDN (widgets)
       'https://stapecdn.com',             // Stape server-side tagging CDN
       'https://googleads.g.doubleclick.net',  // Google Ads conversion scripts
@@ -164,7 +253,6 @@ const nextConfig = {
       'https://cdn.sanity.io',
       'https://www.google-analytics.com',
       'https://www.googletagmanager.com',
-      'https://www.facebook.com',
       'https://content.homenetiol.com',
       'https://photos.homenetiol.com',
       'https://ldervbcvkoawwknsemuz.supabase.co',
@@ -183,7 +271,6 @@ const nextConfig = {
       'https://js.stripe.com',
       'https://hooks.stripe.com',
       'https://www.googletagmanager.com',
-      'https://www.facebook.com',
       'https://capig.planetmotors.ca',        // Server-side tagging iframe
       'https://td.doubleclick.net',           // DoubleClick tracking frame
       'https://iframe-b8b2c.web.app',        // Drivee 360° viewer iframe
@@ -199,8 +286,6 @@ const nextConfig = {
       'https://www.google-analytics.com',
       'https://region1.google-analytics.com',
       'https://www.googletagmanager.com',
-      'https://graph.facebook.com',
-      'https://www.facebook.com',
       'https://capig.planetmotors.ca',            // GA4 server-side proxy
       'https://www.google.com',                    // Remarketing + CCM
       'https://googleads.g.doubleclick.net',       // Google Ads data
@@ -228,6 +313,21 @@ const nextConfig = {
         headers: [
           ...sharedHeaders,
           { key: 'Content-Security-Policy', value: mainSiteCSP },
+        ],
+      },
+      // Public static assets (images, icons, manifests) — cache for 1 day
+      {
+        source: '/:path(.*\\.(?:ico|png|jpg|jpeg|svg|webp|gif|woff2?|json|txt|xml)$)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=43200' },
+        ],
+      },
+      // Hashed static assets — immutable long-cache (Vercel also sets this,
+      // but explicit headers ensure consistent behaviour across CDNs)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       // Stripe webhook

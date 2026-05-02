@@ -1,3 +1,4 @@
+ 
 /**
  * RateDisclosure — OMVIC-compliant financing rate disclosure.
  *
@@ -10,7 +11,7 @@
  *    Rates and terms subject to credit approval."
  */
 
-import { RATE_FLOOR, RATE_FLOOR_DISPLAY, DEFAULT_TERM_MONTHS } from "@/lib/rates"
+import { RATE_FLOOR, RATE_FLOOR_DISPLAY } from "@/lib/rates"
 
 /** Calculate monthly payment using standard amortization formula. */
 function monthlyPayment(principal: number, annualRate: number, termMonths: number): number {
@@ -35,7 +36,7 @@ export function RateDisclosure({
   termMonths = 84,
   className = "",
   compact = false,
-}: RateDisclosureProps) {
+}: Readonly<RateDisclosureProps>) {
   const payment = monthlyPayment(principal, RATE_FLOOR, termMonths)
   const totalPaid = payment * termMonths
   const costOfBorrowing = totalPaid - principal

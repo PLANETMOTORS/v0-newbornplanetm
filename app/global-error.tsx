@@ -7,10 +7,10 @@ import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership
 export default function GlobalError({
   error,
   reset,
-}: {
+}: Readonly<{
   error: Error & { digest?: string }
   reset: () => void
-}) {
+}>) {
   useEffect(() => {
     reportError(error, { boundary: "global", critical: true })
   }, [error])
@@ -37,7 +37,7 @@ export default function GlobalError({
               Try Again
             </button>
             <button
-              onClick={() => window.location.href = "/inventory"}
+              onClick={() => globalThis.location.href = "/inventory"}
               style={{
                 padding: "0.5rem 1rem",
                 cursor: "pointer",

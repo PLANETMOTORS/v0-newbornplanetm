@@ -59,7 +59,7 @@ const statusSteps = [
 export function DeliveryTracker({ 
   deliveryId, 
   vehicleInfo 
-}: { 
+}: Readonly<{ 
   deliveryId: string
   vehicleInfo?: {
     year: number
@@ -67,7 +67,7 @@ export function DeliveryTracker({
     model: string
     image: string
   }
-}) {
+}>) {
   const [mapUrl, setMapUrl] = useState<string | null>(null)
 
   const { data, error, isLoading, mutate } = useSWR<{ tracking: TrackingData; isDemo?: boolean }>(
@@ -134,7 +134,7 @@ export function DeliveryTracker({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => mutate()}>
+            <Button variant="ghost" size="icon" onClick={() => mutate()} aria-label="Refresh delivery status">
               <RefreshCw className="w-4 h-4" />
             </Button>
             <Badge variant={tracking.status === "delivered" ? "default" : "secondary"}>
@@ -261,7 +261,7 @@ export function DeliveryTracker({
             </div>
             {tracking.driver.phone && (
               <Button variant="outline" size="sm" asChild>
-                <a href={`tel:${tracking.driver.phone.replace(/[^0-9+]/g, '')}`}>
+                <a href={`tel:${tracking.driver.phone.replaceAll(/[^0-9+]/g, '')}`}>
                   <Phone className="w-4 h-4 mr-2" />
                   Call Driver
                 </a>
@@ -273,12 +273,18 @@ export function DeliveryTracker({
         {tracking.updates.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-semibold">Recent Updates</p>
-            {tracking.updates.slice(0, 3).map((update, index) => (
-              <div key={index} className="flex gap-3 text-sm">
-                <div className={`w-2 h-2 rounded-full mt-1.5 ${
-                  update.type === "info" ? "bg-teal-500" :
-                  update.type === "success" ? "bg-green-500" : "bg-muted-foreground"
-                }`} />
+            {tracking.updates.slice(0, 3).map((update) => {
+              let dotColorClass: string
+              if (update.type === "info") {
+                dotColorClass = "bg-teal-500"
+              } else if (update.type === "success") {
+                dotColorClass = "bg-green-500"
+              } else {
+                dotColorClass = "bg-muted-foreground"
+              }
+              return (
+              <div key={`${update.timestamp}-${update.message}`} className="flex gap-3 text-sm">
+                <div className={`w-2 h-2 rounded-full mt-1.5 ${dotColorClass}`} />
                 <div>
                   <p className="text-muted-foreground">{update.message}</p>
                   <p className="text-xs text-muted-foreground/70">
@@ -291,7 +297,8 @@ export function DeliveryTracker({
                   </p>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
 

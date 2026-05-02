@@ -166,13 +166,13 @@ export default function ComparePage() {
   }
 
   const handleShare = () => {
-    const url = `${window.location.origin}/compare?vehicles=${selectedVehicles.join(",")}`
+    const url = `${globalThis.location.origin}/compare?vehicles=${selectedVehicles.join(",")}`
     navigator.clipboard.writeText(url)
     alert("Comparison link copied to clipboard!")
   }
 
   const handlePrint = () => {
-    window.print()
+    globalThis.print()
   }
 
   const getVehicle = (id: string) => {
@@ -184,7 +184,7 @@ export default function ComparePage() {
   const selectedVehicleData = selectedVehicles.map(id => getVehicle(id)).filter((v): v is NonNullable<typeof v> => Boolean(v))
 
   const compareValue = (values: (string | number)[], type: "lower" | "higher" = "higher") => {
-    const numericValues = values.map(v => typeof v === "string" ? parseFloat(v) : v)
+    const numericValues = values.map(v => typeof v === "string" ? Number.parseFloat(v) : v)
     const best = type === "higher" ? Math.max(...numericValues) : Math.min(...numericValues)
     return numericValues.map(v => v === best)
   }
@@ -340,7 +340,7 @@ export default function ComparePage() {
                       <tr className="border-b bg-muted/10">
                         <td className="p-4 font-semibold">Range</td>
                         {selectedVehicleData.map((vehicle, i) => {
-                          const ranges = selectedVehicleData.map(v => parseInt(v.range))
+                          const ranges = selectedVehicleData.map(v => Number.parseInt(v.range))
                           const isBest = compareValue(ranges, "higher")[i]
                           return (
                             <td key={vehicle.id} className="p-4 text-center">
@@ -371,7 +371,7 @@ export default function ComparePage() {
                       <tr className="border-b bg-muted/10">
                         <td className="p-4 font-semibold">0-100 km/h</td>
                         {selectedVehicleData.map((vehicle, i) => {
-                          const times = selectedVehicleData.map(v => parseFloat(v.acceleration))
+                          const times = selectedVehicleData.map(v => Number.parseFloat(v.acceleration))
                           const isBest = compareValue(times, "lower")[i]
                           return (
                             <td key={vehicle.id} className="p-4 text-center">
@@ -484,8 +484,8 @@ export default function ComparePage() {
                         {selectedVehicleData.map(vehicle => (
                           <td key={vehicle.id} className="p-4">
                             <ul className="space-y-1">
-                              {vehicle.features.map((feature, i) => (
-                                <li key={i} className="flex items-center gap-2 text-sm">
+                              {vehicle.features.map((feature) => (
+                                <li key={feature} className="flex items-center gap-2 text-sm">
                                   <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                                   {feature}
                                 </li>

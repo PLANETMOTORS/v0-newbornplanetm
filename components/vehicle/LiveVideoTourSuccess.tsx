@@ -22,7 +22,7 @@ export function LiveVideoTourSuccess({
   joinUrl,
   provider = "google_meet",
   onClose,
-}: LiveVideoTourSuccessProps) {
+}: Readonly<LiveVideoTourSuccessProps>) {
   const scheduledDate = new Date(scheduledTime)
 
   // Provider-specific display info
@@ -110,7 +110,7 @@ export function LiveVideoTourSuccess({
           <Button
             variant="outline"
             className="w-full h-12 text-base"
-            onClick={() => window.open(joinUrl, "_blank")}
+            onClick={() => globalThis.open(joinUrl, "_blank")}
           >
             <Video className="w-4 h-4 mr-2" />
             {info.buttonText}

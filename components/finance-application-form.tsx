@@ -9,6 +9,7 @@ import { ArrowRight, Calculator, Loader2, CheckCircle, Mail, RefreshCw, Shield }
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase/client"
 import { invokeEdgeFunction } from "@/lib/supabase/edge-functions"
+import { isEmailLike } from "@/lib/validation/email"
 
 interface LenderOffer {
   lenderId: string
@@ -142,12 +143,13 @@ export function FinanceApplicationForm() {
     if (!formData.lastName.trim()) errors.lastName = "Last Name is required"
     if (!formData.email.trim()) {
       errors.email = "Email Address is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      // Structural, ReDoS-free check (S5852/S2631).
+    } else if (!isEmailLike(formData.email)) {
       errors.email = "Please enter a valid email address"
     }
     if (!formData.phone.trim()) {
       errors.phone = "Phone Number is required"
-    } else if (formData.phone.replace(/\D/g, "").length < 10) {
+    } else if (formData.phone.replaceAll(/\D/g, "").length < 10) {
       errors.phone = "Phone must be at least 10 digits"
     }
     return errors
@@ -156,7 +158,7 @@ export function FinanceApplicationForm() {
   const sendMagicLink = async (email: string) => {
     try {
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/financing?verified=true`
+      const redirectTo = `${globalThis.location.origin}/financing?verified=true`
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -177,7 +179,7 @@ export function FinanceApplicationForm() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const errors = validateForm()
@@ -191,7 +193,7 @@ export function FinanceApplicationForm() {
     if (user) {
       setIsLoading(true)
       // Still capture the lead for CRM tracking via Edge Function
-      invokeEdgeFunction("capture-lead", formData).catch(() => {})
+      invokeEdgeFunction("capture-lead", formData).catch((err) => console.warn("[silent-catch]", err))
 
       await runCreditPull()
       setIsLoading(false)
@@ -326,7 +328,7 @@ export function FinanceApplicationForm() {
           ))}
         </div>
 
-        <Button className="w-full" size="lg" onClick={() => window.location.href = "/financing/application"}>
+        <Button className="w-full" size="lg" onClick={() => globalThis.location.href = "/financing/application"}>
           Continue Application
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
@@ -594,8 +596,8 @@ export function FinanceApplicationForm() {
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3">
           <p className="font-semibold text-sm text-destructive mb-1">Please fix the following:</p>
           <ul className="list-disc pl-5 space-y-1">
-            {Object.values(validationErrors).filter(Boolean).map((error, i) => (
-              <li key={i} className="text-xs text-destructive">{error}</li>
+            {Object.values(validationErrors).filter(Boolean).map((error) => (
+              <li key={error} className="text-xs text-destructive">{error}</li>
             ))}
           </ul>
         </div>

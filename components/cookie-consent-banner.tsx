@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import Link from "next/link"
 import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 import { Button } from "@/components/ui/button"
@@ -27,13 +27,14 @@ export function CookieConsentBanner() {
   const [analytics, setAnalytics] = useState(true)
   const [marketing, setMarketing] = useState(true)
   const [ready, setReady] = useState(false)
+  const [, startTransition] = useTransition()
 
   // Defer rendering past the LCP observation window
   useEffect(() => {
     if (!showBanner) return
     const timer = setTimeout(() => {
-      if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-        (window as Window).requestIdleCallback(() => setReady(true), { timeout: 500 })
+      if (typeof globalThis !== "undefined" && "requestIdleCallback" in globalThis) {
+        (globalThis as unknown as Window).requestIdleCallback(() => setReady(true), { timeout: 500 })
       } else {
         setReady(true)
       }
@@ -44,11 +45,12 @@ export function CookieConsentBanner() {
   if (!showBanner || !ready) return null
 
   return (
-    <div
-      role="dialog"
+    // S6819: use the native <dialog open> element instead of role="dialog".
+    <dialog
+      open
       aria-label="Cookie consent"
       aria-modal="false"
-      className="fixed bottom-0 inset-x-0 z-[9999] p-4 md:p-6"
+      className="fixed bottom-0 inset-x-0 z-[9999] p-4 md:p-6 bg-transparent"
       style={{ contentVisibility: "auto" } as React.CSSProperties}
     >
       <div className="mx-auto max-w-3xl rounded-xl border bg-background shadow-2xl">
@@ -80,7 +82,8 @@ export function CookieConsentBanner() {
           </button>
 
           {showDetails && (
-            <div className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4" role="group" aria-label="Cookie categories">
+            <fieldset className="space-y-3 mb-5 rounded-lg bg-muted/50 p-4 border-0">
+              <legend className="sr-only">Cookie categories</legend>
               {/* Essential — always on */}
               <div className="flex items-center justify-between">
                 <div>
@@ -115,7 +118,7 @@ export function CookieConsentBanner() {
                   aria-label="Marketing cookies"
                 />
               </div>
-            </div>
+            </fieldset>
           )}
 
           {/* Action buttons */}
@@ -123,7 +126,7 @@ export function CookieConsentBanner() {
             <Button
               variant="outline"
               size="sm"
-              onClick={rejectAll}
+              onClick={() => startTransition(rejectAll)}
               className="flex-1 sm:flex-none"
             >
               Reject All
@@ -132,7 +135,7 @@ export function CookieConsentBanner() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => savePreferences({ analytics, marketing })}
+                onClick={() => startTransition(() => savePreferences({ analytics, marketing }))}
                 className="flex-1 sm:flex-none"
               >
                 Save Preferences
@@ -140,7 +143,7 @@ export function CookieConsentBanner() {
             )}
             <Button
               size="sm"
-              onClick={acceptAll}
+              onClick={() => startTransition(acceptAll)}
               className="flex-1 sm:flex-none"
             >
               Accept All
@@ -148,6 +151,6 @@ export function CookieConsentBanner() {
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

@@ -74,7 +74,7 @@ console.log(`   Over budget:   ${violations.length}\n`);
 
 if (passing.length > 0) {
   console.log("✅  Passing routes:");
-  for (const p of passing.sort((a, b) => b.size - a.size)) {
+  for (const p of passing.toSorted((a, b) => b.size - a.size)) {
     const pct = ((p.size / BUDGET_BYTES) * 100).toFixed(0);
     console.log(`     ${formatKB(p.size).padStart(10)}  (${pct.padStart(3)}%)  ${p.route}`);
   }
@@ -83,7 +83,7 @@ if (passing.length > 0) {
 
 if (violations.length > 0) {
   console.log("❌  Over-budget routes:");
-  for (const v of violations.sort((a, b) => b.size - a.size)) {
+  for (const v of violations.toSorted((a, b) => b.size - a.size)) {
     const over = formatKB(v.size - BUDGET_BYTES);
     console.log(`     ${formatKB(v.size).padStart(10)}  (+${over})  ${v.route}`);
   }

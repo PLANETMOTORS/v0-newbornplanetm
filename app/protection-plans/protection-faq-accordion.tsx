@@ -7,12 +7,12 @@ interface FAQ {
   answer: string
 }
 
-export function ProtectionFaqAccordion({ faqs }: { faqs: FAQ[] }) {
+export function ProtectionFaqAccordion({ faqs }: Readonly<{ faqs: FAQ[] }>) {
   return (
     <Accordion type="single" collapsible className="space-y-3">
       {faqs.map((faq, index) => (
         <AccordionItem
-          key={index}
+          key={faq.question}
           value={`faq-${index}`}
           className="bg-background rounded-xl border border-border px-6 data-[state=open]:shadow-sm data-[state=open]:border-primary/20 transition-all"
         >

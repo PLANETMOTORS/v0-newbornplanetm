@@ -34,7 +34,7 @@ export function NavButton({
   userInitials = "",
   isOnline = false,
   showMenuButton = true,
-}: NavButtonProps) {
+}: Readonly<NavButtonProps>) {
   const safeName = userName.trim() || "Client";
   const safeInitials = (userInitials.trim() || getInitials(safeName) || "CL").slice(0, 2);
   const label = isLoggedIn ? safeName : "Sign In";
@@ -53,13 +53,8 @@ export function NavButton({
     return () => document.removeEventListener("mousedown", handler);
   }, [dropdownOpen]);
 
-  const handleAvatarClick = () => {
-    if (isLoggedIn) {
-      setDropdownOpen((v) => !v);
-    } else {
-      onSignInClick();
-    }
-  };
+  const toggleDropdown = () => setDropdownOpen((v) => !v);
+  const handleAvatarClick = isLoggedIn ? toggleDropdown : onSignInClick;
 
   return (
     <div className="relative inline-flex h-[44px] items-center" ref={dropdownRef}>
@@ -105,7 +100,7 @@ export function NavButton({
       {isLoggedIn && dropdownOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-[52px] z-50 min-w-[180px] rounded-xl border border-border bg-background py-1 shadow-lg"
+          className="absolute right-0 top-[52px] z-50 min-w-45 rounded-xl border border-border bg-background py-1 shadow-lg"
         >
           <div className="px-4 py-2 border-b border-border">
             <p className="text-sm font-semibold truncate">{safeName}</p>

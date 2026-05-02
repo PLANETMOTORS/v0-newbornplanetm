@@ -70,7 +70,7 @@ const cityData: Record<string, {
     region: "Ontario",
     distance: 30,
     population: "632K",
-    description: "a vibrant district of Toronto"
+    description: "a bustling, diverse hub in the heart of Toronto"
   },
   "north-york": {
     name: "North York",
@@ -179,7 +179,7 @@ export default function CityLandingPage() {
 
       <main id="main-content" tabIndex={-1}>
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-background py-16 lg:py-24">
+        <section className="relative bg-linear-to-br from-primary/10 via-background to-background py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl">
               <Badge className="mb-4 bg-green-100 text-green-800">
@@ -244,7 +244,7 @@ export default function CityLandingPage() {
               {featuredVehicles.map(vehicle => (
                 <Link key={vehicle.id} href={`/vehicles/${vehicle.id}`}>
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative aspect-[4/3]">
+                    <div className="relative aspect-4/3">
                       <Image
                         src={vehicle.image}
                         alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
@@ -384,7 +384,7 @@ export default function CityLandingPage() {
               
               <div className="mt-8 p-6 bg-primary/5 rounded-lg">
                 <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
                       <Phone className="w-6 h-6 text-white" />
                     </div>
@@ -406,10 +406,10 @@ export default function CityLandingPage() {
         <section className="py-16 bg-primary text-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Ready to Find Your Perfect Vehicle?
+              Browse Used EVs Available in {city.name}
             </h2>
             <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-              Browse our entire inventory online and get your vehicle delivered to {city.name}
+              Every EV is Aviloo battery-health certified and 210-point inspected. Delivered to {city.name} with a 10-day money-back guarantee.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/inventory">

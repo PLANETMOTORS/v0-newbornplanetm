@@ -12,7 +12,7 @@ export function PlanetMotorsLogo({
   className = "", 
   showTagline: _showTagline = false,
   size = "md" 
-}: PlanetMotorsLogoProps) {
+}: Readonly<PlanetMotorsLogoProps>) {
   const sizes = {
     sm: { width: 120, height: 48 },
     md: { width: 160, height: 64 },
@@ -24,7 +24,7 @@ export function PlanetMotorsLogo({
 
   return (
     <div 
-      className={`flex items-center flex-shrink-0 ${className}`}
+      className={`flex items-center shrink-0 ${className}`}
       style={{ width, height, position: "relative" }}
     >
       <Image

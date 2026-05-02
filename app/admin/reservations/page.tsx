@@ -9,6 +9,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { timeAgo } from "@/lib/admin/lead-utils"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface Vehicle {
   year: number
@@ -71,16 +73,6 @@ function formatCents(cents: number | null | undefined): string {
   return "$" + Math.round((cents || 0) / 100).toLocaleString()
 }
 
-function timeAgo(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return "just now"
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
-}
-
 export default function AdminReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [stats, setStats] = useState<ReservationStats>({ pending: 0, confirmed: 0, completed: 0, cancelled: 0, totalDeposits: 0 })
@@ -106,6 +98,11 @@ export default function AdminReservationsPage() {
   }, [statusFilter])
 
   useEffect(() => { fetchReservations() }, [fetchReservations])
+
+  const handleReservationDeleted = useCallback((deletedId: string) => {
+    setReservations((prev) => prev.filter((r) => r.id !== deletedId))
+    setSelectedRes((prev) => (prev?.id === deletedId ? null : prev))
+  }, [])
 
   const updateStatus = async (resId: string, newStatus: string) => {
     try {
@@ -192,16 +189,21 @@ export default function AdminReservationsPage() {
       {/* Reservations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          {loading ? (
-            <Card><CardContent className="p-8 text-center text-gray-500">Loading reservations...</CardContent></Card>
-          ) : reservations.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center text-gray-500">
-                <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>No reservations found</p>
-              </CardContent>
-            </Card>
-          ) : (
+          {(() => {
+            if (loading) {
+              return <Card><CardContent className="p-8 text-center text-gray-500">Loading reservations...</CardContent></Card>
+            }
+            if (reservations.length === 0) {
+              return (
+                <Card>
+                  <CardContent className="p-8 text-center text-gray-500">
+                    <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>No reservations found</p>
+                  </CardContent>
+                </Card>
+              )
+            }
+            return (
             <div className="space-y-3">
               {reservations.map(res => {
                 const sb = statusBadge(res.status)
@@ -233,14 +235,23 @@ export default function AdminReservationsPage() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400">{timeAgo(res.created_at)}</p>
+                        <div className="flex flex-col items-end gap-2">
+                          <p className="text-xs text-gray-400">{timeAgo(res.created_at)}</p>
+                          <DeleteRowButton
+                            endpoint={`/api/v1/admin/reservations/${res.id}`}
+                            id={res.id}
+                            label={`reservation by ${res.customer_name || res.customer_email}`}
+                            onDeleted={handleReservationDeleted}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
                 )
               })}
             </div>
-          )}
+            )
+          })()}
         </div>
 
         {/* Detail Panel */}

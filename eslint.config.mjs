@@ -14,13 +14,33 @@ export default [
       'dist/**',
       'coverage/**',
       'supabase/functions/**',
+      // Separate embedded repos — not part of this project
+      'Planet-Ultra/**',
+      'Website/**',
+      'PLANET-WEB-FINAL/**',
+      'next-platform-starter/**',
+      'v0-cms-site-build-m1/**',
+      'v0-planet-ultra-ui-ux-rebuild/**',
+      // Auto-generated Serwist/Workbox service worker — minified, not our source
       'public/sw.js',
+      'public/workbox-*.js',
+      // Embedded repositories — separate codebases, not part of this project
+      'Planet-Ultra/**',
+      'PLANET-WEB-FINAL/**',
+      'Website/**',
+      'next-platform-starter/**',
+      'v0-cms-site-build-m1/**',
+      'v0-planet-ultra-ui-ux-rebuild/**',
     ],
   },
 
   // ESLint recommended rules (lenient overrides)
   {
     ...js.configs.recommended,
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
     rules: {
       ...js.configs.recommended.rules,
       'no-unused-vars': ['warn', {
@@ -53,9 +73,9 @@ export default [
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
       }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-empty-interface': 'warn',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/ban-ts-comment': 'warn',
       // Disable base rule in favor of TS version
       'no-unused-vars': 'off',
@@ -82,7 +102,7 @@ export default [
     },
     rules: {
       '@next/next/no-html-link-for-pages': 'warn',
-      '@next/next/no-img-element': 'warn',
+      '@next/next/no-img-element': 'error',
       '@next/next/no-head-element': 'warn',
       '@next/next/no-sync-scripts': 'warn',
       '@next/next/no-css-tags': 'warn',

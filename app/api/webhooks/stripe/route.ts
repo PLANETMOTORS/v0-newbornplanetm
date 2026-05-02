@@ -1,720 +1,493 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { headers } from 'next/headers'
-import Stripe from 'stripe'
-import { getStripe } from '@/lib/stripe'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { extractNotificationData, sendPaymentNotifications } from '@/lib/webhook-notifications'
-import { isValidLicensePath } from '@/lib/license-path'
-
-// Stripe requires raw body for signature verification — Next.js must NOT parse it.
-export const dynamic = 'force-dynamic'
-
 /**
- * Atomically claim a Stripe event for processing.
+ * app/api/webhooks/stripe/route.ts
  *
- * Status lifecycle:  processing → processed (success) | failed (error)
+ * Stripe Webhook Handler — Idempotent Deposit & Reservation Processing
  *
- * Strategy:
- * 1. INSERT with status='processing' using ignoreDuplicates:true.
- *    - If the INSERT writes a new row (data is non-empty), this worker owns the event.
- *    - If the INSERT conflicts (data is empty), check the existing row's status:
- *      - 'processed'  → skip; event already handled.
- *      - 'processing' → skip; another worker is currently handling it.
- *      - 'failed'     → Stripe retry allowed: UPDATE status back to 'processing'
- *                       using a conditional update (.eq('status', 'failed')) to
- *                       avoid racing with another concurrent retry.
- * 2. Any DB / network error is thrown so the caller returns 500 and Stripe retries.
+ * Idempotency strategy:
+ *  - Every Stripe event has a unique `event.id` (e.g. "evt_1ABC...").
+ *  - We use `event.id` as the `idempotency_key` in `deal_events` which has a
+ *    UNIQUE constraint on (source, idempotency_key). If Stripe retries the
+ *    same event, the INSERT will be a no-op and we return 200 immediately —
+ *    preventing double-charges or double-state-transitions.
+ *  - The `deposits` table uses `stripe_payment_intent_id` as a UNIQUE column,
+ *    so upserts are safe even if the webhook fires multiple times.
  *
- * Returns true when this worker successfully claimed the event, false to skip.
+ * Events handled:
+ *  - payment_intent.created                → create pending deposit row
+ *  - payment_intent.succeeded              → mark deposit succeeded, hold vehicle
+ *  - payment_intent.payment_failed         → mark deposit failed, release vehicle
+ *  - checkout.session.completed            → confirm reservation/order, lock vehicle
+ *  - checkout.session.expired              → expire reservation, release vehicle
+ *  - checkout.session.async_payment_failed → fail reservation, release vehicle
+ *
+ * Security:
+ *  - Stripe-Signature header verified with STRIPE_WEBHOOK_SECRET
+ *  - Raw body preserved for signature verification
  */
-async function claimEvent(
-  supabase: ReturnType<typeof createAdminClient>,
-  eventId: string,
-  eventType: string
+
+import { NextRequest, NextResponse } from "next/server"
+import Stripe from "stripe"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getStripe } from "@/lib/stripe"
+import { logger } from "@/lib/logger"
+import { validateReservationForConfirmation, type ReservationPaymentFields } from "@/lib/reservation-payment-rules"
+
+// ── Type alias ─────────────────────────────────────────────────────────────
+
+type SupabaseAdminClient = ReturnType<typeof createAdminClient>
+
+// ── Idempotency guard ──────────────────────────────────────────────────────
+
+async function isEventAlreadyProcessed(
+  supabase: SupabaseAdminClient,
+  stripeEventId: string
 ): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('stripe_webhook_events')
-    .upsert(
-      {
-        stripe_event_id: eventId,
-        event_type: eventType,
-        status: 'processing',
-        processed_at: new Date().toISOString(),
-      },
-      { onConflict: 'stripe_event_id', ignoreDuplicates: true }
-    )
-    .select('stripe_event_id')
-
-  if (error) {
-    // DB / network failure — throw so the caller returns 500 and Stripe retries.
-    throw new Error(`[webhook] Failed to claim event ${eventId}: ${error.message}`)
-  }
-
-  // New row was inserted: this worker owns the event.
-  if (Array.isArray(data) && data.length > 0) {
-    return true
-  }
-
-  // Row already existed — inspect its status to decide if a retry is allowed.
-  const { data: existing, error: fetchError } = await supabase
-    .from('stripe_webhook_events')
-    .select('status')
-    .eq('stripe_event_id', eventId)
+  const { data } = await supabase
+    .from("deal_events")
+    .select("id")
+    .eq("source", "stripe")
+    .eq("idempotency_key", stripeEventId)
+    .limit(1)
     .maybeSingle()
-
-  if (fetchError) {
-    throw new Error(`[webhook] Failed to read event status ${eventId}: ${fetchError.message}`)
-  }
-
-  if (existing?.status === 'failed') {
-    // Previous attempt failed — Stripe is retrying. Re-claim by updating back to
-    // 'processing', but only if still 'failed' so two concurrent retries don't
-    // both claim the event.
-    const { data: updated, error: updateError } = await supabase
-      .from('stripe_webhook_events')
-      .update({
-        status: 'processing',
-        error_message: null,
-        processed_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', eventId)
-      .eq('status', 'failed')
-      .select('stripe_event_id')
-
-    if (updateError) {
-      throw new Error(`[webhook] Failed to re-claim failed event ${eventId}: ${updateError.message}`)
-    }
-
-    // If the update returned a row, this worker won the re-claim race.
-    return Array.isArray(updated) && updated.length > 0
-  }
-
-  // Status is 'processing' (another worker) or 'processed' (done) — skip.
-  return false
+  return !!data
 }
 
-async function markEventProcessed(
-  supabase: ReturnType<typeof createAdminClient>,
-  eventId: string
-) {
-  await supabase
-    .from('stripe_webhook_events')
-    .update({
-      status: 'processed',
-      processed_at: new Date().toISOString(),
-    })
-    .eq('stripe_event_id', eventId)
-    .eq('status', 'processing')
-}
-
-async function markEventFailed(
-  supabase: ReturnType<typeof createAdminClient>,
-  eventId: string,
-  errorMessage: string
-) {
-  await supabase
-    .from('stripe_webhook_events')
-    .update({
-      status: 'failed',
-      error_message: errorMessage,
-      processed_at: new Date().toISOString(),
-    })
-    .eq('stripe_event_id', eventId)
-    .eq('status', 'processing')
-}
-
-export async function handleCheckoutSessionCompleted(
-  supabase: ReturnType<typeof createAdminClient>,
-  session: Stripe.Checkout.Session
-) {
-  const { reservationId, vehicleId, type } = session.metadata || {}
-  const isSettled = session.payment_status === 'paid'
-
-  if (type === 'vehicle-reservation' && reservationId) {
-    if (!isSettled) {
-      // Delayed payment methods (e.g. ACSS debit) may complete checkout before settlement.
-      // Keep the reservation pending until async success confirms funds.
-      if (vehicleId) {
-        const { data: transitioned, error: holdVehicleError } = await supabase
-          .rpc('transition_vehicle_status', {
-            p_vehicle_id: vehicleId,
-            p_from_statuses: ['available', 'reserved'],
-            p_to_status: 'reserved',
-          })
-
-        if (holdVehicleError) {
-          throw new Error(`Failed to hold vehicle ${vehicleId} while payment is pending: ${holdVehicleError.message}`)
-        }
-        if (!transitioned) {
-          console.warn(`[webhook] Vehicle ${vehicleId} hold while payment pending was a no-op.`)
-        }
-      }
-
-      console.info(`[webhook] Reservation ${reservationId} checkout completed with unsettled funds (payment_status=${session.payment_status}).`)
-      return
-    }
-
-    // Confirm the reservation deposit
-    const utmData: Record<string, string> = {}
-    if (session.metadata?.utm_source) utmData.utm_source = session.metadata.utm_source
-    if (session.metadata?.utm_medium) utmData.utm_medium = session.metadata.utm_medium
-    if (session.metadata?.utm_campaign) utmData.utm_campaign = session.metadata.utm_campaign
-    if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
-    if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
-
-    const rawLicensePath = session.metadata?.licenseStoragePath || null
-    const licenseStoragePath = rawLicensePath && vehicleId && isValidLicensePath(rawLicensePath, vehicleId)
-      ? rawLicensePath
-      : null
-    if (rawLicensePath && !licenseStoragePath) {
-      console.warn(`[webhook] Dropped invalid licenseStoragePath from reservation ${reservationId}: failed validation`)
-    }
-
-    const { error: reservationError } = await supabase
-      .from('reservations')
-      .update({
-        deposit_status: 'paid',
-        status: 'confirmed',
-        stripe_checkout_session_id: session.id,
-        updated_at: new Date().toISOString(),
-        ...utmData,
-        ...(licenseStoragePath && { license_storage_path: licenseStoragePath }),
-      })
-      .eq('id', reservationId)
-
-    if (reservationError) {
-      throw new Error(`Failed to confirm reservation ${reservationId}: ${reservationError.message}`)
-    }
-
-    // Atomically mark vehicle as reserved using row-level lock.
-    if (vehicleId) {
-      const { data: transitioned, error: vehicleError } = await supabase
-        .rpc('transition_vehicle_status', {
-          p_vehicle_id: vehicleId,
-          p_from_statuses: ['available', 'reserved'],
-          p_to_status: 'reserved',
-        })
-
-      if (vehicleError) {
-        throw new Error(`Failed to update vehicle ${vehicleId} after reservation confirmation: ${vehicleError.message}`)
-      }
-      if (!transitioned) {
-        console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'reserved' was a no-op (already transitioned by concurrent webhook).`)
-      }
-    }
-
-    console.info(`[webhook] Reservation ${reservationId} confirmed, vehicle ${vehicleId} reserved.`)
-
-    // Fire-and-forget: CRM lead + customer/admin email notifications
-    const notificationData = extractNotificationData(session)
-    if (notificationData) {
-      sendPaymentNotifications(notificationData).catch((err) =>
-        console.error('[webhook] Post-payment notification error (non-blocking):', err)
-      )
-    }
-
-    return
+async function appendDealEvent(
+  supabase: SupabaseAdminClient,
+  params: {
+    dealId: string
+    eventType: string
+    stripeEventId: string
+    stripeOccurredAt: number
+    payload: Record<string, unknown>
   }
-
-  // Checkout-flow deposits: type === 'vehicle-reservation' but no reservationId
-  // (created via startVehicleCheckout with depositOnly=true, not via createReservation)
-  if (type === 'vehicle-reservation' && !reservationId && vehicleId) {
-    if (!isSettled) {
-      // Delayed payment methods (e.g. ACSS debit) may complete checkout before settlement.
-      const { data: transitioned, error: holdVehicleError } = await supabase
-        .rpc('transition_vehicle_status', {
-          p_vehicle_id: vehicleId,
-          p_from_statuses: ['available', 'reserved'],
-          p_to_status: 'reserved',
-        })
-
-      if (holdVehicleError) {
-        throw new Error(`Failed to hold vehicle ${vehicleId} while payment is pending: ${holdVehicleError.message}`)
-      }
-      if (!transitioned) {
-        console.warn(`[webhook] Vehicle ${vehicleId} hold while payment pending was a no-op.`)
-      }
-
-      console.info(`[webhook] Checkout-flow deposit for vehicle ${vehicleId} completed with unsettled funds (payment_status=${session.payment_status}).`)
-      return
-    }
-
-    // Confirmed checkout-flow deposit: create reservation record
-    const utmData: Record<string, string> = {}
-    if (session.metadata?.utm_source) utmData.utm_source = session.metadata.utm_source
-    if (session.metadata?.utm_medium) utmData.utm_medium = session.metadata.utm_medium
-    if (session.metadata?.utm_campaign) utmData.utm_campaign = session.metadata.utm_campaign
-    if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
-    if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
-
-    const rawLicensePath = session.metadata?.licenseStoragePath || null
-    const licenseStoragePath = rawLicensePath && isValidLicensePath(rawLicensePath, vehicleId)
-      ? rawLicensePath
-      : null
-    if (rawLicensePath && !licenseStoragePath) {
-      console.warn(`[webhook] Dropped invalid licenseStoragePath from checkout-flow deposit for vehicle ${vehicleId}: failed validation`)
-    }
-    const customerEmail = session.customer_email || session.customer_details?.email || ''
-
-    // Insert a new reservation record for this checkout-flow deposit
-    const { error: insertError } = await supabase
-      .from('reservations')
-      .insert({
-        vehicle_id: vehicleId,
-        customer_email: customerEmail,
-        customer_name: session.customer_details?.name || null,
-        deposit_amount: session.amount_total || 25000, // Default to $250 deposit
-        deposit_status: 'paid',
-        status: 'confirmed',
-        stripe_checkout_session_id: session.id,
-        ...(licenseStoragePath && { license_storage_path: licenseStoragePath }),
-        ...utmData,
-      })
-
-    if (insertError) {
-      throw new Error(`Failed to create reservation for vehicle ${vehicleId}: ${insertError.message}`)
-    }
-
-    // Atomically mark vehicle as reserved using row-level lock.
-    // Include 'checkout_in_progress' since startVehicleCheckout already locked the vehicle.
-    const { data: transitioned, error: vehicleError } = await supabase
-      .rpc('transition_vehicle_status', {
-        p_vehicle_id: vehicleId,
-        p_from_statuses: ['available', 'reserved', 'checkout_in_progress'],
-        p_to_status: 'reserved',
-      })
-
-    if (vehicleError) {
-      throw new Error(`Failed to update vehicle ${vehicleId} after checkout-flow deposit: ${vehicleError.message}`)
-    }
-    if (!transitioned) {
-      console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'reserved' was a no-op (already transitioned by concurrent webhook).`)
-    }
-
-    console.info(`[webhook] Checkout-flow deposit confirmed, vehicle ${vehicleId} reserved.`)
-
-    // Fire-and-forget: CRM lead + customer/admin email notifications
-    const notificationData = extractNotificationData(session)
-    if (notificationData) {
-      sendPaymentNotifications(notificationData).catch((err) =>
-        console.error('[webhook] Post-payment notification error (non-blocking):', err)
-      )
-    }
-
-    return
-  }
-
-  if (type !== 'vehicle-reservation' && vehicleId) {
-    if (!isSettled) {
-      console.info(`[webhook] Vehicle checkout completed with unsettled funds for ${vehicleId} (payment_status=${session.payment_status}).`)
-      return
-    }
-
-    // Full vehicle checkout: mark order payment as confirmed.
-    // Orders are created separately; link via Stripe session metadata.
-    const utmData: Record<string, string> = {}
-    if (session.metadata?.utm_source) utmData.utm_source = session.metadata.utm_source
-    if (session.metadata?.utm_medium) utmData.utm_medium = session.metadata.utm_medium
-    if (session.metadata?.utm_campaign) utmData.utm_campaign = session.metadata.utm_campaign
-    if (session.metadata?.utm_content) utmData.utm_content = session.metadata.utm_content
-    if (session.metadata?.utm_term) utmData.utm_term = session.metadata.utm_term
-
-    const rawLicensePathFromCheckout = session.metadata?.licenseStoragePath || null
-    const licenseStoragePathFromCheckout = rawLicensePathFromCheckout && isValidLicensePath(rawLicensePathFromCheckout, vehicleId)
-      ? rawLicensePathFromCheckout
-      : null
-    if (rawLicensePathFromCheckout && !licenseStoragePathFromCheckout) {
-      console.warn(`[webhook] Dropped invalid licenseStoragePath from order for vehicle ${vehicleId}: failed validation`)
-    }
-
-    const { error: orderError } = await supabase
-      .from('orders')
-      .update({
-        status: 'confirmed',
-        updated_at: new Date().toISOString(),
-        ...utmData,
-        ...(licenseStoragePathFromCheckout && { license_storage_path: licenseStoragePathFromCheckout }),
-      })
-      .eq('vehicle_id', vehicleId)
-      .eq('status', 'created')
-
-    if (orderError) {
-      throw new Error(`Failed to confirm order for vehicle ${vehicleId}: ${orderError.message}`)
-    }
-
-    // Best-effort: also link license to any matching reservation
-    if (licenseStoragePathFromCheckout && session.customer_email) {
-      const { error: resLinkError } = await supabase
-        .from('reservations')
-        .update({
-          license_storage_path: licenseStoragePathFromCheckout,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('vehicle_id', vehicleId)
-        .eq('customer_email', session.customer_email.toLowerCase())
-        .in('status', ['pending', 'confirmed'])
-
-      if (resLinkError) {
-        console.error(`[webhook] Best-effort reservation license link failed for ${vehicleId}:`, resLinkError.message)
-      }
-    }
-
-    const { data: transitioned, error: vehicleError } = await supabase
-      .rpc('transition_vehicle_status', {
-        p_vehicle_id: vehicleId,
-        p_from_statuses: ['available', 'reserved', 'pending', 'checkout_in_progress'],
-        p_to_status: 'pending',
-      })
-
-    if (vehicleError) {
-      throw new Error(`Failed to transition vehicle ${vehicleId} after order confirmation: ${vehicleError.message}`)
-    }
-    if (!transitioned) {
-      console.warn(`[webhook] Vehicle ${vehicleId} status transition to 'pending' was a no-op.`)
-    }
-
-    // Fire-and-forget: CRM lead + customer/admin email notifications
-    const notificationData = extractNotificationData(session)
-    if (notificationData) {
-      sendPaymentNotifications(notificationData).catch((err) =>
-        console.error('[webhook] Post-payment notification error (non-blocking):', err)
-      )
-    }
-
-    console.info(`[webhook] Vehicle ${vehicleId} order confirmed.`)
+): Promise<void> {
+  const { error } = await supabase.from("deal_events").insert({
+    deal_id: params.dealId,
+    event_type: params.eventType,
+    source: "stripe",
+    idempotency_key: params.stripeEventId,
+    source_event_id: params.stripeEventId,
+    source_occurred_at: new Date(params.stripeOccurredAt * 1000).toISOString(),
+    payload: params.payload,
+  })
+  if (error && !error.message.includes("duplicate")) {
+    logger.warn("[Stripe] deal_events insert error:", error.message)
   }
 }
 
-export async function handleCheckoutSessionAsyncPaymentFailed(
-  supabase: ReturnType<typeof createAdminClient>,
-  session: Stripe.Checkout.Session
-) {
-  const { reservationId, vehicleId } = session.metadata || {}
+// ── Deposit helpers ────────────────────────────────────────────────────────
 
-  if (reservationId) {
-    const { error: reservationError } = await supabase
-      .from('reservations')
-      .update({
-        status: 'expired',
-        deposit_status: 'failed',
-        updated_at: new Date().toISOString(),
+async function upsertDeposit(
+  supabase: SupabaseAdminClient,
+  params: {
+    dealId: string
+    userId: string
+    paymentIntentId: string
+    stripeCustomerId: string | null
+    amountCents: number
+    currency: string
+    state: "pending" | "succeeded" | "failed" | "refunded" | "disputed"
+    paidAt?: string | null
+  }
+): Promise<void> {
+  const { error } = await supabase.from("deposits").upsert(
+    {
+      deal_id: params.dealId,
+      user_id: params.userId,
+      stripe_payment_intent_id: params.paymentIntentId,
+      stripe_customer_id: params.stripeCustomerId,
+      amount_cents: params.amountCents,
+      currency: params.currency,
+      state: params.state,
+      paid_at: params.paidAt ?? null,
+    },
+    { onConflict: "stripe_payment_intent_id", ignoreDuplicates: false }
+  )
+  if (error) logger.warn("[Stripe] deposits upsert error:", error.message)
+}
+
+async function resolveDealId(
+  supabase: SupabaseAdminClient,
+  params: { reservationId?: string; vehicleId?: string }
+): Promise<string | null> {
+  if (params.reservationId) {
+    const { data } = await supabase
+      .from("deals")
+      .select("id")
+      .eq("id", params.reservationId)
+      .maybeSingle()
+    if (data) return data.id
+  }
+  if (params.vehicleId) {
+    const { data } = await supabase
+      .from("deals")
+      .select("id")
+      .eq("vehicle_id", params.vehicleId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (data) return data.id
+  }
+  return null
+}
+
+// ── Exported handlers (testable with injected supabase) ────────────────────
+
+export async function handlePaymentIntentCreated(
+  supabase: SupabaseAdminClient,
+  paymentIntent: Stripe.PaymentIntent,
+  stripeEventId: string
+): Promise<void> {
+  const { reservationId, vehicleId, userId } = paymentIntent.metadata ?? {}
+  logger.info("[Stripe] payment_intent.created", { paymentIntentId: paymentIntent.id })
+  if (!userId) return
+  const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
+  if (!dealId) return
+  await upsertDeposit(supabase, {
+    dealId,
+    userId,
+    paymentIntentId: paymentIntent.id,
+    stripeCustomerId: typeof paymentIntent.customer === "string" ? paymentIntent.customer : null,
+    amountCents: paymentIntent.amount,
+    currency: paymentIntent.currency,
+    state: "pending",
+  })
+  await appendDealEvent(supabase, {
+    dealId,
+    eventType: "deposit.pending",
+    stripeEventId,
+    stripeOccurredAt: paymentIntent.created,
+    payload: { payment_intent_id: paymentIntent.id, amount_cents: paymentIntent.amount, currency: paymentIntent.currency },
+  })
+}
+
+export async function handlePaymentIntentSucceeded(
+  supabase: SupabaseAdminClient,
+  paymentIntent: Stripe.PaymentIntent,
+  stripeEventId: string
+): Promise<void> {
+  const { reservationId, vehicleId, type, userId } = paymentIntent.metadata ?? {}
+  logger.info("[Stripe] payment_intent.succeeded", { paymentIntentId: paymentIntent.id, amount: paymentIntent.amount })
+  const isReservation = type !== "purchase" && (!!reservationId || type === "vehicle-reservation")
+  const paidAt = new Date().toISOString()
+
+  if (userId) {
+    const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
+    if (dealId) {
+      await upsertDeposit(supabase, {
+        dealId, userId,
+        paymentIntentId: paymentIntent.id,
+        stripeCustomerId: typeof paymentIntent.customer === "string" ? paymentIntent.customer : null,
+        amountCents: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        state: "succeeded",
+        paidAt,
       })
-      .eq('id', reservationId)
-      .in('deposit_status', ['pending'])
-
-    if (reservationError) {
-      throw new Error(`Failed to mark reservation ${reservationId} async payment failure: ${reservationError.message}`)
+      await appendDealEvent(supabase, {
+        dealId,
+        eventType: "deposit.succeeded",
+        stripeEventId,
+        stripeOccurredAt: paymentIntent.created,
+        payload: { payment_intent_id: paymentIntent.id, amount_cents: paymentIntent.amount, currency: paymentIntent.currency, is_reservation: isReservation },
+      })
     }
+  }
 
-    console.warn(`[webhook] Async payment failed for reservation ${reservationId}.`)
+  if (isReservation && reservationId) {
+    await supabase.from("reservations").update({
+      deposit_status: "paid",
+      deposit_amount: paymentIntent.amount,
+      stripe_payment_intent_id: paymentIntent.id,
+      updated_at: paidAt,
+    }).eq("id", reservationId)
+  } else if (vehicleId) {
+    await supabase.from("orders").update({ status: "confirmed", updated_at: paidAt }).eq("vehicle_id", vehicleId)
   }
 
   if (vehicleId) {
-    const { data: transitioned, error: vehicleError } = await supabase
-      .rpc('transition_vehicle_status', {
-        p_vehicle_id: vehicleId,
-        p_from_statuses: ['reserved', 'checkout_in_progress'],
-        p_to_status: 'available',
-      })
-
-    if (vehicleError) {
-      throw new Error(`Failed to release vehicle ${vehicleId} after async payment failure: ${vehicleError.message}`)
-    }
-    if (!transitioned) {
-      console.warn(`[webhook] Vehicle ${vehicleId} release after async payment failure was a no-op.`)
-    }
-  }
-}
-
-export async function handleCheckoutSessionExpired(
-  supabase: ReturnType<typeof createAdminClient>,
-  session: Stripe.Checkout.Session
-) {
-  const { reservationId, vehicleId } = session.metadata || {}
-
-  if (reservationId) {
-    const { error: reservationError } = await supabase
-      .from('reservations')
-      .update({
-        status: 'expired',
-        deposit_status: 'failed',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', reservationId)
-      .in('status', ['pending'])
-
-    if (reservationError) {
-      throw new Error(`Failed to expire reservation ${reservationId}: ${reservationError.message}`)
-    }
-
-    console.info(`[webhook] Reservation ${reservationId} expired.`)
-  }
-
-  if (vehicleId) {
-    const { data: transitioned, error: vehicleError } = await supabase
-      .rpc('transition_vehicle_status', {
-        p_vehicle_id: vehicleId,
-        p_from_statuses: ['reserved', 'checkout_in_progress'],
-        p_to_status: 'available',
-      })
-
-    if (vehicleError) {
-      throw new Error(`Failed to release vehicle ${vehicleId} after session expiration: ${vehicleError.message}`)
-    }
-    if (!transitioned) {
-      console.warn(`[webhook] Vehicle ${vehicleId} release after session expiration was a no-op.`)
-    }
+    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: isReservation ? "reserved" : "pending" })
   }
 }
 
 export async function handlePaymentIntentFailed(
-  supabase: ReturnType<typeof createAdminClient>,
-  paymentIntent: Stripe.PaymentIntent
-) {
-  const { reservationId, vehicleId } = paymentIntent.metadata || {}
+  supabase: SupabaseAdminClient,
+  paymentIntent: Stripe.PaymentIntent,
+  stripeEventId: string
+): Promise<void> {
+  const { reservationId, vehicleId, userId } = paymentIntent.metadata ?? {}
+  logger.warn("[Stripe] payment_intent.payment_failed", { paymentIntentId: paymentIntent.id, lastError: paymentIntent.last_payment_error?.message })
+
+  if (userId) {
+    const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
+    if (dealId) {
+      await upsertDeposit(supabase, {
+        dealId, userId,
+        paymentIntentId: paymentIntent.id,
+        stripeCustomerId: typeof paymentIntent.customer === "string" ? paymentIntent.customer : null,
+        amountCents: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        state: "failed",
+      })
+      await appendDealEvent(supabase, {
+        dealId,
+        eventType: "deposit.failed",
+        stripeEventId,
+        stripeOccurredAt: paymentIntent.created,
+        payload: { payment_intent_id: paymentIntent.id, error: paymentIntent.last_payment_error?.message ?? "unknown" },
+      })
+    }
+  }
 
   if (reservationId) {
-    const { error: reservationError } = await supabase
-      .from('reservations')
-      .update({
-        deposit_status: 'failed',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', reservationId)
-      .in('deposit_status', ['pending'])
+    await supabase.from("reservations").update({ deposit_status: "failed", updated_at: new Date().toISOString() }).eq("id", reservationId)
+  }
+  if (vehicleId) {
+    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: "available" })
+  }
+}
 
-    if (reservationError) {
-      throw new Error(`Failed to mark reservation ${reservationId} payment failure: ${reservationError.message}`)
-    }
+// S3776 helpers — split the body of `handleCheckoutSessionCompleted` into
+// focused steps so the orchestrator stays under the 15-cog threshold.
 
-    console.warn(`[webhook] Payment failed for reservation ${reservationId}.`)
+async function logCheckoutCompletedDealEvent(
+  supabase: SupabaseAdminClient,
+  meta: { reservationId?: string; vehicleId?: string; userId?: string; isReservation: boolean },
+  session: Stripe.Checkout.Session,
+  stripeEventId: string,
+): Promise<void> {
+  if (!meta.userId) return
+  const dealId = await resolveDealId(supabase, { reservationId: meta.reservationId, vehicleId: meta.vehicleId })
+  if (!dealId) return
+  await appendDealEvent(supabase, {
+    dealId,
+    eventType: "checkout.completed",
+    stripeEventId,
+    stripeOccurredAt: session.created,
+    payload: { session_id: session.id, payment_status: session.payment_status, is_reservation: meta.isReservation },
+  })
+}
+
+const TERMINAL_RESERVATION_STATUSES = new Set(["confirmed", "completed", "cancelled", "expired"])
+
+async function applyReservationPaidUpdate(
+  supabase: SupabaseAdminClient,
+  reservationId: string,
+  session: Stripe.Checkout.Session,
+  reservation: ReservationPaymentFields,
+  now: string,
+): Promise<boolean> {
+  const piPatch = typeof session.payment_intent === "string"
+    ? { stripe_payment_intent_id: session.payment_intent }
+    : {}
+  const { error: initialUpdateError } = await supabase.from("reservations").update({
+    deposit_status: "paid",
+    stripe_checkout_session_id: session.id,
+    ...piPatch,
+    updated_at: now,
+  }).eq("id", reservationId)
+  if (initialUpdateError) {
+    logger.warn("[Stripe] Failed to persist reservation payment fields:", {
+      reservationId,
+      error: initialUpdateError.message,
+    })
+    return false
+  }
+
+  const updated = { ...reservation, deposit_status: "paid", stripe_checkout_session_id: session.id, ...piPatch }
+  const validation = validateReservationForConfirmation(updated, { skipExpiryCheck: true })
+  if (!validation.valid) {
+    logger.warn("[Stripe] Reservation payment validation failed, not confirming:", { reservationId, reason: validation.reason })
+    await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+    return false
+  }
+  const { error: confirmError } = await supabase.from("reservations").update({ status: "confirmed", updated_at: now }).eq("id", reservationId)
+  if (confirmError) {
+    logger.warn("[Stripe] Failed to confirm reservation:", { reservationId, error: confirmError.message })
+    return false
+  }
+  return true
+}
+
+async function processReservationCheckout(
+  supabase: SupabaseAdminClient,
+  reservationId: string,
+  session: Stripe.Checkout.Session,
+): Promise<boolean> {
+  const now = new Date().toISOString()
+  if (session.payment_status !== "paid") {
+    await supabase.from("reservations").update({ status: "pending", updated_at: now }).eq("id", reservationId)
+    return false
+  }
+  const { data: reservation } = await supabase
+    .from("reservations")
+    .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
+    .eq("id", reservationId)
+    .single()
+  if (!reservation) return false
+  if (TERMINAL_RESERVATION_STATUSES.has(reservation.status ?? "")) {
+    return reservation.status === "confirmed" || reservation.status === "completed"
+  }
+  return applyReservationPaidUpdate(supabase, reservationId, session, reservation, now)
+}
+
+function resolveTargetVehicleStatus(
+  isReservation: boolean,
+  reservationConfirmed: boolean,
+  paymentStatus: Stripe.Checkout.Session["payment_status"],
+): "reserved" | "available" | "pending" {
+  if (!isReservation) return "pending"
+  const isAsyncPaymentPending = isReservation && paymentStatus === "unpaid"
+  if (reservationConfirmed || isAsyncPaymentPending) return "reserved"
+  return "available"
+}
+
+export async function handleCheckoutSessionCompleted(
+  supabase: SupabaseAdminClient,
+  session: Stripe.Checkout.Session,
+  stripeEventId: string
+): Promise<void> {
+  const { reservationId, vehicleId, type, userId } = session.metadata ?? {}
+  logger.info("[Stripe] checkout.session.completed", { sessionId: session.id, paymentStatus: session.payment_status })
+  const isReservation = type === "vehicle-reservation" || (type !== "purchase" && !!reservationId)
+
+  await logCheckoutCompletedDealEvent(supabase, { reservationId, vehicleId, userId, isReservation }, session, stripeEventId)
+
+  let reservationConfirmed = false
+  if (isReservation && reservationId) {
+    reservationConfirmed = await processReservationCheckout(supabase, reservationId, session)
+  } else if (vehicleId) {
+    await supabase.from("orders").update({ status: "confirmed", updated_at: new Date().toISOString() }).eq("vehicle_id", vehicleId)
   }
 
   if (vehicleId) {
-    const { data: transitioned, error: vehicleError } = await supabase
-      .rpc('transition_vehicle_status', {
-        p_vehicle_id: vehicleId,
-        p_from_statuses: ['reserved', 'checkout_in_progress'],
-        p_to_status: 'available',
-      })
-
-    if (vehicleError) {
-      throw new Error(`Failed to release vehicle ${vehicleId} after payment failure: ${vehicleError.message}`)
-    }
-    if (!transitioned) {
-      console.warn(`[webhook] Vehicle ${vehicleId} release after payment failure was a no-op.`)
-    }
+    const targetStatus = resolveTargetVehicleStatus(isReservation, reservationConfirmed, session.payment_status)
+    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: targetStatus })
   }
 }
 
-export async function handlePaymentIntentSucceeded(
-  supabase: ReturnType<typeof createAdminClient>,
-  paymentIntent: Stripe.PaymentIntent
-) {
-  // Idempotent backup confirmation when checkout-session events are delayed/missed.
-  const { reservationId, vehicleId, type } = paymentIntent.metadata || {}
+export async function handleCheckoutSessionExpired(
+  supabase: SupabaseAdminClient,
+  session: Stripe.Checkout.Session,
+  stripeEventId: string
+): Promise<void> {
+  const { reservationId, vehicleId, userId } = session.metadata ?? {}
+  logger.info("[Stripe] checkout.session.expired", { sessionId: session.id })
+
+  if (userId) {
+    const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
+    if (dealId) {
+      await appendDealEvent(supabase, { dealId, eventType: "checkout.expired", stripeEventId, stripeOccurredAt: session.created, payload: { session_id: session.id } })
+    }
+  }
 
   if (reservationId) {
-    const { error } = await supabase
-      .from('reservations')
-      .update({
-        deposit_status: 'paid',
-        status: 'confirmed',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', reservationId)
-      .in('deposit_status', ['pending'])
-
-    if (error) {
-      throw new Error(`Failed to mark reservation ${reservationId} as paid: ${error.message}`)
-    }
-
-    if (vehicleId) {
-      const { data: transitioned, error: vehicleError } = await supabase
-        .rpc('transition_vehicle_status', {
-          p_vehicle_id: vehicleId,
-          p_from_statuses: ['available', 'reserved'],
-          p_to_status: 'reserved',
-        })
-
-      if (vehicleError) {
-        throw new Error(`Failed to hold vehicle ${vehicleId} after payment success: ${vehicleError.message}`)
-      }
-      if (!transitioned) {
-        console.warn(`[webhook] Vehicle ${vehicleId} hold after payment success was a no-op.`)
-      }
-    }
-
-    return
+    await supabase.from("reservations").update({ status: "expired", updated_at: new Date().toISOString() }).eq("id", reservationId)
   }
-
-  if (vehicleId && type !== 'vehicle-reservation') {
-    const { error: orderError } = await supabase
-      .from('orders')
-      .update({ status: 'confirmed', updated_at: new Date().toISOString() })
-      .eq('vehicle_id', vehicleId)
-      .eq('status', 'created')
-
-    if (orderError) {
-      throw new Error(`Failed to confirm order from payment intent for vehicle ${vehicleId}: ${orderError.message}`)
-    }
-
-    const { data: transitioned, error: vehicleError } = await supabase
-      .rpc('transition_vehicle_status', {
-        p_vehicle_id: vehicleId,
-        p_from_statuses: ['available', 'reserved', 'pending', 'checkout_in_progress'],
-        p_to_status: 'pending',
-      })
-
-    if (vehicleError) {
-      throw new Error(`Failed to transition vehicle ${vehicleId} after payment intent success: ${vehicleError.message}`)
-    }
-    if (!transitioned) {
-      console.warn(`[webhook] Vehicle ${vehicleId} transition to pending after payment intent was a no-op.`)
-    }
+  if (vehicleId) {
+    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: "available" })
   }
 }
 
-async function hydrateCheckoutSession(
-  stripe: Stripe,
-  session: Stripe.Checkout.Session
-): Promise<Stripe.Checkout.Session> {
-  const hasRequiredMetadata =
-    !!session.metadata &&
-    (!!session.metadata.reservationId || !!session.metadata.vehicleId || !!session.metadata.type)
-  if (hasRequiredMetadata) return session
+export async function handleCheckoutSessionAsyncPaymentFailed(
+  supabase: SupabaseAdminClient,
+  session: Stripe.Checkout.Session,
+  stripeEventId: string
+): Promise<void> {
+  const { reservationId, vehicleId, userId } = session.metadata ?? {}
+  logger.warn("[Stripe] checkout.session.async_payment_failed", { sessionId: session.id })
 
-  if (!session.id) return session
+  if (userId) {
+    const dealId = await resolveDealId(supabase, { reservationId, vehicleId })
+    if (dealId) {
+      await appendDealEvent(supabase, { dealId, eventType: "checkout.async_payment_failed", stripeEventId, stripeOccurredAt: session.created, payload: { session_id: session.id } })
+    }
+  }
 
-  try {
-    return await stripe.checkout.sessions.retrieve(session.id)
-  } catch (error) {
-    console.error(`[webhook] Failed to hydrate checkout session ${session.id}:`, error)
-    return session
+  if (reservationId) {
+    await supabase.from("reservations").update({ status: "cancelled", deposit_status: "failed", updated_at: new Date().toISOString() }).eq("id", reservationId)
+  }
+  if (vehicleId) {
+    await supabase.rpc("transition_vehicle_status", { p_vehicle_id: vehicleId, p_to_status: "available" })
   }
 }
 
-async function hydratePaymentIntent(
-  stripe: Stripe,
-  paymentIntent: Stripe.PaymentIntent
-): Promise<Stripe.PaymentIntent> {
-  const hasRequiredMetadata =
-    !!paymentIntent.metadata &&
-    (!!paymentIntent.metadata.reservationId || !!paymentIntent.metadata.vehicleId)
-  if (hasRequiredMetadata) return paymentIntent
-
-  if (!paymentIntent.id) return paymentIntent
-
-  try {
-    return await stripe.paymentIntents.retrieve(paymentIntent.id)
-  } catch (error) {
-    console.error(`[webhook] Failed to hydrate payment intent ${paymentIntent.id}:`, error)
-    return paymentIntent
-  }
-}
+// ── POST handler ───────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-
   if (!webhookSecret) {
-    console.error('[webhook] STRIPE_WEBHOOK_SECRET is not set — cannot verify Stripe signatures')
-    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
-  }
-
-  if (!webhookSecret.startsWith('whsec_')) {
-    console.error('[webhook] STRIPE_WEBHOOK_SECRET does not look like a Stripe endpoint signing secret (must start with whsec_)')
-    return NextResponse.json(
-      { error: 'Webhook secret misconfigured' },
-      { status: 500 }
-    )
-  }
-
-  const headersList = await headers()
-  const signature = headersList.get('stripe-signature')
-
-  if (!signature) {
-    return NextResponse.json({ error: 'Missing Stripe-Signature header' }, { status: 400 })
+    logger.error("[Stripe] STRIPE_WEBHOOK_SECRET not configured")
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
   }
 
   const rawBody = await request.text()
+  const signature = request.headers.get("stripe-signature")
+  if (!signature) {
+    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 })
+  }
 
   let event: Stripe.Event
-  const stripe = getStripe()
   try {
+    const stripe = getStripe()
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error(`[webhook] Signature verification failed: ${message}`)
-    return NextResponse.json({ error: `Webhook signature invalid: ${message}` }, { status: 400 })
+    const message = err instanceof Error ? err.message : String(err)
+    // Log the precise reason server-side, but never echo it back: an attacker
+    // probing the webhook would otherwise learn which signature element is
+    // malformed (timestamp drift vs. payload mismatch vs. wrong secret).
+    logger.warn("[Stripe] Webhook signature verification failed:", message)
+    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 })
   }
 
   const supabase = createAdminClient()
 
-  // Atomic idempotency claim: only one concurrent worker can INSERT the row
-  // (status='processing'). The handler then transitions it to 'processed' on
-  // success or 'failed' on error, allowing Stripe retries for failed events.
-  // Any DB error in claimEvent throws and returns 500 so Stripe retries.
-  const claimed = await claimEvent(supabase, event.id, event.type)
-  if (!claimed) {
-    return NextResponse.json({ received: true, skipped: 'already_processed' })
+  // ── Idempotency check — skip if already processed ─────────────────────
+  const idempotencyCheckedEvents = new Set([
+    "payment_intent.created",
+    "payment_intent.succeeded",
+    "payment_intent.payment_failed",
+    "checkout.session.completed",
+    "checkout.session.expired",
+    "checkout.session.async_payment_failed",
+  ])
+
+  if (idempotencyCheckedEvents.has(event.type)) {
+    const alreadyProcessed = await isEventAlreadyProcessed(supabase, event.id)
+    if (alreadyProcessed) {
+      logger.info(`[Stripe] Duplicate event skipped (idempotent): ${event.id} (${event.type})`)
+      return NextResponse.json({ received: true, eventType: event.type, duplicate: true })
+    }
   }
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const rawSession = event.data.object as Stripe.Checkout.Session
-        const session = await hydrateCheckoutSession(stripe, rawSession)
-        await handleCheckoutSessionCompleted(supabase, session)
+      case "payment_intent.created":
+        await handlePaymentIntentCreated(supabase, event.data.object, event.id)
         break
-      }
-      case 'checkout.session.expired': {
-        const rawSession = event.data.object as Stripe.Checkout.Session
-        const session = await hydrateCheckoutSession(stripe, rawSession)
-        await handleCheckoutSessionExpired(supabase, session)
+      case "payment_intent.succeeded":
+        await handlePaymentIntentSucceeded(supabase, event.data.object, event.id)
         break
-      }
-      case 'checkout.session.async_payment_succeeded': {
-        const rawSession = event.data.object as Stripe.Checkout.Session
-        const session = await hydrateCheckoutSession(stripe, rawSession)
-        await handleCheckoutSessionCompleted(supabase, session)
+      case "payment_intent.payment_failed":
+        await handlePaymentIntentFailed(supabase, event.data.object, event.id)
         break
-      }
-      case 'checkout.session.async_payment_failed': {
-        const rawSession = event.data.object as Stripe.Checkout.Session
-        const session = await hydrateCheckoutSession(stripe, rawSession)
-        await handleCheckoutSessionAsyncPaymentFailed(supabase, session)
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(supabase, event.data.object, event.id)
         break
-      }
-      case 'payment_intent.succeeded': {
-        const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
-        const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
-        await handlePaymentIntentSucceeded(supabase, paymentIntent)
+      case "checkout.session.expired":
+        await handleCheckoutSessionExpired(supabase, event.data.object, event.id)
         break
-      }
-      case 'payment_intent.payment_failed': {
-        const rawPaymentIntent = event.data.object as Stripe.PaymentIntent
-        const paymentIntent = await hydratePaymentIntent(stripe, rawPaymentIntent)
-        await handlePaymentIntentFailed(supabase, paymentIntent)
+      case "checkout.session.async_payment_failed":
+        await handleCheckoutSessionAsyncPaymentFailed(supabase, event.data.object, event.id)
         break
-      }
       default:
-        // Log unhandled event types but still return 200 so Stripe doesn't retry.
-        console.warn(`[webhook] Unhandled event type: ${event.type}`)
+        logger.info(`[Stripe] Unhandled event type: ${event.type}`)
     }
 
-    await markEventProcessed(supabase, event.id)
-    return NextResponse.json({ received: true })
+    return NextResponse.json({ received: true, eventType: event.type })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown handler error'
-    console.error(`[webhook] Handler error for ${event.type} (${event.id}): ${message}`)
-    // Mark the event as failed so Stripe retries it and the operator can investigate.
-    // Wrap in try/catch so a DB error here doesn't mask the original handler error.
-    try {
-      await markEventFailed(supabase, event.id, message)
-    } catch (auditError) {
-      console.error(`[webhook] Failed to mark event failed for ${event.id}:`, auditError)
-    }
-    // Return 500 so Stripe retries the event.
-    return NextResponse.json({ error: 'Handler error' }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    logger.error(`[Stripe] Handler failed for ${event.type}:`, message)
+    return NextResponse.json({ error: "Handler failed" }, { status: 500 })
   }
 }

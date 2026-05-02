@@ -23,8 +23,9 @@ import { useFavorites } from "@/contexts/favorites-context"
 import { InventoryPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { PriceAlertModal } from "@/components/price-alert-modal"
 import { trackAddToWishlist } from "@/components/analytics/google-analytics"
-import { trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
+import { CarfaxCardBadges } from "@/components/cars/carfax-card-badges"
 import { safeNum } from "@/lib/pricing/format"
+import { randomInt } from "@/lib/util/random"
 
 // Vehicle type from inventory API
 interface Vehicle {
@@ -87,51 +88,30 @@ const fetcher = async (url: string): Promise<VehiclesApiResponse> => {
 }
 
 // Transform API vehicle to display format
+function mapDisplayFuelType(fuelType: string | null | undefined = "Gasoline"): string {
+  const raw = fuelType ?? "Gasoline"
+  if (raw === "Electric") return "Electric"
+  if (raw === "Hybrid") return "Hybrid"
+  return "Gasoline"
+}
+
+const REAL_IMAGE_INDICATORS = ['.jpg', '.png', '.webp', 'cdn.planetmotors.ca', 'imgix.net', 'homenetiol.com', 'cpsimg.com']
+function pickImageUrl(primaryImageUrl: string | null | undefined): string | null {
+  if (!primaryImageUrl) return null
+  if (primaryImageUrl.includes('planetmotors.ca/inventory') || primaryImageUrl.includes('unsplash.com')) return null
+  return REAL_IMAGE_INDICATORS.some(ind => primaryImageUrl.includes(ind)) ? primaryImageUrl : null
+}
+
 // NOTE: API already returns price in dollars (route.ts divides by 100)
 function transformVehicle(v: Vehicle) {
   const priceInDollars = safeNum(v.price)
   const msrpInDollars = safeNum(v.msrp, priceInDollars * 1.1)
-  
-  // Determine badge based on vehicle attributes
-  let badge = ""
-  let badgeColor = "bg-primary"
-  
-  if (v.is_new_arrival) {
-    badge = "Just Arrived"
-    badgeColor = "bg-green-700"
-  } else if (v.fuel_type === "Electric") {
-    badge = "Electric"
-    badgeColor = "bg-teal-700"
-  } else if (v.is_certified) {
-    badge = "PM Certified"
-    badgeColor = "bg-primary"
-  } else if (priceInDollars > 100000) {
-    badge = "Premium"
-    badgeColor = "bg-purple-700"
-  }
-  
-  // Map fuel types for filtering
-  let displayFuelType = v.fuel_type || "Gasoline"
-  if (displayFuelType === "Electric") displayFuelType = "Electric"
-  else if (displayFuelType === "Hybrid") displayFuelType = "Hybrid"
-  else displayFuelType = "Gasoline"
-  
-  // Check if primary_image_url is a real hosted image (not an Unsplash placeholder or VDP page URL)
-  // Valid sources: cdn.planetmotors.ca, planetmotors.imgix.net, HomeNet IOL, direct image files
-  const hasRealImage = v.primary_image_url &&
-    !v.primary_image_url.includes('planetmotors.ca/inventory') &&
-    !v.primary_image_url.includes('unsplash.com') &&
-    (v.primary_image_url.includes('.jpg') ||
-     v.primary_image_url.includes('.png') ||
-     v.primary_image_url.includes('.webp') ||
-     v.primary_image_url.includes('cdn.planetmotors.ca') ||
-     v.primary_image_url.includes('imgix.net') ||
-     v.primary_image_url.includes('homenetiol.com') ||
-     v.primary_image_url.includes('cpsimg.com'))
 
-  // Use real image URL or null (gradient fallback will show in the card)
-  const imageUrl = hasRealImage ? v.primary_image_url : null
-  
+  // Map fuel types for filtering
+  const displayFuelType = mapDisplayFuelType(v.fuel_type)
+
+  const imageUrl = pickImageUrl(v.primary_image_url)
+
   return {
     id: v.id,
     stockNumber: v.stock_number,
@@ -153,14 +133,17 @@ function transformVehicle(v: Vehicle) {
     image: imageUrl,
     location: v.location || "Richmond Hill",
     inspectionScore: v.inspection_score || 210,
-    badge,
-    badgeColor,
-    views: Math.floor(Math.random() * 200) + 50,
-    favorites: Math.floor(Math.random() * 50) + 5,
+    isNewArrival: !!v.is_new_arrival,
+    // Display-only engagement estimates. We use a crypto-backed RNG via
+    // `randomInt` so SonarCloud does not flag this as S2245; these values
+    // are not used for security, auth, or unique identifiers.
+    views: randomInt(50, 249),
+    favorites: randomInt(5, 54),
     monthlyPayment: priceInDollars > 0 ? Math.round(priceInDollars / 84) : 0,
     carfaxUrl: `https://www.carfax.ca/vehicle/${v.vin}`,
     features: ["PM Certified", "Full Inspection", "Warranty Included"],
-    hasDrivee: !!v.drivee_mid
+    hasDrivee: !!v.drivee_mid,
+    status: v.status,
   }
 }
 
@@ -169,6 +152,56 @@ const transmissions = ["All Transmissions", "Automatic", "Manual", "CVT", "Dual-
 const colors = ["All Colors", "White", "Black", "Silver", "Blue", "Red", "Gray", "Green"]
 const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
 
+// Stable keys for skeleton placeholder grid (avoids array-index-as-key warning).
+const INVENTORY_SKELETON_KEYS = [
+  "skel-a", "skel-b", "skel-c", "skel-d",
+  "skel-e", "skel-f", "skel-g", "skel-h",
+] as const
+
+const SORT_PARAM_MAP: Record<string, [string, string]> = {
+  'price-low': ['price', 'asc'],
+  'price-high': ['price', 'desc'],
+  'mileage-low': ['mileage', 'asc'],
+  newest: ['year', 'desc'],
+}
+function applySortParams(params: URLSearchParams, sortBy: string) {
+  const [field, order] = SORT_PARAM_MAP[sortBy] ?? ['created_at', 'desc']
+  params.set('sort', field)
+  params.set('order', order)
+}
+
+interface FilterState {
+  evOnly: boolean
+  selectedFuelType: string
+  selectedMake: string
+  selectedBodyType: string
+  selectedYear: string
+  selectedTransmission: string
+  selectedColor: string
+  selectedDrivetrain: string
+  priceRange: number[]
+  mileageRange: number[]
+  searchQuery: string
+}
+function applyFilterParams(params: URLSearchParams, f: FilterState) {
+  if (f.evOnly) params.set('fuelType', 'Electric')
+  else if (f.selectedFuelType !== 'All Fuel Types') params.set('fuelType', f.selectedFuelType)
+  if (f.selectedMake !== 'All Makes') params.set('make', f.selectedMake)
+  if (f.selectedBodyType !== 'All Types') params.set('bodyStyle', f.selectedBodyType)
+  if (f.selectedYear !== 'All Years') {
+    params.set('minYear', f.selectedYear)
+    params.set('maxYear', f.selectedYear)
+  }
+  if (f.selectedTransmission !== 'All Transmissions') params.set('transmission', f.selectedTransmission)
+  if (f.selectedColor !== 'All Colors') params.set('exteriorColor', f.selectedColor)
+  if (f.selectedDrivetrain !== 'All Drivetrains') params.set('drivetrain', f.selectedDrivetrain)
+  if (f.priceRange[0] > 0) params.set('minPrice', String(f.priceRange[0]))
+  if (f.priceRange[1] < 400000) params.set('maxPrice', String(f.priceRange[1]))
+  if (f.mileageRange[0] > 0) params.set('minMileage', String(f.mileageRange[0]))
+  if (f.mileageRange[1] < 200000) params.set('maxMileage', String(f.mileageRange[1]))
+  if (f.searchQuery.trim()) params.set('q', f.searchQuery.trim())
+}
+
 /**
  * Render the interactive vehicle inventory page with search, filters, sorting, pagination, favorites, and optional trade-in integration.
  *
@@ -176,6 +209,22 @@ const drivetrains = ["All Drivetrains", "AWD", "FWD", "RWD", "4WD"]
  *
  * @returns The inventory page JSX element ready for rendering.
  */
+interface ApiFilterData {
+  makes?: string[]
+  yearRange?: { min: number; max: number }
+  bodyStyles?: string[]
+}
+
+function deriveDynamicFilters(apiFilters?: ApiFilterData) {
+  const dynamicMakes = apiFilters?.makes?.length
+    ? ['All Makes', ...apiFilters.makes]
+    : ['All Makes']
+  const yr = apiFilters?.yearRange
+  const dynamicYears = yr
+    ? ['All Years', ...Array.from({ length: yr.max - yr.min + 1 }, (_, i) => String(yr.max - i))]
+    : ['All Years']
+  return { dynamicMakes, dynamicYears }
+}
 function InventoryContent() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -239,30 +288,13 @@ function InventoryContent() {
     const params = new URLSearchParams()
     params.set('limit', String(API_PAGE_SIZE))
     params.set('page', String(effectivePage))
-
-    // Sort mapping
-    if (sortBy === 'price-low') { params.set('sort', 'price'); params.set('order', 'asc') }
-    else if (sortBy === 'price-high') { params.set('sort', 'price'); params.set('order', 'desc') }
-    else if (sortBy === 'mileage-low') { params.set('sort', 'mileage'); params.set('order', 'asc') }
-    else if (sortBy === 'newest') { params.set('sort', 'year'); params.set('order', 'desc') }
-    else { params.set('sort', 'created_at'); params.set('order', 'desc') }
-
-    // Filters
-    if (evOnly) { params.set('fuelType', 'Electric') }
-    else if (selectedFuelType !== 'All Fuel Types') { params.set('fuelType', selectedFuelType) }
-    if (selectedMake !== 'All Makes') params.set('make', selectedMake)
-    if (selectedBodyType !== 'All Types') params.set('bodyStyle', selectedBodyType)
-    if (selectedYear !== 'All Years') { params.set('minYear', selectedYear); params.set('maxYear', selectedYear) }
-    if (selectedTransmission !== 'All Transmissions') params.set('transmission', selectedTransmission)
-    if (selectedColor !== 'All Colors') params.set('exteriorColor', selectedColor)
-    if (selectedDrivetrain !== 'All Drivetrains') params.set('drivetrain', selectedDrivetrain)
-    if (priceRange[0] > 0) params.set('minPrice', String(priceRange[0]))
-    if (priceRange[1] < 400000) params.set('maxPrice', String(priceRange[1]))
-    if (mileageRange[0] > 0) params.set('minMileage', String(mileageRange[0]))
-    if (mileageRange[1] < 200000) params.set('maxMileage', String(mileageRange[1]))
-    if (searchQuery.trim()) params.set('q', searchQuery.trim())
+    applySortParams(params, sortBy)
+    applyFilterParams(params, {
+      evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
+      selectedTransmission, selectedColor, selectedDrivetrain,
+      priceRange, mileageRange, searchQuery,
+    })
     params.set('includeFilters', 'true')
-
     return `/api/v1/vehicles?${params.toString()}`
   }, [effectivePage, sortBy, evOnly, selectedFuelType, selectedMake, selectedBodyType, selectedYear,
       selectedTransmission, selectedColor, selectedDrivetrain, priceRange, mileageRange, searchQuery])
@@ -294,100 +326,92 @@ function InventoryContent() {
 
   // Derive dropdown values from API response filters, falling back to sensible defaults
   const apiFilters = apiResponse?.data?.filters
-  const dynamicMakes = apiFilters?.makes?.length
-    ? ['All Makes', ...apiFilters.makes]
-    : ['All Makes']
-  const dynamicYears = apiFilters?.yearRange
-    ? ['All Years', ...Array.from({ length: apiFilters.yearRange.max - apiFilters.yearRange.min + 1 }, (_, i) => String(apiFilters.yearRange.max - i))]
-    : ['All Years']
-  const _dynamicBodyTypes = apiFilters?.bodyStyles?.length
-    ? ['All Body Types', ...apiFilters.bodyStyles]
-    : ['All Body Types']
+  const { dynamicMakes, dynamicYears } = deriveDynamicFilters(apiFilters)
+
+  const resetFiltersToDefaults = useCallback(() => {
+    setSelectedFuelType("All Fuel Types")
+    setSelectedBodyType("All Types")
+    setSelectedMake("All Makes")
+    setSelectedYear("All Years")
+    setSelectedTransmission("All Transmissions")
+    setSelectedColor("All Colors")
+    setSelectedDrivetrain("All Drivetrains")
+    setPriceRange([0, 400000])
+    setMileageRange([0, 200000])
+    setEvOnly(false)
+    setSearchQuery("")
+    setSearchInput("")
+  }, [])
+
+  const applyFuelTypeFilter = useCallback((fuelType: string | null) => {
+    if (fuelType === "Electric") { setSelectedFuelType("Electric"); setEvOnly(true) }
+    else if (fuelType) setSelectedFuelType(fuelType)
+  }, [])
+
+  const applyPriceFilter = useCallback((minPrice: string | null, maxPrice: string | null) => {
+    if (!minPrice && !maxPrice) return
+    const min = minPrice ? Number.parseInt(minPrice) : 0
+    const max = maxPrice ? Number.parseInt(maxPrice) : 400000
+    setPriceRange([Number.isNaN(min) ? 0 : min, Number.isNaN(max) ? 400000 : max])
+  }, [])
+
+  const applyCategoryFilter = useCallback((category: string | null) => {
+    if (category === "Luxury") { setSearchQuery("luxury"); setSearchInput("luxury") }
+    else if (category === "Family") setSelectedBodyType("SUV")
+  }, [])
+
+  const applyUrlFilters = useCallback((urlParams: {
+    fuelType: string | null
+    bodyType: string | null
+    make: string | null
+    maxPrice: string | null
+    minPrice: string | null
+    category: string | null
+    transmission: string | null
+    urlQuery: string | null
+  }) => {
+    const { fuelType, bodyType, make, maxPrice, minPrice, category, transmission, urlQuery } = urlParams
+    applyFuelTypeFilter(fuelType)
+    if (bodyType) setSelectedBodyType(bodyType)
+    if (make) setSelectedMake(make)
+    applyPriceFilter(minPrice, maxPrice)
+    if (transmission) setSelectedTransmission(transmission)
+    applyCategoryFilter(category)
+    if (urlQuery) { setSearchQuery(urlQuery); setSearchInput(urlQuery) }
+  }, [applyFuelTypeFilter, applyPriceFilter, applyCategoryFilter])
+
+  const captureTradeInFromUrl = useCallback((sp: URLSearchParams) => {
+    const tradeIn = sp.get("tradeIn")
+    const tradeInValue = tradeIn ? Number.parseInt(tradeIn) : 0
+    if (!Number.isFinite(tradeInValue) || tradeInValue <= 0) return
+    // URLSearchParams.get() returns an already-decoded value; calling
+    // decodeURIComponent again can throw URIError on legitimate inputs that
+    // contain a literal "%" (e.g. "100%25" -> "100%"). Use the raw value.
+    const tradeInVehicle = sp.get("tradeInVehicle") || ''
+    setTradeInInfo({
+      value: tradeInValue,
+      quoteId: sp.get("quoteId") || '',
+      vehicle: tradeInVehicle,
+    })
+  }, [])
 
   // Read URL parameters and set filters
   // IMPORTANT: Reset ALL filters first, then apply only what the URL specifies.
-  // This prevents stale filters from persisting when navigating between
-  // homepage category links (e.g. Electric → SUV → Sedan).
   useEffect(() => {
-    const fuelType = searchParams.get("fuelType")
-    const bodyType = searchParams.get("bodyType")
-    const make = searchParams.get("make")
-    const maxPrice = searchParams.get("maxPrice")
-    const minPrice = searchParams.get("minPrice")
-    const category = searchParams.get("category")
-    const transmission = searchParams.get("transmission")
-    const urlQuery = searchParams.get("q")
-    // Check for trade-in from AI Quote
-    const tradeIn = searchParams.get("tradeIn")
-    const quoteId = searchParams.get("quoteId")
-    const tradeInVehicle = searchParams.get("tradeInVehicle")
-
-    if (tradeIn && parseInt(tradeIn) > 0) {
-      setTradeInInfo({
-        value: parseInt(tradeIn),
-        quoteId: quoteId || '',
-        vehicle: tradeInVehicle ? decodeURIComponent(tradeInVehicle) : ''
-      })
+    const params = {
+      fuelType: searchParams.get("fuelType"),
+      bodyType: searchParams.get("bodyType"),
+      make: searchParams.get("make"),
+      maxPrice: searchParams.get("maxPrice"),
+      minPrice: searchParams.get("minPrice"),
+      category: searchParams.get("category"),
+      transmission: searchParams.get("transmission"),
+      urlQuery: searchParams.get("q"),
     }
-
-    // Only reset filters when URL has filter-related params (not on bare /inventory)
-    const hasFilterParams = fuelType || bodyType || make || maxPrice || minPrice || category || transmission || urlQuery
-    if (hasFilterParams) {
-      // Reset all filters to defaults before applying URL params
-      setSelectedFuelType("All Fuel Types")
-      setSelectedBodyType("All Types")
-      setSelectedMake("All Makes")
-      setSelectedYear("All Years")
-      setSelectedTransmission("All Transmissions")
-      setSelectedColor("All Colors")
-      setSelectedDrivetrain("All Drivetrains")
-      setPriceRange([0, 400000])
-      setMileageRange([0, 200000])
-      setEvOnly(false)
-      setSearchQuery("")
-      setSearchInput("")
-    }
-
-    // Apply URL-specified filters
-    if (fuelType === "Electric") {
-      setSelectedFuelType("Electric")
-      setEvOnly(true)
-    } else if (fuelType) {
-      setSelectedFuelType(fuelType)
-    }
-
-    if (bodyType) {
-      setSelectedBodyType(bodyType)
-    }
-
-    if (make) {
-      setSelectedMake(make)
-    }
-
-    if (minPrice || maxPrice) {
-      const min = minPrice ? parseInt(minPrice) : 0
-      const max = maxPrice ? parseInt(maxPrice) : 400000
-      setPriceRange([isNaN(min) ? 0 : min, isNaN(max) ? 400000 : max])
-    }
-
-    if (transmission) {
-      setSelectedTransmission(transmission)
-    }
-
-    // Map category shortcuts to concrete filters
-    if (category === "Luxury") {
-      setSearchQuery("luxury")
-      setSearchInput("luxury")
-    } else if (category === "Family") {
-      setSelectedBodyType("SUV")
-    }
-
-    // Read search query from URL (e.g. /inventory?q=Tesla)
-    if (urlQuery) {
-      setSearchQuery(urlQuery)
-      setSearchInput(urlQuery)
-    }
-  }, [searchParams])
+    captureTradeInFromUrl(searchParams)
+    if (Object.values(params).some(Boolean)) resetFiltersToDefaults()
+    applyUrlFilters(params)
+  }, [searchParams, resetFiltersToDefaults, applyUrlFilters, captureTradeInFromUrl])
 
   // Final display list comes from the accumulator
   const sortedVehicles = accumulatedVehicles
@@ -398,7 +422,6 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
     } else {
       const name = `${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`
       trackAddToWishlist({ id: vehicleData.id, name, price: vehicleData.price })
-      trackMetaAddToWishlist({ id: vehicleData.id, name, price: vehicleData.price })
       addFavorite({
         id: vehicleData.id,
         year: vehicleData.year,
@@ -450,7 +473,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 <main id="main-content" tabIndex={-1} className="pt-20 pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
   {/* Trade-In Banner */}
   {tradeInInfo && tradeInInfo.value > 0 && (
-    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+    <div className="bg-linear-to-r from-green-600 to-emerald-600 text-white py-3">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
@@ -512,6 +535,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by make, model, VIN, stock #..."
+                  aria-label="Search inventory"
                   value={searchInput}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-10 h-11 text-base"
@@ -520,7 +544,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   <button
                     onClick={() => { setSearchQuery(""); setSearchInput("") }}
                     aria-label="Clear search"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 min-w-11 min-h-11 flex items-center justify-center"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                   </button>
@@ -553,12 +577,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <option value="mileage-low">Low Mileage</option>
                 <option value="newest">Newest</option>
               </select>
-              <div className="flex border rounded-lg overflow-hidden shrink-0" role="group" aria-label="View mode">
+              <fieldset className="flex border rounded-lg overflow-hidden shrink-0 p-0 m-0 min-w-0">
+                <legend className="sr-only">View mode</legend>
                 <button
                   onClick={() => setViewMode("grid")}
                   aria-label="Grid view"
                   aria-pressed={viewMode === "grid"}
-                  className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
+                  className={`px-3 h-11 flex items-center min-w-11 justify-center transition-colors ${
                     viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
                 >
@@ -568,13 +593,13 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   onClick={() => setViewMode("list")}
                   aria-label="List view"
                   aria-pressed={viewMode === "list"}
-                  className={`px-3 h-11 flex items-center min-w-[44px] justify-center transition-colors ${
+                  className={`px-3 h-11 flex items-center min-w-11 justify-center transition-colors ${
                     viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   }`}
                 >
                   <List className="w-4 h-4" />
                 </button>
-              </div>
+              </fieldset>
             </div>
 
             {/* Desktop: Original layout */}
@@ -584,6 +609,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by make, model, VIN, stock #..."
+                  aria-label="Search inventory"
                   value={searchInput}
                   onChange={(e) => handleSearchInput(e.target.value)}
                   className="pl-12 h-12 text-lg"
@@ -591,6 +617,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 {searchInput && (
                   <button
                     onClick={() => { setSearchQuery(""); setSearchInput("") }}
+                    aria-label="Clear search"
                     className="absolute right-4 top-1/2 -translate-y-1/2"
                   >
                     <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
@@ -639,7 +666,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 aria-label="Sort vehicles"
-                className="h-12 px-4 border rounded-lg bg-background min-w-[180px]"
+                className="h-12 px-4 border rounded-lg bg-background min-w-45"
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -660,7 +687,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     setEvOnly(false)
                     setSelectedMake(selectedMake === make ? "All Makes" : make)
                   }}
-                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap shrink-0 min-h-[44px] ${
+                  className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors whitespace-nowrap shrink-0 min-h-11 ${
                     selectedMake === make
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted hover:bg-muted/80"
@@ -678,7 +705,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     setSelectedMake("All Makes")
                   }
                 }}
-                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-[44px] ${
+                className={`px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 min-h-11 ${
                   evOnly
                     ? "bg-green-500 text-white"
                     : "bg-muted hover:bg-muted/80"
@@ -697,7 +724,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     <Filter className="w-4 sm:w-5 h-4 sm:h-5" />
                     Filters
                   </h3>
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="min-h-[44px]">
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="min-h-11">
                     <RotateCcw className="w-4 h-4 mr-1" />
                     Clear
                   </Button>
@@ -706,8 +733,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                   {/* Make */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Make</label>
+                    <label htmlFor="filter-make" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Make</label>
                     <select
+                      id="filter-make"
                       value={selectedMake}
                       onChange={(e) => { setSelectedMake(e.target.value) }}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -720,8 +748,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Year */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
+                    <label htmlFor="filter-year" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Year</label>
                     <select
+                      id="filter-year"
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -734,8 +763,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Fuel Type */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
+                    <label htmlFor="filter-fuel" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Fuel</label>
                     <select
+                      id="filter-fuel"
                       value={selectedFuelType}
                       onChange={(e) => setSelectedFuelType(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -748,8 +778,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Transmission */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
+                    <label htmlFor="filter-trans" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Trans</label>
                     <select
+                      id="filter-trans"
                       value={selectedTransmission}
                       onChange={(e) => setSelectedTransmission(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -762,8 +793,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Drivetrain */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
+                    <label htmlFor="filter-drive" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Drive</label>
                     <select
+                      id="filter-drive"
                       value={selectedDrivetrain}
                       onChange={(e) => setSelectedDrivetrain(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -776,8 +808,9 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
 
                   {/* Color */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
+                    <label htmlFor="filter-color" className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Color</label>
                     <select
+                      id="filter-color"
                       value={selectedColor}
                       onChange={(e) => setSelectedColor(e.target.value)}
                       className="w-full h-11 px-3 border rounded-lg bg-background text-sm"
@@ -835,20 +868,28 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
             )}
           </div>
 
-          {/* Inline error state */}
+          {/* Inline error state — role=alert so screen readers announce the
+              failure immediately; text-red-700 over white passes WCAG 2.2 AA
+              contrast (5.94:1) where text-red-500 (3.76:1) does not. */}
           {showError && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <p className="text-red-500 mb-4">Error loading inventory</p>
-              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <div
+              role="alert"
+              aria-live="polite"
+              className="flex flex-col items-center justify-center py-20"
+            >
+              <p className="text-red-700 dark:text-red-400 mb-4 font-medium">
+                Error loading inventory
+              </p>
+              <Button onClick={() => globalThis.location.reload()}>Try Again</Button>
             </div>
           )}
 
           {/* Inline skeleton loading state */}
           {showSkeleton && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="rounded-xl border overflow-hidden animate-pulse">
-                  <div className="aspect-[4/3] bg-muted" />
+              {INVENTORY_SKELETON_KEYS.map((skeletonKey) => (
+                <div key={skeletonKey} className="rounded-xl border overflow-hidden animate-pulse">
+                  <div className="aspect-4/3 bg-muted" />
                   <div className="p-4 space-y-3">
                     <div className="h-5 bg-muted rounded w-3/4" />
                     <div className="h-4 bg-muted rounded w-1/2" />
@@ -862,7 +903,11 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           {/* Vehicle Grid — content-visibility virtualizes off-screen cards */}
           {!showSkeleton && !showError && (<>
           <div aria-live="polite" className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
-            {sortedVehicles.map((vehicle) => (
+            {sortedVehicles.map((vehicle, vehicleIndex) => {
+              const imageLoadingProps = vehicleIndex < 3
+                ? { priority: true } as const
+                : { loading: "lazy" } as const
+              return (
               <div
                 key={vehicle.id}
                 style={{
@@ -877,11 +922,11 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 }`}
               >
                 {/* Image with gradient fallback — entire image area is clickable */}
-                <div className={`relative bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 flex-shrink-0 aspect-[4/3] sm:aspect-auto" : "aspect-[4/3]"}`}>
+                <div className={`relative bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] ${viewMode === "list" ? "w-full sm:w-48 md:w-72 shrink-0 aspect-4/3 sm:aspect-auto" : "aspect-4/3"}`}>
                   {/* Clickable image link to VDP */}
                   <Link
                     href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`}
-                    className="absolute inset-0 z-[1]"
+                    className="absolute inset-0 z-1"
                     aria-label={`View ${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                   />
                   {vehicle.image ? (
@@ -889,11 +934,10 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       src={vehicle.image}
                       alt={`${vehicle.year} ${vehicle.make} ${vehicle.model} for sale, ${vehicle.mileage.toLocaleString()} km, Planet Motors`}
                       fill
-                      loading="lazy"
+                      {...imageLoadingProps}
                       className="object-cover group-hover:scale-105 transition-transform duration-500 [clip-path:inset(0_0_8%_0)]"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       onError={(e) => {
-                        // Hide broken image — gradient + icon shows through
                         (e.target as HTMLImageElement).style.display = "none"
                       }}
                     />
@@ -903,26 +947,34 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     </div>
                   )}
                   
-                  {/* Badges — z-[2] to sit above the image link */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-2 z-[2] pointer-events-none">
-                    <Badge className={`${vehicle.badgeColor} text-white shadow-lg`}>
-                      {vehicle.badge}
-                    </Badge>
+                  {/* Badges — z-2 to sit above the image link.
+                      Stack rules:
+                        - Electric:  Electric → % Battery → PM Certified (3 badges)
+                        - Gas/Hybrid: PM Certified only (1 badge)
+                      The previous generic `vehicle.badge` (which could resolve to a
+                      blue "PM Certified" via deriveBadge) was creating a duplicate
+                      certified chip on Hybrid rows — removed. */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2 z-2 pointer-events-none">
                     {vehicle.fuelType === "Electric" && (
-                      <Badge className="bg-green-700 text-white shadow-lg">
-                        <Battery className="w-3 h-3 mr-1" />
-                        {vehicle.batteryHealth}% Battery
-                      </Badge>
+                      <>
+                        <Badge className="bg-teal-700 text-white shadow-lg">
+                          <Zap className="w-3 h-3 mr-1" />
+                          Electric
+                        </Badge>
+                        <Badge className="bg-green-700 text-white shadow-lg">
+                          <Battery className="w-3 h-3 mr-1" />
+                          {vehicle.batteryHealth}% Battery
+                        </Badge>
+                      </>
                     )}
-                    {/* PM Certified Badge */}
                     <Badge className="bg-teal-700 text-white shadow-lg">
                       <Shield className="w-3 h-3 mr-1" />
                       PM Certified
                     </Badge>
                   </div>
 
-                  {/* Actions — z-[2] to sit above the image link */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-[2]">
+                  {/* Actions — z-2 to sit above the image link */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-2">
                     <button
                       onClick={() => toggleFavorite(vehicle)}
                       aria-label={isFavorite(vehicle.id) ? "Remove from favorites" : "Add to favorites"}
@@ -958,6 +1010,21 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                   </div>
                   )}
 
+                  {/* Reserved / Sold overlay */}
+                  {vehicle.status === "reserved" && (
+                    <div className="absolute inset-0 bg-black/10 flex items-center justify-center pointer-events-none z-3">
+                      <span className="bg-yellow-600 text-white px-5 py-2 text-sm font-bold uppercase tracking-widest -rotate-6 shadow-xl rounded-sm">
+                        Reserved
+                      </span>
+                    </div>
+                  )}
+                  {vehicle.status === "sold" && (
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center pointer-events-none z-3">
+                      <span className="bg-red-600 text-white px-6 py-2 text-lg font-bold uppercase tracking-widest -rotate-12 shadow-xl rounded-sm">
+                        Sold
+                      </span>
+                    </div>
+                  )}
 
                 </div>
 
@@ -993,8 +1060,8 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                     {/* Features Preview */}
                     {viewMode === "list" && (
                       <div className="flex flex-wrap gap-2 mt-3">
-                        {vehicle.features.map((feature, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
+                        {vehicle.features.map((feature) => (
+                          <Badge key={feature} variant="secondary" className="text-xs">
                             {feature}
                           </Badge>
                         ))}
@@ -1020,16 +1087,20 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                           </p>
                         )}
 <p className="text-2xl font-bold tabular-nums">${vehicle.price.toLocaleString()}</p>
+                      {vehicle.status === "available" && (
                       <Link href={`/finance/${vehicle.id}`} className="text-sm text-primary hover:underline tabular-nums">
                         Est. ${vehicle.monthlyPayment}/mo
                       </Link>
+                      )}
                       </div>
                       <div className="flex gap-2">
+                        {vehicle.status === "available" && (
                         <Button size="sm" variant="outline" asChild>
                           <Link href={tradeInInfo ? `/financing/application?vehicleId=${vehicle.id}&tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/financing/application?vehicleId=${vehicle.id}`}>
                             Finance
                           </Link>
                         </Button>
+                        )}
 <Button size="sm" asChild>
   <Link href={tradeInInfo ? `/vehicles/${vehicle.id}?tradeIn=${tradeInInfo.value}&quoteId=${tradeInInfo.quoteId}&tradeInVehicle=${encodeURIComponent(tradeInInfo.vehicle)}` : `/vehicles/${vehicle.id}`}>
   View
@@ -1045,24 +1116,16 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                       </div>
                     )}
                     
-                    {/* CARFAX Badge */}
-                    {vehicle.carfaxUrl && (
-                      <a 
-                        href={vehicle.carfaxUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <span className="font-bold text-[#e01f26]">CARFAX</span>
-                        <span>Report Available</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                    {/* CARFAX Badges — real per-VIN data from Badging API */}
+                    {vehicle.vin && (
+                      <CarfaxCardBadges vin={vehicle.vin} />
                     )}
                   </div>
                 </CardContent>
               </Card>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* No Results */}
@@ -1090,7 +1153,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 size="lg"
                 onClick={() => setPagination({ filterKey, page: effectivePage + 1 })}
                 disabled={isValidating}
-                className="min-w-[200px]"
+                className="min-w-50"
               >
                 {isValidating ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Loading...</>
@@ -1110,10 +1173,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline hover:text-foreground"
-              >
-                OMVIC Registered Dealer
-              </a>
-              . All prices exclude applicable taxes and licensing fees.
+              >OMVIC Registered Dealer</a>. All prices exclude applicable taxes and licensing fees.
             </p>
           </div>
         </div>

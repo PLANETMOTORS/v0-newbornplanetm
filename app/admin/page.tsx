@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { 
   Car, DollarSign, TrendingUp, ArrowUpRight,
-  MessageSquare, Clock,
+  MessageSquare,
   ChevronRight, CalendarCheck, Users, Bot, RefreshCw, FileText
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { timeAgo, sourceIcon, leadStatusVariant as statusColor } from "@/lib/admin/lead-utils"
+import { CleanupTestDataCard } from "@/components/admin/cleanup-test-data-card"
 
 interface DashboardStats {
   totalInventory: number
@@ -43,39 +45,6 @@ interface ActivityItem {
   time: string
   status: string
   id: string
-}
-
-function timeAgo(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return "just now"
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
-}
-
-function sourceIcon(source: string) {
-  switch (source) {
-    case "contact_form": return MessageSquare
-    case "chat": return Bot
-    case "finance_app": return DollarSign
-    case "reservation": return CalendarCheck
-    case "trade_in": return Car
-    case "test_drive": return Clock
-    default: return MessageSquare
-  }
-}
-
-function statusColor(status: string): "default" | "secondary" | "outline" | "destructive" {
-  switch (status) {
-    case "new": return "default"
-    case "contacted": return "secondary"
-    case "qualified": return "outline"
-    case "converted": return "default"
-    case "lost": return "destructive"
-    default: return "secondary"
-  }
 }
 
 export default function AdminDashboard() {
@@ -237,12 +206,15 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 {recentActivity.slice(0, 8).map((activity, index) => (
                   <div key={`${activity.id}-${index}`} className="flex gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                      activity.type === "order" ? "bg-green-600" :
-                      activity.type === "finance" ? "bg-purple-600" :
-                      activity.type === "reservation" ? "bg-orange-600" :
-                      "bg-blue-600"
-                    }`} />
+                    {(() => {
+                      const DOT_COLORS: Record<string, string> = {
+                        order: "bg-green-600",
+                        finance: "bg-purple-600",
+                        reservation: "bg-orange-600",
+                      }
+                      const dotColor = DOT_COLORS[activity.type] ?? "bg-blue-600"
+                      return <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${dotColor}`} />
+                    })()}
                     <div>
                       <p className="text-sm font-medium">{activity.title}</p>
                       <p className="text-xs text-gray-500">{activity.detail}</p>
@@ -255,6 +227,9 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cleanup test data — admin operator action */}
+      <CleanupTestDataCard />
 
       {/* Quick Actions */}
       <Card>

@@ -19,7 +19,7 @@ const siteUrl = getPublicSiteUrl()
 
 export const metadata = {
   title: "Vehicle Protection Plans | Warranty Coverage | Planet Motors",
-  description: "Bumper-to-bumper warranty coverage starting from $1,950. Plans from $29/month. Compare Essential, Certified, and Certified Plus packages. Optional zero-deductible coverage.",
+  description: "Drive with peace of mind. Explore our 5-year mechanical breakdown protection and warranty plans designed specifically for Canadian drivers.",
   keywords: "vehicle protection plans, extended warranty, GAP insurance, tire and rim protection, Planet Motors warranty",
   openGraph: {
     title: "Vehicle Protection Plans | Warranty Coverage | Planet Motors",
@@ -133,7 +133,7 @@ export default function ProtectionPlansPage() {
         </div>
 
         {/* ═══════════ HERO ═══════════ */}
-        <section className="relative py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
+        <section className="relative py-20 lg:py-28 bg-linear-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
           {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
@@ -172,7 +172,7 @@ export default function ProtectionPlansPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
               {trustBadges.map((badge) => (
                 <div key={badge.label} className="flex items-center justify-center gap-3 py-5 md:py-6">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <badge.icon className="w-5 h-5 text-primary" />
                   </div>
                   <div className="text-left">
@@ -194,8 +194,8 @@ export default function ProtectionPlansPage() {
                 Compare Protection Packages
               </h2>
               <p className="mt-4 text-muted-foreground max-w-2xl mx-auto text-base md:text-lg">
-                Every vehicle includes our 150+ point inspection and safety certificate.
-                Choose a package to unlock additional protection.
+                Every vehicle includes our 210-point inspection and safety certificate.
+                Choose a package for added peace-of-mind coverage.
               </p>
             </div>
 
@@ -225,7 +225,7 @@ export default function ProtectionPlansPage() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { icon: Shield, title: "Comprehensive Coverage", description: "Protection from depreciation, repairs, and unforeseen events with $0 deductible options" },
+                { icon: Shield, title: "Total Coverage", description: "Protection from depreciation, repairs, and unforeseen events with $0 deductible options" },
                 { icon: Clock, title: "Quick Claims", description: "Fast processing with direct payment to any licensed repair facility across Canada" },
                 { icon: Phone, title: "24/7 Support", description: "Round-the-clock roadside assistance and dedicated claims support line" },
                 { icon: Award, title: "Fully Transferable", description: "Coverage transfers to new owners, increasing your vehicle's resale value" },

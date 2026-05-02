@@ -34,7 +34,7 @@ const getVehicleValue = (year: number, make: string, model: string, mileage: num
   const mileageDiff = mileage - expectedMileage
   if (mileageDiff > 0) {
     // Over mileage: deduct $0.10 per km
-    baseValue -= mileageDiff * 0.10
+    baseValue -= mileageDiff * 0.1
   } else {
     // Under mileage: add $0.05 per km
     baseValue += Math.abs(mileageDiff) * 0.05
@@ -43,11 +43,11 @@ const getVehicleValue = (year: number, make: string, model: string, mileage: num
   // Condition adjustment
   const conditionMultipliers: Record<string, number> = {
     excellent: 1.1,
-    good: 1.0,
+    good: 1,
     fair: 0.9,
     poor: 0.75,
   }
-  baseValue *= conditionMultipliers[condition] || 1.0
+  baseValue *= conditionMultipliers[condition] || 1
   
   // Calculate range
   const lowValue = baseValue * 0.92
@@ -249,10 +249,10 @@ export async function POST(request: NextRequest) {
 export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
 
-  const year = parseInt(searchParams.get('year') || '0')
+  const year = Number.parseInt(searchParams.get('year') || '0')
   const make = searchParams.get('make') || ''
   const model = searchParams.get('model') || ''
-  const mileage = parseInt(searchParams.get('mileage') || '0')
+  const mileage = Number.parseInt(searchParams.get('mileage') || '0')
   const condition = searchParams.get('condition') || 'good'
 
   if (!year || !make || !model || !mileage) {

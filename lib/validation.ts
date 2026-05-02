@@ -3,6 +3,8 @@
  * Enforces strict Canadian format validation for all forms
  */
 
+import { isEmailLike } from "@/lib/validation/email"
+
 // Canadian Postal Code Validation (A1A 1A1 format)
 // Valid format: Letter-Number-Letter Space Number-Letter-Number
 // First letter cannot be D, F, I, O, Q, U, W, Z
@@ -11,7 +13,7 @@ export function isValidCanadianPostalCode(postalCode: string): boolean {
   if (!postalCode) return false
   
   // Remove spaces and convert to uppercase
-  const cleaned = postalCode.replace(/\s/g, '').toUpperCase()
+  const cleaned = postalCode.replaceAll(/\s/g, '').toUpperCase()
   
   // Must be exactly 6 characters after removing spaces
   if (cleaned.length !== 6) return false
@@ -30,7 +32,7 @@ export function isValidCanadianPostalCode(postalCode: string): boolean {
 
 // Format postal code to standard format (A1A 1A1)
 export function formatCanadianPostalCode(postalCode: string): string {
-  const cleaned = postalCode.replace(/\s/g, '').toUpperCase()
+  const cleaned = postalCode.replaceAll(/\s/g, '').toUpperCase()
   if (cleaned.length >= 3) {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
   }
@@ -45,7 +47,7 @@ export function isValidCanadianPhoneNumber(phone: string): boolean {
   if (!phone) return false
   
   // Remove all non-digits except leading +
-  const cleaned = phone.replace(/[^\d+]/g, '')
+  const cleaned = phone.replaceAll(/[^\d+]/g, '')
   
   // Remove +1 country code if present
   const digits = cleaned.replace(/^\+?1/, '')
@@ -55,11 +57,11 @@ export function isValidCanadianPhoneNumber(phone: string): boolean {
   
   // Area code (first 3 digits) cannot start with 0 or 1
   const areaCode = digits.substring(0, 3)
-  if (areaCode[0] === '0' || areaCode[0] === '1') return false
-  
+  if (areaCode.startsWith('0') || areaCode.startsWith('1')) return false
+
   // Exchange code (digits 4-6) cannot start with 0 or 1
   const exchangeCode = digits.substring(3, 6)
-  if (exchangeCode[0] === '0' || exchangeCode[0] === '1') return false
+  if (exchangeCode.startsWith('0') || exchangeCode.startsWith('1')) return false
   
   // Common fake number patterns to reject
   const fakePatterns = [
@@ -86,7 +88,7 @@ export function isValidCanadianPhoneNumber(phone: string): boolean {
 
 // Format phone number to standard format (416) 555-1234
 export function formatCanadianPhoneNumber(phone: string): string {
-  const cleaned = phone.replace(/[^\d]/g, '')
+  const cleaned = phone.replaceAll(/[^\d]/g, '')
   const digits = cleaned.replace(/^1/, '') // Remove leading 1 if present
   
   if (digits.length === 10) {
@@ -99,11 +101,11 @@ export function formatCanadianPhoneNumber(phone: string): string {
 // Stricter validation that rejects common fake patterns
 export function isValidEmail(email: string): boolean {
   if (!email) return false
-  
-  // Basic email format check
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-  if (!emailRegex.test(email)) return false
-  
+
+  // Structural, ReDoS-free check (S5852/S2631) — delegates to isEmailLike
+  // which uses indexOf/lastIndexOf instead of backtracking regex.
+  if (!isEmailLike(email)) return false
+
   // Reject common fake email patterns
   const localPart = email.split('@')[0].toLowerCase()
   const domain = email.split('@')[1]?.toLowerCase()
@@ -169,7 +171,7 @@ export function isValidName(name: string): boolean {
 export function isValidVIN(vin: string): boolean {
   if (!vin) return true // VIN is often optional
   
-  const cleaned = vin.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '')
+  const cleaned = vin.toUpperCase().replaceAll(/[^A-HJ-NPR-Z0-9]/g, '')
   
   if (cleaned.length !== 17) return false
   
@@ -182,9 +184,9 @@ export function isValidVIN(vin: string): boolean {
 // Mileage Validation
 // Must be a positive number, reasonable range (0 - 1,000,000 km)
 export function isValidMileage(mileage: string | number): boolean {
-  const num = typeof mileage === 'string' ? parseInt(mileage.replace(/,/g, ''), 10) : mileage
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(',', ''), 10) : mileage
   
-  if (isNaN(num)) return false
+  if (Number.isNaN(num)) return false
   if (num < 0 || num > 1000000) return false
   
   return true
@@ -192,8 +194,8 @@ export function isValidMileage(mileage: string | number): boolean {
 
 // Format mileage with commas
 export function formatMileage(mileage: string | number): string {
-  const num = typeof mileage === 'string' ? parseInt(mileage.replace(/,/g, ''), 10) : mileage
-  if (isNaN(num)) return '0'
+  const num = typeof mileage === 'string' ? Number.parseInt(mileage.replaceAll(',', ''), 10) : mileage
+  if (Number.isNaN(num)) return '0'
   return num.toLocaleString()
 }
 
@@ -216,6 +218,26 @@ export interface ValidationResult {
   errors: Record<string, string>
 }
 
+/** Validate a single field value against its rule. Returns an error message or null. */
+function validateField(field: string, value: string, rule: ValidationRule): string | null {
+  if (rule.required && value.trim() === "") {
+    return rule.message || `${field} is required`
+  }
+  if (value && rule.minLength && value.length < rule.minLength) {
+    return rule.message || `${field} must be at least ${rule.minLength} characters`
+  }
+  if (value && rule.maxLength && value.length > rule.maxLength) {
+    return rule.message || `${field} must be at most ${rule.maxLength} characters`
+  }
+  if (value && rule.pattern && !rule.pattern.test(value)) {
+    return rule.message || `${field} is invalid`
+  }
+  if (value && rule.custom && !rule.custom(value)) {
+    return rule.message || `${field} is invalid`
+  }
+  return null
+}
+
 export function validateForm(
   data: Record<string, string>,
   rules: Record<string, ValidationRule>
@@ -224,31 +246,8 @@ export function validateForm(
 
   for (const [field, rule] of Object.entries(rules)) {
     const value = data[field] || ''
-
-    if (rule.required && !value.trim()) {
-      errors[field] = rule.message || `${field} is required`
-      continue
-    }
-
-    if (value && rule.minLength && value.length < rule.minLength) {
-      errors[field] = rule.message || `${field} must be at least ${rule.minLength} characters`
-      continue
-    }
-
-    if (value && rule.maxLength && value.length > rule.maxLength) {
-      errors[field] = rule.message || `${field} must be at most ${rule.maxLength} characters`
-      continue
-    }
-
-    if (value && rule.pattern && !rule.pattern.test(value)) {
-      errors[field] = rule.message || `${field} is invalid`
-      continue
-    }
-
-    if (value && rule.custom && !rule.custom(value)) {
-      errors[field] = rule.message || `${field} is invalid`
-      continue
-    }
+    const error = validateField(field, value, rule)
+    if (error) errors[field] = error
   }
 
   return {
@@ -306,17 +305,15 @@ export function validateTradeInForm(data: TradeInFormData): { valid: boolean; er
   const errors: Record<string, string> = {}
   
   // Name validation (either combined name or first/last)
-  if (data.name !== undefined) {
-    if (!isValidName(data.name)) {
-      errors.name = ValidationMessages.name
-    }
-  } else {
+  if (data.name === undefined) {
     if (data.firstName !== undefined && !isValidName(data.firstName)) {
       errors.firstName = ValidationMessages.name
     }
     if (data.lastName !== undefined && !isValidName(data.lastName)) {
       errors.lastName = ValidationMessages.name
     }
+  } else if (!isValidName(data.name)) {
+    errors.name = ValidationMessages.name
   }
   
   // Email validation

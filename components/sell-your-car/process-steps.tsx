@@ -9,14 +9,14 @@ interface ProcessStepsProps {
   steps: Step[]
 }
 
-export function ProcessSteps({ title, steps }: ProcessStepsProps) {
+export function ProcessSteps({ title, steps }: Readonly<ProcessStepsProps>) {
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-12 md:text-4xl">{title}</h2>
         <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
           {steps.map((step, index) => (
-            <div key={index} className="relative flex flex-col items-center text-center">
+            <div key={step.title ?? index} className="relative flex flex-col items-center text-center">
               {/* Connector line */}
               {index < steps.length - 1 && (
                 <div className="hidden md:block absolute top-8 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-0.5 bg-border" />

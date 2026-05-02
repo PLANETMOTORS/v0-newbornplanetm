@@ -1,0 +1,170 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Eye, EyeOff, Mail, LockKeyhole, Shield, Loader2 } from "lucide-react"
+import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
+import { useAuth } from "@/contexts/auth-context"
+
+export default function AdminLoginPage() {
+  const router = useRouter()
+  const { user, isLoading: authLoading } = useAuth()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  // Redirect already-authenticated users to admin dashboard
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/admin")
+    }
+  }, [authLoading, user, router])
+
+  const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError("")
+    setIsLoading(true)
+
+    try {
+      const supabase = createClient()
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) throw authError
+      router.replace("/admin")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Invalid credentials")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Show dark screen while checking auth to avoid form flash
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-400 mx-auto"></div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <PlanetMotorsLogo size="lg" />
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <Shield className="w-5 h-5 text-blue-400" />
+            <h1 className="text-xl font-semibold text-white">Admin Portal</h1>
+          </div>
+          <p className="text-sm text-gray-400 mt-1">
+            Authorized personnel only
+          </p>
+        </div>
+
+        <Card className="border-gray-800 bg-gray-900">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-white">Sign In</CardTitle>
+            <CardDescription>
+              Enter your admin credentials to continue
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              {error && (
+                <div className="p-3 text-sm text-red-400 bg-red-950/50 border border-red-900 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-300">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="admin@planetmotors.ca"
+                    className="pl-10 h-11 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-300">Password</Label>
+                <div className="relative">
+                  <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className="pl-10 pr-10 h-11 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Sign In to Admin
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center pt-1">
+                <Link
+                  href="/admin/forgot-password"
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-xs text-gray-600 mt-6">
+          Planet Motors &copy; {new Date().getFullYear()} &middot; OMVIC Licensed
+        </p>
+      </div>
+    </div>
+  )
+}

@@ -20,7 +20,7 @@ interface FilterSectionProps {
   onToggle: (option: string) => void
 }
 
-function FilterSection({ title, options, selected, onToggle }: FilterSectionProps) {
+function FilterSection({ title, options, selected, onToggle }: Readonly<FilterSectionProps>) {
   const [isOpen, setIsOpen] = useState(true)
 
   return (
@@ -148,7 +148,9 @@ export function VehicleFilters() {
       {/* Mobile filter drawer */}
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
+          <button
+            type="button"
+            aria-label="Close filters"
             className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
             onClick={() => setMobileFiltersOpen(false)}
           />

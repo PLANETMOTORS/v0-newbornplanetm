@@ -160,15 +160,11 @@ export default function ProductionReadinessPage() {
   }, [])
 
   const toggleCheckItem = useCallback((stepId: string, itemId: string) => {
-    setSteps(prev => prev.map(step => 
-      step.id === stepId 
-        ? { 
-            ...step, 
-            checkItems: step.checkItems.map(item => 
-              item.id === itemId ? { ...item, checked: !item.checked } : item
-            )
-          } 
-        : step
+    const flipItem = (item: CheckItem): CheckItem =>
+      item.id === itemId ? { ...item, checked: !item.checked } : item
+    // S7735: positive condition first.
+    setSteps(prev => prev.map(step =>
+      step.id === stepId ? { ...step, checkItems: step.checkItems.map(flipItem) } : step
     ))
   }, [])
 
@@ -249,7 +245,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `production-readiness-report-${date.replace(/\//g, "-")}.txt`
+    a.download = `production-readiness-report-${date.replaceAll("/", "-")}.txt`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -359,8 +355,9 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
         <div className="space-y-4 mb-8">
           {steps.map((step, index) => (
             <Card key={step.id} className="overflow-hidden">
-              <div 
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+              <button
+                type="button"
+                className="w-full text-left flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
                 onClick={() => toggleExpanded(step.id)}
               >
                 <div className="flex items-center gap-4">
@@ -387,7 +384,7 @@ ${step.notes ? `  Notes: ${step.notes}` : ""}
                     <ChevronDown className="w-5 h-5 text-gray-400" />
                   )}
                 </div>
-              </div>
+              </button>
 
               {step.isExpanded && (
                 <CardContent className="border-t bg-gray-50 pt-4">

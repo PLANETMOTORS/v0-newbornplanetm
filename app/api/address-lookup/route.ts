@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { NextRequest, NextResponse } from "next/server"
 
 // Canada Post AddressComplete API or fallback to comprehensive postal code database
@@ -14,71 +15,97 @@ interface AddressSuggestion {
   fullAddress: string
 }
 
-// Comprehensive Canadian postal code to address mapping by prefix
-const postalCodePrefixStreets: Record<string, AddressSuggestion[]> = {
-  // Richmond Hill L4B
-  "L4B": [
-    { streetName: "Highway 7", streetType: "Road", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Highway 7 Road East, Richmond Hill, ON" },
-    { streetName: "Leslie", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Leslie Street, Richmond Hill, ON" },
-    { streetName: "Yonge", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Yonge Street, Richmond Hill, ON" },
-    { streetName: "Bayview", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Bayview Avenue, Richmond Hill, ON" },
-    { streetName: "Major Mackenzie", streetType: "Drive", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4B", fullAddress: "Major Mackenzie Drive East, Richmond Hill, ON" },
-  ],
-  // Richmond Hill L4C
-  "L4C": [
-    { streetName: "Major Mackenzie", streetType: "Drive", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Major Mackenzie Drive East, Richmond Hill, ON" },
-    { streetName: "Major Mackenzie", streetType: "Drive", direction: "West", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Major Mackenzie Drive West, Richmond Hill, ON" },
-    { streetName: "Yonge", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Yonge Street, Richmond Hill, ON" },
-    { streetName: "Bathurst", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Bathurst Street, Richmond Hill, ON" },
-    { streetName: "Elgin Mills", streetType: "Road", direction: "East", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "Elgin Mills Road East, Richmond Hill, ON" },
-    { streetName: "King", streetType: "Road", city: "Richmond Hill", province: "Ontario", postalCode: "L4C", fullAddress: "King Road, Richmond Hill, ON" },
-  ],
-  // Richmond Hill L4E
-  "L4E": [
-    { streetName: "Yonge", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "Yonge Street, Richmond Hill, ON" },
-    { streetName: "Bloomington", streetType: "Road", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "Bloomington Road, Richmond Hill, ON" },
-    { streetName: "19th", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "19th Avenue, Richmond Hill, ON" },
-    { streetName: "Stouffville", streetType: "Road", city: "Richmond Hill", province: "Ontario", postalCode: "L4E", fullAddress: "Stouffville Road, Richmond Hill, ON" },
-  ],
-  // Richmond Hill L4S
-  "L4S": [
-    { streetName: "Bayview", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4S", fullAddress: "Bayview Avenue, Richmond Hill, ON" },
-    { streetName: "16th", streetType: "Avenue", city: "Richmond Hill", province: "Ontario", postalCode: "L4S", fullAddress: "16th Avenue, Richmond Hill, ON" },
-    { streetName: "Leslie", streetType: "Street", city: "Richmond Hill", province: "Ontario", postalCode: "L4S", fullAddress: "Leslie Street, Richmond Hill, ON" },
-  ],
-  // Markham L3R
-  "L3R": [
-    { streetName: "Warden", streetType: "Avenue", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "Warden Avenue, Markham, ON" },
-    { streetName: "Highway 7", streetType: "Road", direction: "East", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "Highway 7 Road East, Markham, ON" },
-    { streetName: "McCowan", streetType: "Road", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "McCowan Road, Markham, ON" },
-    { streetName: "Denison", streetType: "Street", city: "Markham", province: "Ontario", postalCode: "L3R", fullAddress: "Denison Street, Markham, ON" },
-  ],
-  // Markham L6E
-  "L6E": [
-    { streetName: "Main Street", streetType: "Markham", city: "Markham", province: "Ontario", postalCode: "L6E", fullAddress: "Main Street Markham, Markham, ON" },
-    { streetName: "9th Line", streetType: "Road", city: "Markham", province: "Ontario", postalCode: "L6E", fullAddress: "9th Line Road, Markham, ON" },
-    { streetName: "Markham", streetType: "Road", city: "Markham", province: "Ontario", postalCode: "L6E", fullAddress: "Markham Road, Markham, ON" },
-  ],
-  // Toronto M5V
-  "M5V": [
-    { streetName: "Spadina", streetType: "Avenue", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "Spadina Avenue, Toronto, ON" },
-    { streetName: "King", streetType: "Street", direction: "West", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "King Street West, Toronto, ON" },
-    { streetName: "Queen", streetType: "Street", direction: "West", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "Queen Street West, Toronto, ON" },
-    { streetName: "Front", streetType: "Street", direction: "West", city: "Toronto", province: "Ontario", postalCode: "M5V", fullAddress: "Front Street West, Toronto, ON" },
-  ],
-  // Mississauga L5B
-  "L5B": [
-    { streetName: "Hurontario", streetType: "Street", city: "Mississauga", province: "Ontario", postalCode: "L5B", fullAddress: "Hurontario Street, Mississauga, ON" },
-    { streetName: "Dundas", streetType: "Street", direction: "East", city: "Mississauga", province: "Ontario", postalCode: "L5B", fullAddress: "Dundas Street East, Mississauga, ON" },
-    { streetName: "Burnhamthorpe", streetType: "Road", city: "Mississauga", province: "Ontario", postalCode: "L5B", fullAddress: "Burnhamthorpe Road, Mississauga, ON" },
-  ],
-  // Brampton L6Y
-  "L6Y": [
-    { streetName: "Queen", streetType: "Street", direction: "East", city: "Brampton", province: "Ontario", postalCode: "L6Y", fullAddress: "Queen Street East, Brampton, ON" },
-    { streetName: "Main", streetType: "Street", direction: "North", city: "Brampton", province: "Ontario", postalCode: "L6Y", fullAddress: "Main Street North, Brampton, ON" },
-    { streetName: "Bovaird", streetType: "Drive", direction: "East", city: "Brampton", province: "Ontario", postalCode: "L6Y", fullAddress: "Bovaird Drive East, Brampton, ON" },
-  ],
+/** Map full Canadian province names to 2-letter abbreviations. */
+const PROVINCE_NAME_TO_ABBR: Record<string, string> = {
+  'Ontario': 'ON',
+  'Quebec': 'QC',
+  'British Columbia': 'BC',
+  'Alberta': 'AB',
+  'Manitoba': 'MB',
+  'Saskatchewan': 'SK',
+  'Nova Scotia': 'NS',
+  'New Brunswick': 'NB',
+  'Newfoundland and Labrador': 'NL',
+  'Prince Edward Island': 'PE',
+  'Northwest Territories': 'NT',
+  'Yukon': 'YT',
+  'Nunavut': 'NU',
 }
+
+/** Convert a full province name to its 2-letter abbreviation (or return input if already abbreviated). */
+function abbreviateProvince(province: string): string {
+  return PROVINCE_NAME_TO_ABBR[province] ?? province
+}
+
+/**
+ * Shorthand factory for an AddressSuggestion entry.
+ * direction is optional — omit or pass undefined to leave it out.
+ */
+function street(
+  streetName: string,
+  streetType: string,
+  city: string,
+  province: string,
+  postalCode: string,
+  direction?: string
+): AddressSuggestion {
+  const provinceAbbrev = abbreviateProvince(province)
+  const streetPart = [streetName, streetType, direction].filter(Boolean).join(' ')
+  const fullAddress = `${streetPart}, ${city}, ${provinceAbbrev}`
+  return { streetName, streetType, direction, city, province, postalCode, fullAddress }
+}
+
+type StreetTuple = [streetName: string, streetType: string, direction?: string]
+
+interface PostalZone {
+  city: string
+  province: string
+  streets: StreetTuple[]
+}
+
+const POSTAL_ZONES: Record<string, PostalZone> = {
+  L4B: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Highway 7", "Road", "East"], ["Leslie", "Street"], ["Yonge", "Street"],
+    ["Bayview", "Avenue"], ["Major Mackenzie", "Drive", "East"],
+  ]},
+  L4C: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Major Mackenzie", "Drive", "East"], ["Major Mackenzie", "Drive", "West"],
+    ["Yonge", "Street"], ["Bathurst", "Street"], ["Elgin Mills", "Road", "East"], ["King", "Road"],
+  ]},
+  L4E: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Yonge", "Street"], ["Bloomington", "Road"], ["19th", "Avenue"], ["Stouffville", "Road"],
+  ]},
+  L4S: { city: "Richmond Hill", province: "Ontario", streets: [
+    ["Bayview", "Avenue"], ["16th", "Avenue"], ["Leslie", "Street"],
+  ]},
+  L3R: { city: "Markham", province: "Ontario", streets: [
+    ["Warden", "Avenue"], ["Highway 7", "Road", "East"], ["McCowan", "Road"], ["Denison", "Street"],
+  ]},
+  L6E: { city: "Markham", province: "Ontario", streets: [
+    ["Main Street", "Markham"], ["9th Line", "Road"], ["Markham", "Road"],
+  ]},
+  M5V: { city: "Toronto", province: "Ontario", streets: [
+    ["Spadina", "Avenue"], ["King", "Street", "West"], ["Queen", "Street", "West"], ["Front", "Street", "West"],
+  ]},
+  L5B: { city: "Mississauga", province: "Ontario", streets: [
+    ["Hurontario", "Street"], ["Dundas", "Street", "East"], ["Burnhamthorpe", "Road"],
+  ]},
+  L6Y: { city: "Brampton", province: "Ontario", streets: [
+    ["Queen", "Street", "East"], ["Main", "Street", "North"], ["Bovaird", "Drive", "East"],
+  ]},
+}
+
+function buildPostalCodeStreets(): Record<string, AddressSuggestion[]> {
+  const result: Record<string, AddressSuggestion[]> = {}
+  for (const [prefix, zone] of Object.entries(POSTAL_ZONES)) {
+    result[prefix] = zone.streets.map(([name, type, dir]) =>
+      street(name, type, zone.city, zone.province, prefix, dir),
+    )
+  }
+  return result
+}
+
+const postalCodePrefixStreets = buildPostalCodeStreets()
 
 // Get province from first letter of postal code
 function getProvinceFromPostalCode(postalCode: string): string {
@@ -108,7 +135,7 @@ function getProvinceFromPostalCode(postalCode: string): string {
 
 // Get city from postal code prefix (first 3 characters)
 function getCityFromPostalCode(postalCode: string): string {
-  const prefix = postalCode.replace(/\s/g, '').slice(0, 3).toUpperCase()
+  const prefix = postalCode.replaceAll(/\s/g, '').slice(0, 3).toUpperCase()
   const cityMap: Record<string, string> = {
     // Ontario - GTA
     'L4B': 'Richmond Hill', 'L4C': 'Richmond Hill', 'L4E': 'Richmond Hill', 'L4S': 'Richmond Hill',
@@ -200,7 +227,7 @@ const PROV_ABBR_TO_NAME: Record<string, string> = {
 // Fallback: look up city/province via geocoder.ca when local map has no match
 async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: string; province: string; street?: string } | null> {
   try {
-    const clean = postalCode.replace(/\s/g, '').toUpperCase()
+    const clean = postalCode.replaceAll(/\s/g, '').toUpperCase()
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3000) // 3s timeout
     const response = await fetch(
@@ -223,51 +250,62 @@ async function lookupPostalCodeOnline(postalCode: string): Promise<{ city: strin
   }
 }
 
+/** Build a street suggestion from an online geocoder result. */
+function buildOnlineStreetSuggestion(online: { city: string; province: string; street: string }, prefix: string): AddressSuggestion {
+  const parts = online.street.split(' ')
+  const streetType = parts.length > 1 ? parts.pop()! : 'Street'
+  const streetName = parts.join(' ') || online.street
+  return {
+    streetName,
+    streetType,
+    city: online.city,
+    province: online.province,
+    postalCode: prefix,
+    fullAddress: `${online.street}, ${online.city}, ${online.province}`,
+  }
+}
+
+/** Apply online geocoder results to fill in missing city/province/street data. */
+async function applyOnlineFallback(
+  postalCode: string,
+  prefix: string,
+  city: string,
+  province: string,
+  streetSuggestions: AddressSuggestion[],
+): Promise<{ city: string; province: string; streetSuggestions: AddressSuggestion[] }> {
+  const online = await lookupPostalCodeOnline(postalCode)
+  if (!online) return { city, province, streetSuggestions }
+
+  const resolvedCity = city || online.city
+  const resolvedProvince = province || online.province
+  const resolvedStreets =
+    streetSuggestions.length === 0 && online.street && online.city
+      ? [buildOnlineStreetSuggestion({ city: online.city, province: online.province, street: online.street }, prefix)]
+      : streetSuggestions
+
+  return { city: resolvedCity, province: resolvedProvince, streetSuggestions: resolvedStreets }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const postalCode = searchParams.get("postalCode")?.replace(/\s/g, '').toUpperCase() || ""
+  const postalCode = searchParams.get("postalCode")?.replaceAll(/\s/g, '').toUpperCase() ?? ""
 
   if (postalCode.length < 3) {
     return NextResponse.json({ suggestions: [], city: '', province: '' })
   }
 
-  // Get city and province from local postal code map
+  const prefix = postalCode.slice(0, 3)
   let city = getCityFromPostalCode(postalCode)
   let province = getProvinceFromPostalCode(postalCode)
-
-  // Get prefix (first 3 characters)
-  const prefix = postalCode.slice(0, 3)
-
-  // Check if we have street-level data for this postal code prefix
-  let streetSuggestions = postalCodePrefixStreets[prefix] || []
+  let streetSuggestions: AddressSuggestion[] = postalCodePrefixStreets[prefix] ?? []
 
   // If local map has no city match or no street suggestions, try online lookup (geocoder.ca)
-  if ((!city || streetSuggestions.length === 0) && postalCode.length >= 3) {
-    const online = await lookupPostalCodeOnline(postalCode)
-    if (online) {
-      if (!city) city = online.city
-      if (!province) province = online.province
-      // If the online lookup returned a street and we have no local street data, build a suggestion
-      if (streetSuggestions.length === 0 && online.street && online.city) {
-        const parts = online.street.split(' ')
-        const streetType = parts.length > 1 ? parts.pop()! : 'Street'
-        const streetName = parts.join(' ') || online.street
-        streetSuggestions = [{
-          streetName,
-          streetType,
-          city: online.city,
-          province: online.province,
-          postalCode: prefix,
-          fullAddress: `${online.street}, ${online.city}, ${online.province}`,
-        }]
-      }
-    }
+  if (!city || streetSuggestions.length === 0) {
+    const fallback = await applyOnlineFallback(postalCode, prefix, city, province, streetSuggestions)
+    city = fallback.city
+    province = fallback.province
+    streetSuggestions = fallback.streetSuggestions
   }
 
-  // Return suggestions + city/province
-  return NextResponse.json({
-    suggestions: streetSuggestions,
-    city,
-    province,
-  })
+  return NextResponse.json({ suggestions: streetSuggestions, city, province })
 }

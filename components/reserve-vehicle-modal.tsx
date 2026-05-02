@@ -10,29 +10,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { LockKeyhole, Shield, Clock, CheckCircle, CreditCard, ArrowRight, Sparkles, Loader2 } from "lucide-react"
-import dynamic from 'next/dynamic'
 import { createReservation } from "@/app/actions/reservation"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
-
-// Lazy-load Stripe — only fetched when user reaches the payment step
-const EmbeddedCheckoutProvider = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckoutProvider })),
-  { ssr: false }
-)
-const EmbeddedCheckout = dynamic(
-  () => import('@stripe/react-stripe-js').then(m => ({ default: m.EmbeddedCheckout })),
-  { ssr: false }
-)
-
-const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-// Defer loadStripe until first use — avoids loading the 40 KB Stripe.js on every VDP
-let stripePromise: ReturnType<typeof import('@stripe/stripe-js').loadStripe> | null = null
-function getStripePromise() {
-  if (!stripePromise && stripeKey) {
-    stripePromise = import('@stripe/stripe-js').then(m => m.loadStripe(stripeKey))
-  }
-  return stripePromise
-}
+import { EmbeddedCheckoutProvider, EmbeddedCheckout, getStripePromise } from "@/lib/stripe/embedded-checkout"
 
 interface ReserveVehicleModalProps {
   vehicle: {
@@ -48,7 +28,7 @@ interface ReserveVehicleModalProps {
   trigger?: React.ReactNode
 }
 
-export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalProps) {
+export function ReserveVehicleModal({ vehicle, trigger }: Readonly<ReserveVehicleModalProps>) {
   const [step, setStep] = useState(1)
   const [isProcessing, setIsProcessing] = useState(false)
   const [formData, setFormData] = useState({
@@ -290,8 +270,8 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
           </>
         )}
 
+        {/* S6749: fragment with a single child is redundant. */}
         {step === 3 && !showStripeCheckout && (
-          <>
             <div className="text-center py-6">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
@@ -323,16 +303,17 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                 Confirmation sent to {formData.email}
               </p>
 
-              <Button className="w-full" onClick={() => window.location.href = "/account"}>
+              <Button className="w-full" onClick={() => globalThis.location.href = "/account"}>
                 View My Reservation
               </Button>
             </div>
-          </>
         )}
       {showStripeCheckout && (
           <div className="py-4">
             <h3 className="font-semibold mb-4">Complete Your ${depositAmount} Deposit</h3>
-            {checkoutError ? (
+            {(() => {
+              if (checkoutError) {
+                return (
               <div className="text-center py-8">
                 <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 mb-4">
                   <p className="text-sm text-destructive">{checkoutError}</p>
@@ -354,16 +335,22 @@ export function ReserveVehicleModal({ vehicle, trigger }: ReserveVehicleModalPro
                   </Button>
                 </div>
               </div>
-            ) : !clientSecret ? (
+                )
+              }
+              if (!clientSecret) {
+                return (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
                 <span>Initializing payment...</span>
               </div>
-            ) : (
+                )
+              }
+              return (
               <EmbeddedCheckoutProvider stripe={getStripePromise()} options={{ clientSecret }}>
                 <EmbeddedCheckout />
               </EmbeddedCheckoutProvider>
-            )}
+              )
+            })()}
             <Button variant="ghost" className="w-full mt-4" onClick={() => { setShowStripeCheckout(false); setClientSecret(null); }}>
               Cancel
             </Button>

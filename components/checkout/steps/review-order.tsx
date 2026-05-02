@@ -1,3 +1,4 @@
+ 
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -13,7 +14,7 @@ import type { DeliveryData } from "./delivery-options"
 import type { ProtectionPlanId } from "./protection-plans"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"
 import { OMVIC_FEE, CERTIFICATION_FEE, LICENSING_FEE } from "@/lib/pricing/format"
-import { DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 const PROVINCE_NAME_TO_CODE: Record<string, string> = {
   'Ontario': 'ON', 'British Columbia': 'BC', 'Alberta': 'AB', 'Quebec': 'QC',
@@ -63,7 +64,7 @@ export function ReviewOrderStep({
   onEditStep,
   onFinalize,
   isSubmitting,
-}: ReviewOrderStepProps) {
+}: Readonly<ReviewOrderStepProps>) {
   const protection = PROTECTION_PRICES[protectionPlan] ?? PROTECTION_PRICES.none
   const deliveryFee = delivery.deliveryType === "delivery" ? delivery.deliveryCost : 0
   const financeDocsFee = paymentMethod.purchaseType === "finance" || paymentMethod.purchaseType === "pre-approved" ? 895 : 0
@@ -71,12 +72,15 @@ export function ReviewOrderStep({
 
   const provinceCode = PROVINCE_NAME_TO_CODE[personal.province] || "ON"
   const provinceTax = PROVINCE_TAX_RATES[provinceCode] || PROVINCE_TAX_RATES.ON
-  const formatPct = (rate: number) => parseFloat((rate * 100).toFixed(3)).toString()
-  const taxLabel = provinceTax.hst > 0
-    ? `HST (${formatPct(provinceTax.hst)}%)`
-    : provinceTax.pst > 0
-      ? `GST+PST (${formatPct(provinceTax.total)}%)`
-      : `GST (${formatPct(provinceTax.gst)}%)`
+  const formatPct = (rate: number) => Number.parseFloat((rate * 100).toFixed(3)).toString()
+  let taxLabel: string
+  if (provinceTax.hst > 0) {
+    taxLabel = `HST (${formatPct(provinceTax.hst)}%)`
+  } else if (provinceTax.pst > 0) {
+    taxLabel = `GST+PST (${formatPct(provinceTax.total)}%)`
+  } else {
+    taxLabel = `GST (${formatPct(provinceTax.gst)}%)`
+  }
 
   const subtotal =
     vehicle.price +
@@ -125,11 +129,11 @@ export function ReviewOrderStep({
       {/* Payment Method */}
       <ReviewSection title="Payment method" editLabel="Edit payment method" onEdit={() => onEditStep(2)}>
         <p>
-          {paymentMethod.purchaseType === "finance"
-            ? "Finance with Planet Motors"
-            : paymentMethod.purchaseType === "pre-approved"
-              ? `Pre-approved with ${paymentMethod.preApprovedLender || "another lender"}`
-              : "Pay with cash"}
+          {(() => {
+            if (paymentMethod.purchaseType === "finance") return "Finance with Planet Motors"
+            if (paymentMethod.purchaseType === "pre-approved") return `Pre-approved with ${paymentMethod.preApprovedLender || "another lender"}`
+            return "Pay with cash"
+          })()}
         </p>
       </ReviewSection>
 
@@ -243,12 +247,12 @@ function ReviewSection({
   editLabel,
   onEdit,
   children,
-}: {
+}: Readonly<{
   title: string
   editLabel?: string
   onEdit: () => void
   children: React.ReactNode
-}) {
+}>) {
   return (
     <Card>
       <CardContent className="pt-6">

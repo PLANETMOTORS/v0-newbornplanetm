@@ -8,6 +8,22 @@ interface ComparisonRow {
   othersValue?: boolean
 }
 
+/**
+ * Render a single comparison cell. Extracted from two nested ternaries to
+ * satisfy SonarCloud rule typescript:S3358.
+ */
+function renderComparisonCell(value: boolean | undefined, fallback: string, variant: "us" | "others") {
+  if (value === undefined) {
+    const className = variant === "us"
+      ? "text-green-700 dark:text-green-500 font-semibold"
+      : "text-muted-foreground"
+    return <span className={className}>{fallback}</span>
+  }
+  return value
+    ? <Check className="h-5 w-5 text-green-600 mx-auto" />
+    : <X className="h-5 w-5 text-red-500 mx-auto" />
+}
+
 interface ComparisonTableProps {
   title: string
   rows: ComparisonRow[]
@@ -15,7 +31,7 @@ interface ComparisonTableProps {
   othersLabel?: string
 }
 
-export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', othersLabel = 'Others' }: ComparisonTableProps) {
+export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', othersLabel = 'Others' }: Readonly<ComparisonTableProps>) {
   return (
     <section className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -30,29 +46,13 @@ export function ComparisonTable({ title, rows, usLabel = 'Planet Motors', others
           
           {/* Rows */}
           {rows.map((row, index) => (
-            <div key={index} className={`grid grid-cols-3 ${index !== rows.length - 1 ? 'border-b' : ''}`}>
+            <div key={row.feature} className={`grid grid-cols-3 ${index === rows.length - 1 ? '' : 'border-b'}`}>
               <div className="p-4 font-semibold">{row.feature}</div>
               <div className="p-4 text-center">
-                {row.usValue !== undefined ? (
-                  row.usValue ? (
-                    <Check className="h-5 w-5 text-green-600 mx-auto" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-500 mx-auto" />
-                  )
-                ) : (
-                  <span className="text-green-700 dark:text-green-500 font-semibold">{row.us}</span>
-                )}
+                {renderComparisonCell(row.usValue, row.us, "us")}
               </div>
               <div className="p-4 text-center">
-                {row.othersValue !== undefined ? (
-                  row.othersValue ? (
-                    <Check className="h-5 w-5 text-green-600 mx-auto" />
-                  ) : (
-                    <X className="h-5 w-5 text-red-500 mx-auto" />
-                  )
-                ) : (
-                  <span className="text-muted-foreground">{row.others}</span>
-                )}
+                {renderComparisonCell(row.othersValue, row.others, "others")}
               </div>
             </div>
           ))}

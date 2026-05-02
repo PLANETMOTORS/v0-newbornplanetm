@@ -24,9 +24,11 @@ const inter = Inter({
 const SITE_URL = getPublicSiteUrl()
 
 export const metadata: Metadata = {
-  title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery',
-  description: "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery. Financing from 6.29% APR.",
-  keywords: 'used EVs Canada, Aviloo certified, pre-owned electric vehicles, used car dealership Richmond Hill, EV battery health, Canada-wide delivery, OMVIC licensed, financing, trade-in',
+  // Title kept under 60 chars so Google does not truncate it in SERPs.
+  // Description carries the longer Hybrid/PHEV breadth claim.
+  title: 'Used EVs Canada — Aviloo Battery-Certified | Planet Motors',
+  description: "Canada's battery-health certified used EVs. Aviloo battery health reports, 210-point inspection, Canada-wide delivery. Plus inspected used hybrids and PHEVs. OMVIC licensed.",
+  keywords: 'used EVs Canada, used hybrids Canada, used PHEVs Canada, Aviloo certified, battery-health certified, pre-owned electric vehicles, used car dealership Richmond Hill, EV battery health, Canada-wide delivery, OMVIC licensed, financing, trade-in',
   authors: [{ name: 'Planet Motors' }],
   manifest: '/manifest.json',
   appleWebApp: {
@@ -40,15 +42,19 @@ export const metadata: Metadata = {
     address: true,
   },
   openGraph: {
-    title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs | Canada-Wide Delivery',
-    description: "Canada's EV-focused used car dealership. Every electric vehicle independently battery-certified by Aviloo. OMVIC licensed, 210-point inspected, Canada-wide delivery.",
+    title: 'Used EVs Canada — Aviloo Battery-Certified | Planet Motors',
+    description: "Canada's battery-health certified used EVs. Aviloo battery health reports, 210-point inspection, Canada-wide delivery. Plus inspected used hybrids and PHEVs. OMVIC licensed.",
     url: SITE_URL,
     siteName: 'Planet Motors',
     locale: 'en_CA',
     type: 'website',
     images: [
       {
-        url: `${SITE_URL}/images/planet-motors-logo.png`,
+        // Branded 1200x630 social-share card: navy gradient bg, EV car icon
+        // with green charging bolt + red cursor, PLANET MOTORS wordmark.
+        // Generated from public/brand/icon-source.svg via the Python brand
+        // pipeline; see public/brand/ for all source assets.
+        url: `${SITE_URL}/brand/og-image.png`,
         width: 1200,
         height: 630,
         alt: 'Planet Motors — OMVIC Licensed Used Car Dealership, Richmond Hill Ontario',
@@ -57,9 +63,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Planet Motors Richmond Hill | Aviloo-Certified Used EVs',
-    description: "Canada's EV-focused used car dealership. Aviloo battery-certified. 210-point inspected. Canada-wide delivery.",
-    images: [`${SITE_URL}/images/planet-motors-logo.png`],
+    title: 'Used EVs Canada — Aviloo Battery-Certified',
+    description: "Canada's battery-health certified used EVs. Aviloo battery health reports. 210-point inspected. Canada-wide delivery.",
+    images: [`${SITE_URL}/brand/og-image.png`],
   },
   metadataBase: new URL(SITE_URL),
   // Canonical is set per-page to avoid all sub-pages inheriting '/'
@@ -76,18 +82,8 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon-light-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
     apple: '/apple-icon.png',
   },
@@ -116,11 +112,27 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (
           <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         )}
+        {/* Preconnect to GTM/GA4 — reduces TTI by ~200ms (Lighthouse recommendation) */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.google-analytics.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        {/* Preconnect to vehicle image CDN for faster LCP */}
-        <link rel="preconnect" href="https://content.homenetiol.com" />
-        <link rel="preconnect" href="https://photos.homenetiol.com" />
+
+        {/* Preconnect to vehicle image CDN for faster LCP.
+            When imgix is active, the browser talks to imgix (not HomenetIOL
+            directly), so preconnect to the imgix domain instead.
+            crossOrigin="anonymous" is required for CORS image requests. */}
+        {process.env.NEXT_PUBLIC_IMGIX_DOMAIN ? (
+          <>
+            <link rel="preconnect" href={`https://${process.env.NEXT_PUBLIC_IMGIX_DOMAIN}`} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={`https://${process.env.NEXT_PUBLIC_IMGIX_DOMAIN}`} />
+          </>
+        ) : (
+          <>
+            <link rel="preconnect" href="https://content.homenetiol.com" crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href="https://content.homenetiol.com" />
+          </>
+        )}
 
         {/* JSON-LD structured data — server-rendered, lightweight */}
         <OrganizationJsonLd />

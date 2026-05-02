@@ -10,8 +10,8 @@ import { fetchVehicleForSSR } from "@/lib/vehicles/fetch-vehicle"
 import { getPublicSiteUrl } from "@/lib/site-url"
 
 interface Props {
-  children: React.ReactNode
-  params: Promise<{ id: string }>
+  readonly children: React.ReactNode
+  readonly params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!v) throw new Error("not found")
 
     // ── Trust-forward title ──
-    const title = `${v.year} ${v.make} ${v.model}${v.trim ? ` ${v.trim}` : ""} — Used for Sale | Planet Motors`
+    const trimSuffix = v.trim ? ` ${v.trim}` : ""
+    const title = `${v.year} ${v.make} ${v.model}${trimSuffix} — Used for Sale | Planet Motors`
 
     // ── Trust-forward description ──
     // Lead with trust signals: Aviloo battery health (EVs), clean Carfax, one owner
@@ -36,8 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     // Core trust signals
-    trustParts.push("Clean Carfax")
-    trustParts.push("No Accidents")
+    trustParts.push("Clean Carfax", "No Accidents")
 
     const trustPrefix = trustParts.join(". ") + "."
 
@@ -103,6 +103,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function VehicleLayout({ children }: { children: React.ReactNode }) {
+export default function VehicleLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <>{children}</>
 }

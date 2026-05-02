@@ -1,0 +1,42 @@
+name: Sanity Data Integrity Audit
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Runs daily at 06:00 UTC (2:00 AM ET)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sanity-audit:
+    name: Sanity Data Integrity Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Sanity Data Integrity Check
+        env:
+          SANITY_PROJECT_ID: wlxj8olw
+          SANITY_DATASET: production
+          SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+        run: node scripts/sanity-check.cjs
+
+      - name: Annotate failure
+        if: failure()
+        run: |
+          echo "::error::Sanity data integrity check failed. Review the output above for broken references, missing required fields, or sync issues."
+          echo "::notice::If all errors say 'project user not found', the SANITY_API_TOKEN secret is invalid or not a member of the configured Sanity project. Regenerate it at https://www.sanity.io/manage and update the secret in GitHub → Settings → Secrets → Actions."

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -51,11 +51,13 @@ interface IDDocument {
 
 function IDVerificationContent() {
   useRouter()
+  // useSearchParams is SSR-safe — no hydration mismatch
   const searchParams = useSearchParams()
   const applicationId = searchParams.get("applicationId")
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   
   const [primaryID, setPrimaryID] = useState<IDDocument>({
     type: "",
@@ -159,11 +161,11 @@ function IDVerificationContent() {
         setIsVerified(true)
       } else {
         console.error("Verification failed:", result.error)
-        alert(result.error || "Failed to submit verification. Please try again.")
+        setSubmitError(result.error || "Failed to submit verification. Please try again.")
       }
     } catch (error) {
       console.error("Verification error:", error)
-      alert("An error occurred. Please try again.")
+      setSubmitError("An error occurred. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -468,11 +470,24 @@ function IDVerificationContent() {
             </Card>
 
             {/* Submit Button */}
+            {submitError && (
+              <div
+                data-testid="verification-error-summary"
+                role="alert"
+                aria-live="assertive"
+                className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-2"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{submitError}</span>
+              </div>
+            )}
             <Button
+              data-testid="verification-btn-submit"
               className="w-full h-12 text-base"
               size="lg"
               aria-label="Submit for verification"
-              onClick={handleSubmit}
+              aria-busy={isSubmitting}
+              onClick={() => { setSubmitError(null); handleSubmit() }}
               disabled={!isFormValid || isSubmitting}
             >
               {isSubmitting ? (
@@ -561,5 +576,9 @@ function IDVerificationContent() {
 }
 
 export default function IDVerificationPage() {
-  return <IDVerificationContent />
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>}>
+      <IDVerificationContent />
+    </Suspense>
+  )
 }

@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-
 import { Input } from "@/components/ui/input"
 import {
   ChevronLeft, ChevronRight, Heart, Share2, Fuel, Gauge,
@@ -20,10 +19,9 @@ import {
   FileText, Zap, DollarSign, CreditCard,
   Phone, Star, TrendingUp, Users,
   Battery, LockKeyhole, Truck, ArrowRight, Play,
-  Download, ExternalLink, Check, Expand,
+  Download, Check, Expand,
   Key, RotateCw, Pause
 } from "lucide-react"
-
 import { useAuth } from "@/contexts/auth-context"
 import { SocialProof } from "@/components/social-proof"
 import { useFavorites } from "@/contexts/favorites-context"
@@ -38,10 +36,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { trackProductView, trackPhoneClick } from "@/components/analytics/google-tag-manager"
-import { calculateAllInPrice, safeNum } from "@/lib/pricing/format"
+import { safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
-import { trackMetaViewContent, trackMetaAddToWishlist } from "@/components/analytics/meta-pixel"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { CarfaxSection, CarfaxInlineLink } from "@/components/vdp/carfax-section"
+import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
+import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 
 // ── Lazy-load heavy below-fold components ──
 const DriveeViewer = dynamic(
@@ -77,344 +77,33 @@ const AddToCompare = dynamic(
   { ssr: false }
 )
 
-// Mock vehicle data
-const vehicleData = {
-  id: "2024-tesla-model-3",
-  year: 2024,
-  make: "Tesla",
-  model: "Model 3",
-  trim: "Long Range AWD",
-  price: 52990,
-  originalPrice: 56990,
-  mileage: 12500,
-  exteriorColor: "Pearl White Multi-Coat",
-  interiorColor: "Black Premium",
-  fuelType: "Electric",
-  transmission: "Automatic",
-  drivetrain: "AWD",
-  engine: "Dual Motor",
-  seats: 5,
-  keys: 2,
-  vin: "5YJ3E1EA1PF123456",
-  stockNumber: "PM24-1234",
-  carfaxUrl: "https://www.carfax.ca/vehicle/5YJ3E1EA1PF123456",
-  carfaxScore: "No Accidents Reported",
-  range: "576 km",
-  batteryHealth: 98,
-  batteryCapacity: "82 kWh",
-  chargingSpeed: "250 kW DC",
-  driveeMid: null as string | null,
-  images: [] as string[],
-  interiorImages: [] as string[],
-  features: {
-    comfortConvenience: ["Heated Seats", "Power Liftgate", "Wireless Charging", "Premium Audio"],
-    safetySecurity: ["Autopilot", "Collision Avoidance", "Blind Spot Monitoring", "360 Camera"],
-    entertainmentTech: ["15\" Touchscreen", "Premium Connectivity", "Bluetooth", "USB-C Ports"],
-    brakingTraction: ["Regenerative Braking", "Traction Control", "ABS", "Stability Control"]
-  },
-  specs: {
-    range: "576 km",
-    exterior: "Pearl White",
-    interior: "Black",
-    drive: "AWD"
-  },
-  packages: ["Premium Package", "Enhanced Autopilot"],
-  inspectionScore: 210,
-  inspectionCategories: [
-    { name: "VIN & History", points: 10, icon: "history" },
-    { name: "Powertrain & Engine", points: 22, icon: "engine" },
-    { name: "Brakes & Suspension", points: 13, icon: "brakes" },
-    { name: "Tyres & Wheels", points: 8, icon: "wheel" },
-    { name: "Exterior", points: 21, icon: "car" },
-    { name: "Interior", points: 20, icon: "interior" },
-    { name: "Drive Test", points: 10, icon: "drive" },
-    { name: "EV Systems", points: 12, icon: "ev" },
-    { name: "Detailing & Safety", points: 94, icon: "safety" }
-  ],
-  inspectionItems: [
-    { category: "Under the hood", status: "Passed" },
-    { category: "Exterior", status: "Passed" },
-    { category: "Interior", status: "Passed" },
-    { category: "How it drives", status: "Passed" },
-    { category: "How it looks", status: "Passed" },
-    { category: "Detailing", status: "Passed" },
-    { category: "History", status: "No reported accidents" }
-  ],
-  vinHistoryItems: [
-    { item: "VIN verified (door jamb, dash, frame)", status: "Pass" },
-    { item: "Lien search — no outstanding liens", status: "Pass" },
-    { item: "CARFAX Canada history report clear", status: "Pass" },
-    { item: "All outstanding recalls cleared", status: "Pass" },
-    { item: "RCMP/CPIC stolen vehicle check — clear", status: "Pass" },
-    { item: "Odometer accuracy verified", status: "Pass" },
-    { item: "Clean Ontario title — no branding", status: "Pass" },
-    { item: "No flood or water damage history", status: "Pass" },
-    { item: "Airbag deployment history — none", status: "Pass" },
-    { item: "Structural integrity — no frame damage", status: "Pass" }
-  ],
-  fullInspection: {
-    vinHistory: [
-      "VIN verified (door jamb, dash, frame)",
-      "Lien search — no outstanding liens",
-      "CARFAX Canada history report clear",
-      "All outstanding recalls cleared",
-      "RCMP/CPIC stolen vehicle check — clear",
-      "Odometer accuracy verified",
-      "Clean Ontario title — no branding",
-      "No flood or water damage history",
-      "Airbag deployment history — none",
-      "Structural integrity — no frame damage"
-    ],
-    powertrainEngine: [
-      "Engine oil level & condition",
-      "Transmission fluid level & condition",
-      "12V battery load test ≥ 75% capacity",
-      "Alternator output & charging system",
-      "Water pump — no leaks or noise",
-      "Ignition system & spark plugs",
-      "Fuel system — no leaks, proper pressure",
-      "Radiator & coolant system",
-      "Coolant level & freeze protection",
-      "A/C system — cold air output verified",
-      "No oil, coolant, or fluid leaks",
-      "Belts & hoses — no cracks or wear",
-      "Engine mounts — secure, no excess vibration",
-      "Exhaust manifold — no leaks",
-      "Catalytic converter function",
-      "Timing belt/chain condition",
-      "Valve cover gaskets — no leaks",
-      "PCV valve function",
-      "Air filter condition",
-      "Throttle body & idle quality",
-      "Turbo/supercharger (if equipped)",
-      "Engine computer — no stored codes"
-    ],
-    brakesSuspension: [
-      "Master cylinder & brake fluid level",
-      "Front brake pad thickness ≥ 4mm",
-      "Rear brake pad thickness ≥ 4mm",
-      "Rotors & drums — no scoring or warping",
-      "Brake calipers — no leaks, proper movement",
-      "Brake lines & hoses — no damage",
-      "Parking brake function verified",
-      "Springs & shock absorbers — no leaks",
-      "Control arm bushings & ball joints",
-      "CV joints & axle boots",
-      "Steering rack & tie rods",
-      "Power steering fluid & pump operation",
-      "Wheel bearings — no noise or play"
-    ],
-    tyresWheels: [
-      "Tread depth all four tyres ≥ 4/32\"",
-      "No uneven wear, bulges or cracks",
-      "Tyre pressure set to spec",
-      "Alloy rims — no cracks or bends",
-      "Valve stems & caps intact",
-      "Lug nuts torqued to spec",
-      "TPMS sensors functional",
-      "Spare tyre & jack kit present"
-    ],
-    exterior: [
-      "Exhaust system & Ontario emissions",
-      "All exterior lights — headlights, tail, signal, fog",
-      "Door locks, handles & hinges",
-      "Windshield & glass — no chips, cracks",
-      "Body panels — no damage, rust or corrosion",
-      "Wipers, mirrors, bumpers & trim",
-      "Hood, trunk & fuel door operation",
-      "Paint condition assessment",
-      "Undercarriage inspection",
-      "Frame & structural integrity",
-      "Door seals & weatherstripping",
-      "Antenna & exterior accessories",
-      "Licence plate lights",
-      "Tow hooks & recovery points",
-      "Roof rails (if equipped)",
-      "Sunroof/moonroof operation",
-      "Convertible top (if equipped)",
-      "Running boards/side steps",
-      "Mud flaps & wheel well liners",
-      "Trailer hitch (if equipped)",
-      "Parking sensors verified"
-    ],
-    interior: [
-      "Instrument cluster & all warning lights",
-      "Infotainment, navigation & Bluetooth",
-      "All seats — power, heat, fold function",
-      "Seatbelts, airbag system & SRS light",
-      "HVAC, defroster & cabin air filter",
-      "USB ports, horn, key fob &amp; owner&apos;s manual",
-      "Power windows all positions",
-      "Power door locks",
-      "Interior lighting — dome, map, ambient",
-      "Sunvisors & vanity mirrors",
-      "Center console & storage compartments",
-      "Cup holders & armrests",
-      "Carpet & floor mat condition",
-      "Headliner condition",
-      "Rear seat access & function",
-      "Child seat anchors (LATCH)",
-      "Trunk/cargo area condition",
-      "12V/USB charging ports",
-      "Garage door opener (if equipped)",
-      "Voice control system"
-    ],
-    driveTest: [
-      "Cold start & idle quality",
-      "Transmission — smooth shifts all gears",
-      "Braking performance — straight stop",
-      "Acceleration & throttle response",
-      "No abnormal suspension noise",
-      "Drivetrain — no vibration or clunking",
-      "10 km road test completed",
-      "ADAS features — lane assist, AEB verified",
-      "Regen braking function (EV/hybrid)",
-      "No warning lights at end of road test"
-    ],
-    evSystems: [
-      "High-voltage battery SOH & SOC",
-      "Battery management system (BMS) — no faults",
-      "Charge port — no damage, latches correctly",
-      "L1 & L2 charging verified",
-      "DC fast charging (if equipped)",
-      "HV cables & connectors — no damage",
-      "Electric motor — no noise or fault codes",
-      "Battery thermal management system",
-      "On-board charger (OBC) function",
-      "Autopilot / FSD hardware (Tesla)",
-      "Software version — latest OTA update",
-      "Energy consumption within range spec"
-    ],
-    detailingSafety: [
-      "Paint depth measurement — OEM thickness confirmed",
-      "Dent & paintwork inspection — PDR where required",
-      "Clay bar, paint correction & ceramic coat prep",
-      "Full interior detail — vacuum, shampoo, odour elimination",
-      "Ontario SSC safety standards certificate issued",
-      "OMVIC disclosure package prepared & signed",
-      "All keys, remotes & charge cables present",
-      "OBD-II full diagnostic — zero fault codes",
-      "Advanced safety systems — camera, radar, park sensors",
-      "Final QC sign-off by certified Planet Motors technician"
-    ]
-  },
-  conditionItems: [
-    "Vehicle passes Ontario Safety Standards Certificate requirements",
-    "All mechanical systems inspected by a licensed technician",
-    "Battery state of health verified (for EVs)",
-    "Professionally detailed — interior and exterior"
-  ],
-  ratings: {
-    overall: 4.8,
-    description: "The 2024 Tesla Model 3 combines cutting-edge technology with exceptional performance. Perfect for Canadian drivers looking for a premium EV experience.",
-    categories: [
-      { name: "Performance", score: 4.9 },
-      { name: "Efficiency", score: 5.0 },
-      { name: "Comfort", score: 4.5 },
-      { name: "Tech", score: 5.0 },
-      { name: "Space", score: 4.2 },
-      { name: "Reliability", score: 4.7 },
-      { name: "Safety", score: 4.9 }
-    ]
-  },
-  protectionPackages: [
-    {
-      name: "Basic",
-      paymentMethod: "Cash only",
-      moneyBack: true,
-      dueAtCheckout: "Full purchase price",
-      warranty: "—",
-      tireRim: "—",
-      gapCoverage: "—",
-      lifeDisability: "—",
-      price: "Included"
-    },
-    {
-      name: "Essential Shield",
-      paymentMethod: "Cash or Finance",
-      moneyBack: true,
-      dueAtCheckout: "$250 refundable deposit",
-      warranty: "Standard",
-      tireRim: "—",
-      gapCoverage: "$50K",
-      lifeDisability: "—",
-      price: "$1,950"
-    },
-    {
-      name: "Planet Care™",
-      paymentMethod: "Cash or Finance",
-      moneyBack: true,
-      dueAtCheckout: "$250 refundable deposit",
-      warranty: "Extended to 2034",
-      tireRim: "—",
-      gapCoverage: "$60K",
-      lifeDisability: "~$1M life",
-      price: "$3,000",
-      recommended: true
-    },
-    {
-      name: "Planet Care Plus™",
-      paymentMethod: "Finance only",
-      moneyBack: true,
-      dueAtCheckout: "$250 refundable deposit",
-      warranty: "Extended to 2034",
-      tireRim: true,
-      gapCoverage: "$60K",
-      lifeDisability: "~$1M life",
-      price: "$4,850"
-    }
-  ],
-  pricing: (() => {
-    const breakdown = calculateAllInPrice(52990)
-    return {
-      vehiclePrice: breakdown.vehiclePrice,
-      deliveryFee: 0,
-      hst: breakdown.hst,
-      omvicFee: breakdown.omvicFee,
-      certificationFee: breakdown.certificationFee,
-      licensingReg: breakdown.licensingFee,
-      totalWithHst: breakdown.total,
-    }
-  })(),
-  history: {
-    owners: 1,
-    accidents: 0,
-    serviceRecords: 8,
-    lastServiced: "2024-02-15"
-  }
-}
-
 /** Props received from the server component (page.tsx). */
 export interface VDPClientProps {
   /** Pre-fetched vehicle data from server-side Supabase query. */
   serverVehicle: VehicleDetail
 }
 
-export default function VDPClient({ serverVehicle }: VDPClientProps) {
-  const searchParams = useSearchParams()
-  const { user } = useAuth()
-  const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
-
-  // ── Build the merged vehicle shape from server data + mock inspection fallbacks ──
-  // HomenetIOL: first image often has dealer overlays. Skip when feed has > 1 image.
+function buildVdpImages(serverVehicle: VehicleDetail): { exteriorImgs: string[]; interiorImgs: string[] } {
+  const fallbackImages: string[] = serverVehicle.primaryImageUrl
+    ? [serverVehicle.primaryImageUrl]
+    : vehicleData.images
   const rawImages: string[] = serverVehicle.imageUrls.length > 0
     ? serverVehicle.imageUrls
-    : serverVehicle.primaryImageUrl
-      ? [serverVehicle.primaryImageUrl]
-      : vehicleData.images
-
+    : fallbackImages
   const cleanImages = rawImages.length > 1
     && rawImages[0] === serverVehicle.primaryImageUrl
     && rawImages[0]?.includes('homenetiol.com')
     ? rawImages.slice(1)
     : rawImages
-
   const splitIndex = cleanImages.length > 10 ? Math.ceil(cleanImages.length * 0.6) : cleanImages.length
-  const exteriorImgs = cleanImages.slice(0, splitIndex)
-  const interiorImgs = cleanImages.length > 10 ? cleanImages.slice(splitIndex) : []
+  return {
+    exteriorImgs: cleanImages.slice(0, splitIndex),
+    interiorImgs: cleanImages.length > 10 ? cleanImages.slice(splitIndex) : [],
+  }
+}
 
-  // Merged vehicle object — SSR data + mock inspection fallback
-  const vehicle = {
+function buildMergedVehicle(serverVehicle: VehicleDetail, exteriorImgs: string[], interiorImgs: string[]) {
+  return {
     ...vehicleData,
     id: serverVehicle.id,
     year: serverVehicle.year,
@@ -432,6 +121,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
     vin: serverVehicle.vin,
     stockNumber: serverVehicle.stockNumber,
     driveeMid: serverVehicle.driveeMid,
+    status: serverVehicle.status,
     images: exteriorImgs,
     interiorImages: interiorImgs,
     pricing: {
@@ -444,13 +134,33 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
       totalWithHst: serverVehicle.pricing.total,
     },
   }
+}
+
+export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
+  const searchParams = useSearchParams()
+  const { user } = useAuth()
+  const { addFavorite, removeFavorite, isFavorite: isFavoriteInContext } = useFavorites()
+
+  const { exteriorImgs, interiorImgs } = buildVdpImages(serverVehicle)
+  const vehicle = buildMergedVehicle(serverVehicle, exteriorImgs, interiorImgs)
 
   const vehicleId = vehicle.id
+  const isAvailable = vehicle.status === "available"
+  const isReserved = vehicle.status === "reserved"
+  const isSold = vehicle.status === "sold"
+  const isPending = vehicle.status === "pending"
+  // Status-display tokens (banner classes + customer-facing labels +
+  // schema.org availability) come from one shared lookup so the colours,
+  // copy and JSON-LD signal cannot drift apart. The fallback for any
+  // unknown status is the "sold" bucket — safe and CTA-disabled. Sonar
+  // S3358: replaces nested ternaries below.
+  const statusDisplay = getVehicleStatusDisplay(vehicle.status)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const isFavorite = isFavoriteInContext(vehicleId)
   const [activeTab, setActiveTab] = useState("photos")
+  const [showAllFeatures, setShowAllFeatures] = useState(false)
+  const [showAllSpecs, setShowAllSpecs] = useState(false)
   const [imageType, setImageType] = useState<"exterior" | "interior" | "360">("exterior")
-
   const [postalCode, setPostalCode] = useState("")
   const [isCheckingDelivery, setIsCheckingDelivery] = useState(false)
   const [deliveryError, setDeliveryError] = useState("")
@@ -463,11 +173,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
     isDeliveryAvailable: boolean
     isDistanceEstimate?: boolean
   } | null>(null)
-
   const [showInspectionModal, setShowInspectionModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authAction, setAuthAction] = useState("")
-
 
   // Trade-in from AI Quote
   const tradeInValue = searchParams.get("tradeIn")
@@ -476,7 +184,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
   // Helper to build finance link with trade-in info
   const getFinanceLink = (vId: string) => {
-    if (tradeInValue && parseInt(tradeInValue) > 0) {
+    if (tradeInValue && Number.parseInt(tradeInValue) > 0) {
       const params = new URLSearchParams({
         tradeIn: tradeInValue,
         quoteId: tradeInQuoteId || '',
@@ -489,7 +197,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
   // Track product view on mount (data is already available from SSR)
   useEffect(() => {
-    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? ` ${vehicle.trim}` : ""}`
+    const trimSuffix = vehicle.trim ? ` ${vehicle.trim}` : ""
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}${trimSuffix}`
     trackProductView({
       id: vehicle.id,
       name,
@@ -506,15 +215,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
       make: vehicle.make,
       model: vehicle.model,
     })
-    trackMetaViewContent({
-      id: vehicle.id,
-      name,
-      price: vehicle.price,
-      make: vehicle.make,
-    })
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
   }, [])
-
 
   // ── 360° via Drivee iframe ──
   const has360 = !!vehicle?.driveeMid
@@ -555,10 +257,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const handleShare = async () => {
-    const shareUrl = typeof window !== "undefined" ? window.location.href : ""
+    // S7741: compare with `undefined` directly instead of using `typeof`.
+    const shareUrl = globalThis.window === undefined ? "" : globalThis.window.location.href
     const shareTitle = `${vehicle.year} ${vehicle.make} ${vehicle.model} at Planet Motors`
     const shareText = `Check out this ${vehicle.year} ${vehicle.make} ${vehicle.model} for $${safeNum(vehicle.price).toLocaleString()}.`
-
     try {
       if (navigator.share) {
         await navigator.share({
@@ -568,7 +270,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
         })
         return
       }
-
       await navigator.clipboard.writeText(shareUrl)
       toast.success("Vehicle link copied to clipboard")
     } catch (error) {
@@ -578,30 +279,25 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   }
 
   const normalizePostalCode = (value: string) =>
-    value.toUpperCase().replace(/\s/g, "").slice(0, 6)
+    value.toUpperCase().replaceAll(/\s/g, "").slice(0, 6)
 
   const handleDeliveryCheck = async () => {
     const cleaned = normalizePostalCode(postalCode)
     const postalRegex = /^[A-Z]\d[A-Z]\d[A-Z]\d$/
-
     setDeliveryError("")
     setDeliveryQuote(null)
-
     if (!postalRegex.test(cleaned)) {
       setDeliveryError("Enter a valid Canadian postal code (example: L4C1G7).")
       return
     }
-
     setIsCheckingDelivery(true)
     try {
       const response = await fetch(`/api/v1/deliveries/quote?postalCode=${encodeURIComponent(cleaned)}`)
       const data = await response.json()
-
       if (!response.ok) {
         setDeliveryError(data?.error || "Unable to calculate delivery right now.")
         return
       }
-
       setDeliveryQuote(data)
     } catch (error) {
       console.error("Delivery quote failed:", error)
@@ -610,8 +306,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
       setIsCheckingDelivery(false)
     }
   }
-
-
 
   const nextImage = () => {
     const images = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
@@ -627,7 +321,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
   const currentImages: string[] = imageType === "exterior" ? vehicle.images : vehicle.interiorImages
   const activeIndex = currentImageIndex
 
-
   // Finance calculation — delegates to lib/rates.ts (CI-guarded)
   const safePrice = safeNum(vehicle.price)
   const financeSubtotal = safePrice + FINANCE_ADMIN_FEE
@@ -639,32 +332,32 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
     <div className="min-h-screen bg-background">
       {/* JSON-LD is server-rendered in page.tsx — no client Script needed */}
       <Header />
+      <main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
 
-<main id="main-content" tabIndex={-1} className="pb-32 md:pb-20 overflow-x-hidden max-w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" role="main" aria-label="Vehicle details" data-vin={vehicle.vin} data-stock={vehicle.stockNumber}>
-  {/* Trade-In Banner */}
-  {tradeInValue && parseInt(tradeInValue) > 0 && (
-    <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-semibold">
-              Your Trade-In: <span className="font-bold tabular-nums">${parseInt(tradeInValue).toLocaleString()}</span>
-              {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
-            </span>
+        {/* Trade-In Banner */}
+        {tradeInValue && Number.parseInt(tradeInValue) > 0 && (
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-semibold">
+                    Your Trade-In: <span className="font-bold tabular-nums">${Number.parseInt(tradeInValue).toLocaleString()}</span>
+                    {tradeInVehicle && <span className="text-white/80 ml-2">({decodeURIComponent(tradeInVehicle)})</span>}
+                  </span>
+                </div>
+                <Button size="sm" variant="secondary" asChild>
+                  <Link href={getFinanceLink(vehicle?.id || '')}>Apply to This Vehicle</Link>
+                </Button>
+              </div>
+            </div>
           </div>
-          <Button size="sm" variant="secondary" asChild>
-            <Link href={getFinanceLink(vehicle?.id || '')}>Apply to This Vehicle</Link>
-          </Button>
-        </div>
-      </div>
-    </div>
-  )}
+        )}
 
-  {/* Breadcrumb */}
+        {/* Breadcrumb */}
         <nav className="bg-muted/30 py-3 border-b" aria-label="Breadcrumb">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-[84px] overflow-x-auto scrollbar-hide">
-            <ol className="flex items-center gap-2 text-sm whitespace-nowrap" role="list">
+            <ol className="flex items-center gap-2 text-sm whitespace-nowrap">
               <li>
                 <Link href="/inventory" className="text-muted-foreground hover:text-foreground">
                   All cars
@@ -726,14 +419,23 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
                   {/* 360° Interactive Viewer — Drivee iframe (if available) */}
-                  {imageType === "360" && has360 && vehicle.driveeMid ? (
-                    <DriveeViewer
-                      mid={vehicle.driveeMid}
-                      vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                    />
-                  ) : imageType === "360" && !has360 ? (
+                  {(() => {
+                    if (imageType === "360" && has360 && vehicle.driveeMid) {
+                      return (
+                        <DriveeViewer
+                          mid={vehicle.driveeMid}
+                          vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                        />
+                      )
+                    }
+                    if (imageType === "360" && !has360) {
+                      return (
                   /* ── Auto-Spin 360° Fallback — cycles exterior photos ── */
-                  <div
+                  /* S6848: use a <section> with aria-label so mouse-pause is
+                     scoped to a passive landmark; the inner Play/Pause and
+                     arrow <button>s remain the keyboard-accessible controls. */
+                  <section
+                    aria-label="Auto-spinning vehicle photos"
                     data-testid="vdp-auto-spin"
                     className="relative aspect-[4/3] rounded-xl overflow-hidden group"
                     style={{ backgroundColor: "#111" }}
@@ -760,6 +462,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           onClick={() => setIsAutoSpinning(!isAutoSpinning)}
                           className="absolute bottom-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition shadow-lg"
                           aria-label={isAutoSpinning ? "Pause auto-spin" : "Play auto-spin"}
+                          type="button"
                         >
                           {isAutoSpinning ? <Pause className="h-4 w-4 text-black" /> : <Play className="h-4 w-4 text-black ml-0.5" />}
                         </button>
@@ -771,6 +474,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <button
                           onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p - 1 + vehicle.images.length) % vehicle.images.length) }}
                           aria-label="Previous image"
+                          type="button"
                           className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
                         >
                           <ChevronLeft className="h-5 w-5" />
@@ -778,6 +482,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <button
                           onClick={() => { setIsAutoSpinning(false); setCurrentImageIndex((p: number) => (p + 1) % vehicle.images.length) }}
                           aria-label="Next image"
+                          type="button"
                           className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-white transition opacity-0 group-hover:opacity-100"
                         >
                           <ChevronRight className="h-5 w-5" />
@@ -789,16 +494,14 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <p className="text-sm text-white/50">No exterior photos available</p>
                       </div>
                     )}
-                  </div>
-                  ) : (
-                  <div
+                  </section>
+                      )
+                    }
+                    return (
+                  <section
                     data-testid="vdp-image-gallery"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
-                      if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
-                    }}
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary"
+                    aria-label="Vehicle image gallery — use arrow buttons to navigate"
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
                     style={{ backgroundColor: "#e8e8e8" }}
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
@@ -822,9 +525,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         />
                         {/* Expand Button — opens image in new tab */}
                         <button
-                          onClick={() => window.open(currentImages[activeIndex], "_blank")}
+                          onClick={() => globalThis.open(currentImages[activeIndex], "_blank")}
                           className="absolute top-4 right-4 w-10 h-10 bg-background/80 backdrop-blur rounded-lg flex items-center justify-center hover:bg-background transition"
                           aria-label="View full-size image"
+                          type="button"
                         >
                           <Expand className="w-5 h-5" />
                         </button>
@@ -835,24 +539,34 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <p className="text-sm text-muted-foreground">Photos coming soon</p>
                       </div>
                     )}
-
                     {/* Navigation Arrows */}
                     <button
                       onClick={prevImage}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+                        if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+                      }}
                       aria-label="Previous image"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                      type="button"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <button
                       onClick={nextImage}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowRight") { nextImage(); e.preventDefault() }
+                        if (e.key === "ArrowLeft") { prevImage(); e.preventDefault() }
+                      }}
                       aria-label="Next image"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100"
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-background/80 backdrop-blur rounded-full flex items-center justify-center hover:bg-background transition opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
-                  </div>
-                  )}
+                  </section>
+                    )
+                  })()}
 
                   {/* Image Type Toggle */}
                   <div className="flex gap-2 flex-wrap overflow-x-auto scrollbar-hide pb-1">
@@ -928,9 +642,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                       {currentImages.map((img: string, i: number) => (
                         <button
-                          key={i}
+                          key={img}
                           onClick={() => setCurrentImageIndex(i)}
                           aria-label={`View image ${i + 1} of ${currentImages.length}`}
+                          type="button"
                           className={`relative w-16 sm:w-20 h-12 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
                             i === activeIndex ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
                           }`}
@@ -940,7 +655,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       ))}
                     </div>
                   )}
-
 
                   {/* Trade and Upgrade CTA */}
                   <Card className="bg-primary text-primary-foreground">
@@ -961,12 +675,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold">Overview</h2>
                     <div className="flex gap-4 text-sm text-muted-foreground">
-                      <span>VIN <span className="font-mono text-foreground">{vehicle.vin}</span></span>
-                      <span>Stock # <span className="font-semibold text-foreground">{vehicle.stockNumber}</span></span>
+                      <span>VIN <span className="font-semibold text-foreground tabular-nums">{vehicle.vin}</span></span>
+                      <span>Stock # <span className="font-semibold text-foreground tabular-nums">{vehicle.stockNumber}</span></span>
                     </div>
                   </div>
-
-                  {/* Old-site cross-reference removed — users are already on the listing */}
 
                   {/* Vehicle Details Icons */}
                   <div className="flex flex-wrap gap-6">
@@ -1018,15 +730,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
                     <div className="flex flex-wrap gap-3">
-                      <Card className="flex-1 min-w-[140px]">
-                        <CardContent className="p-3 flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-pink-500" />
-                          <div>
-                            <p className="font-semibold text-sm">No accidents</p>
-                            <p className="text-xs text-muted-foreground">Reported by Carfax</p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      {/* Per-VIN Carfax claims — only renders factual claims
+                          for badges Carfax actually issued for THIS VIN, not
+                          a hardcoded "No accidents" headline. OMVIC compliance. */}
+                      <CarfaxSection vin={vehicle.vin ?? null} variant="headline" className="flex-1 min-w-[200px]" />
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Gauge className="w-5 h-5 text-muted-foreground" />
@@ -1142,7 +849,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 {/* Features Tab */}
                 <TabsContent value="features" className="mt-0 space-y-6">
                   <h2 className="text-xl font-bold">Features and specs</h2>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Features */}
                     <Card>
@@ -1150,24 +856,33 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <CardTitle className="text-base">FEATURES</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-0">
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Comfort & Convenience</span>
-                          <span className="font-semibold">Heated Seats</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Safety & Security</span>
-                          <span className="font-semibold">Autopilot</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Entertainment & Tech</span>
-                          <span className="font-semibold">15&quot; Touchscreen</span>
-                        </div>
-                        <div className="flex justify-between py-4">
-                          <span className="text-muted-foreground">Braking & Traction</span>
-                          <span className="font-semibold">Brake Assist</span>
-                        </div>
-                        <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
-                          View all features →
+                        {(
+                          [
+                            { label: "Comfort & Convenience", items: vehicleData.features.comfortConvenience },
+                            { label: "Safety & Security", items: vehicleData.features.safetySecurity },
+                            { label: "Entertainment & Tech", items: vehicleData.features.entertainmentTech },
+                            { label: "Braking & Traction", items: vehicleData.features.brakingTraction },
+                          ] satisfies readonly { label: string; items: readonly string[] }[]
+                        ).map((cat, ci) => (
+                          <div key={cat.label}>
+                            <div className="flex justify-between py-4 border-b">
+                              <span className="text-muted-foreground">{cat.label}</span>
+                              <span className="font-semibold">{cat.items[0]}</span>
+                            </div>
+                            {showAllFeatures && cat.items.slice(1).map((item, idx) => (
+                              <div key={`${cat.label}-${item}`} className={`flex justify-between py-3 pl-4 ${ci < 3 || idx < cat.items.length - 2 ? "border-b border-dashed" : ""}`}>
+                                <span className="text-sm text-muted-foreground" />
+                                <span className="text-sm">{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto text-primary mt-2"
+                          onClick={() => setShowAllFeatures((prev) => !prev)}
+                        >
+                          {showAllFeatures ? "Show less ↑" : `View all features →`}
                         </Button>
                       </CardContent>
                     </Card>
@@ -1178,47 +893,59 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <CardTitle className="text-base">SPECS</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-0">
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Range</span>
-                          <span className="font-semibold">{vehicle.range || "N/A"}</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Exterior</span>
-                          <span className="font-semibold">{vehicle.exteriorColor}</span>
-                        </div>
-                        <div className="flex justify-between py-4 border-b">
-                          <span className="text-muted-foreground">Interior</span>
-                          <span className="font-semibold">{vehicle.interiorColor}</span>
-                        </div>
-                        <div className="flex justify-between py-4">
-                          <span className="text-muted-foreground">Drive</span>
-                          <span className="font-semibold">{vehicle.drivetrain}</span>
-                        </div>
-                        <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab("features")}>
-                          View all specs →
-                        </Button>
+                        {(() => {
+                          const allSpecs: { label: string; value: string }[] = [
+                            { label: "Exterior", value: vehicle.exteriorColor || "N/A" },
+                            { label: "Interior", value: vehicle.interiorColor || "N/A" },
+                            { label: "Drivetrain", value: vehicle.drivetrain || "N/A" },
+                            { label: "Transmission", value: vehicle.transmission || "N/A" },
+                            ...(vehicle.engine ? [{ label: "Engine", value: vehicle.engine }] : []),
+                            { label: "Fuel Type", value: vehicle.fuelType || "N/A" },
+                            ...(vehicle.bodyStyle ? [{ label: "Body Style", value: vehicle.bodyStyle }] : []),
+                            { label: "Mileage", value: `${vehicle.mileage.toLocaleString()} km` },
+                            ...(vehicle.range ? [{ label: "Range", value: vehicle.range }] : []),
+                            { label: "VIN", value: vehicle.vin },
+                          ]
+                          const visible = showAllSpecs ? allSpecs : allSpecs.slice(0, 4)
+                          return (
+                            <>
+                              {visible.map((spec, i) => (
+                                <div key={spec.label} className={`flex justify-between py-4 ${i < visible.length - 1 ? "border-b" : ""}`}>
+                                  <span className="text-muted-foreground">{spec.label}</span>
+                                  <span className="font-semibold">{spec.value}</span>
+                                </div>
+                              ))}
+                              {allSpecs.length > 4 && (
+                                <Button
+                                  variant="link"
+                                  className="p-0 h-auto text-primary mt-2"
+                                  onClick={() => setShowAllSpecs((prev) => !prev)}
+                                >
+                                  {showAllSpecs ? "Show less ↑" : `View all specs →`}
+                                </Button>
+                              )}
+                            </>
+                          )
+                        })()}
                       </CardContent>
                     </Card>
                   </div>
 
                   {/* Packages */}
+                  {vehicleData.packages.length > 0 && (
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base">PACKAGES</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {vehicleData.packages.map((pkg, i) => (
-                        <div key={i} className="py-4 border-b last:border-b-0">
-                          <div className="flex justify-between items-center">
-                            <span className="font-semibold">{pkg}</span>
-                            <Button variant="link" className="p-0 h-auto text-primary text-sm" onClick={() => setActiveTab("features")}>
-                              View details →
-                            </Button>
-                          </div>
+                      {(vehicleData.packages as readonly (string | { name: string })[]).map((pkg) => (
+                        <div key={typeof pkg === "string" ? pkg : pkg.name} className="py-4 border-b last:border-b-0">
+                          <span className="font-semibold">{typeof pkg === "string" ? pkg : pkg.name}</span>
                         </div>
                       ))}
                     </CardContent>
                   </Card>
+                  )}
                 </TabsContent>
 
                 {/* Inspection Tab */}
@@ -1249,8 +976,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   {/* Inspection Items */}
                   <Card>
                     <CardContent className="p-0">
-                      {vehicleData.inspectionItems.map((item, i) => (
-                        <div key={i} className="flex justify-between items-center px-4 py-4 border-b last:border-b-0">
+                      {vehicleData.inspectionItems.map((item) => (
+                        <div key={item.category} className="flex justify-between items-center px-4 py-4 border-b last:border-b-0">
                           <span>{item.category}</span>
                           <span className={`flex items-center gap-1 text-sm ${item.status === "Passed" || item.status === "No reported accidents" ? "text-primary" : "text-green-600"}`}>
                             <Check className="w-4 h-4" />
@@ -1279,8 +1006,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
 
                       {/* Category Grid */}
                       <div className="grid grid-cols-3 md:grid-cols-5 gap-2 py-4">
-                        {vehicleData.inspectionCategories.map((cat, i) => (
-                          <div key={i} className="text-center p-2 bg-muted/30 rounded-lg">
+                        {vehicleData.inspectionCategories.map((cat) => (
+                          <div key={cat.name} className="text-center p-2 bg-muted/30 rounded-lg">
                             <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto mb-1" />
                             <p className="text-[11px] sm:text-xs font-semibold leading-tight">{cat.name}</p>
                             <p className="text-[11px] sm:text-xs text-primary">{cat.points} pts</p>
@@ -1291,14 +1018,14 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       {/* VIN & History — Items 1-10 */}
                       <div className="space-y-1">
                         <div className="bg-teal-600 text-white p-2 rounded-t-lg flex items-center gap-2">
-                          <span className="text-sm font-semibold">VIN & History ��� Items 1-10</span>
+                          <span className="text-sm font-semibold">VIN & History — Items 1-10</span>
                         </div>
                         <div className="border rounded-b-lg">
                           <div className="grid grid-cols-[40px_1fr_60px] text-xs font-medium border-b px-3 py-2 bg-muted/30">
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.vinHistory.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 1}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1317,7 +1044,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.powertrainEngine.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 11}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1336,7 +1063,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.brakesSuspension.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 33}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1355,7 +1082,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.tyresWheels.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 46}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1374,7 +1101,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.exterior.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 54}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1393,7 +1120,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.interior.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 75}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1412,7 +1139,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.driveTest.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 95}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1431,7 +1158,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.evSystems.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 105}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1450,7 +1177,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>#</span><span>Inspection Item</span><span className="text-right">Status</span>
                           </div>
                           {vehicleData.fullInspection.detailingSafety.map((item, i) => (
-                            <div key={i} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
+                            <div key={item} className="grid grid-cols-[40px_1fr_60px] text-sm px-3 py-2 border-b last:border-b-0">
                               <span className="text-muted-foreground">{i + 117}-{i + 117 + 9}</span>
                               <span>{item}</span>
                               <span className="text-right text-primary flex items-center justify-end gap-1"><Check className="w-3 h-3" />Pass</span>
@@ -1464,7 +1191,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         <Shield className="w-8 h-8 mx-auto mb-2 text-primary" />
                         <p className="text-xl font-bold">210 Points — All Passed</p>
                         <p className="text-sm text-slate-300 mt-1">Planet Motors Inc. · Richmond Hill, ON · OMVIC Reg.</p>
-                        <Button className="mt-4" variant="outline" onClick={() => window.print()}>
+                        <Button className="mt-4" variant="outline" onClick={() => globalThis.print()}>
                           <Download className="w-4 h-4 mr-2" />
                           Print Inspection Report
                         </Button>
@@ -1472,19 +1199,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </DialogContent>
                   </Dialog>
 
-                  {/* CARFAX */}
-                  <Card>
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <Badge variant="outline" className="border-red-500 text-red-600 text-base px-3 py-1">
-                        CARFAX
-                      </Badge>
-                      <Button variant="link" className="text-primary" asChild>
-                        <Link href={`https://www.carfax.ca/vehicle/${vehicle.vin}`} target="_blank">
-                          View report <ExternalLink className="w-4 h-4 ml-1" />
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  {/* CARFAX panel — driven by /api/v1/carfax/[vin]; renders
+                      real badges + a tokenized VhrReportUrl. */}
+                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
+
 
                   {/* EV Battery Health - Show for EVs/PHEVs */}
                   {(vehicle.fuelType === "Electric" || vehicle.fuelType === "PHEV") && (
@@ -1524,8 +1242,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <CardTitle className="text-base">Condition</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      {vehicleData.conditionItems.map((item, i) => (
-                        <div key={i} className="flex items-start gap-2">
+                      {vehicleData.conditionItems.map((item) => (
+                        <div key={item} className="flex items-start gap-2">
                           <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                           <span className="text-sm">{item}</span>
                         </div>
@@ -1537,7 +1255,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 {/* Pricing Tab */}
                 <TabsContent value="pricing" className="mt-0 space-y-6">
                   <h2 className="text-2xl font-bold text-center">Price Details</h2>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Pay Over Time - Includes $895 Finance Docs Fee */}
                     <Card>
@@ -1574,9 +1291,11 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                           </p>
                           <p className="text-xs text-muted-foreground">Get personalized financing terms in 2 minutes — no impact to your credit score.</p>
                         </div>
+                        {isAvailable && (
                         <Button className="w-full mt-4" variant="outline" asChild>
                           <Link href={getFinanceLink(vehicle.id)}>Get pre-qualified</Link>
                         </Button>
+                        )}
                       </CardContent>
                     </Card>
 
@@ -1618,9 +1337,15 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                             <span>${vehicle.pricing.totalWithHst.toLocaleString()}</span>
                           </div>
                         </div>
+                        {isAvailable ? (
                         <Button className="w-full mt-4" onClick={() => handleProtectedAction("start your purchase", () => {
-                          window.location.href = `/checkout/${vehicle.id}`
+                          globalThis.location.href = `/checkout/${vehicle.id}`
                         })}>Start your purchase</Button>
+                        ) : (
+                        <div className={`w-full mt-4 p-3 rounded-lg text-center text-sm font-bold uppercase tracking-wide ${statusDisplay.bannerClassName}`}>
+                          {statusDisplay.longLabel}
+                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
@@ -1698,42 +1423,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   </Card>
                 </TabsContent>
 
-                {/* ARCHIVED: Ratings Tab - Commented out per request
-                <TabsContent value="ratings" className="mt-0 space-y-6">
-                  <h2 className="text-xl font-bold">Our rating</h2>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-6">
-                        <div className="text-center">
-                          <p className="text-5xl font-bold">{vehicleData.ratings.overall}</p>
-                          <p className="text-lg text-muted-foreground">/5</p>
-                          <div className="w-16 h-1 bg-primary rounded-full mt-2 mx-auto" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-muted-foreground">{vehicleData.ratings.description}</p>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 space-y-3">
-                        {vehicleData.ratings.categories.map((cat, i) => (
-                          <div key={i} className="flex items-center gap-4">
-                            <span className="w-24 text-sm text-muted-foreground">{cat.name}</span>
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary rounded-full"
-                                style={{ width: `${(cat.score / 5) * 100}%` }}
-                              />
-                            </div>
-                            <span className="w-8 text-sm font-semibold">{cat.score}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                */}
-
                 {/* Protection Tab */}
                 <TabsContent value="protection" className="mt-0 space-y-6">
                   <div>
@@ -1742,14 +1431,13 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       This vehicle&apos;s manufacturer warranty has expired. But don&apos;t worry, we have options for you to stay covered!
                     </p>
                   </div>
-
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
                           <th className="text-left py-3 px-4 font-medium"></th>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <th key={i} className={`text-center py-3 px-4 font-medium ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <th key={pkg.name} className={`text-center py-3 px-4 font-medium ${pkg.recommended ? "bg-primary/5" : ""}`}>
                               {pkg.name}
                               {pkg.recommended && <Badge className="ml-2 bg-primary text-xs">Recommended</Badge>}
                             </th>
@@ -1759,32 +1447,32 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <tbody>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Payment method</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.paymentMethod}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Money back guarantee</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.moneyBack ? <Check className="w-5 h-5 text-primary mx-auto" /> : "—"}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Due at checkout</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.dueAtCheckout}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Warranty</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.warranty !== "—" && pkg.warranty !== "Standard" ? (
                                 <span className="flex items-center justify-center gap-1 text-primary">
                                   <Check className="w-4 h-4" /><Check className="w-4 h-4" />
@@ -1796,32 +1484,32 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Tire & rim protection</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.tireRim === true ? <Check className="w-5 h-5 text-primary mx-auto" /> : pkg.tireRim}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">GAP coverage</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.gapCoverage}
                             </td>
                           ))}
                         </tr>
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">Life & disability</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4">
                               {pkg.lifeDisability}
                             </td>
                           ))}
                         </tr>
                         <tr>
                           <td className="py-3 px-4 font-semibold">Price</td>
-                          {vehicleData.protectionPackages.map((pkg, i) => (
-                            <td key={i} className={`text-center py-3 px-4 font-semibold tabular-nums ${pkg.recommended ? "bg-primary/5" : ""}`}>
+                          {vehicleData.protectionPackages.map((pkg) => (
+                            <td key={pkg.name} className="text-center py-3 px-4 font-semibold tabular-nums">
                               {pkg.price}
                             </td>
                           ))}
@@ -1830,6 +1518,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </table>
                   </div>
                 </TabsContent>
+
               {/* Next Steps */}
               <div className="mt-12 pt-8 border-t">
                 <h2 className="text-xl font-bold mb-6">Next steps</h2>
@@ -1845,7 +1534,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <p className="text-xl sm:text-2xl font-bold mb-1">{item.step}</p>
                       <p className="font-semibold text-xs sm:text-sm">{item.title}</p>
                       {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
-                      {item.active && (
+                      {item.active && isAvailable && (
                         <Button size="sm" className="mt-3" asChild>
                           <Link href={getFinanceLink(vehicle.id)}>Start purchase</Link>
                         </Button>
@@ -1860,8 +1549,8 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     <div className="md:w-1/3">
-<p className="text-4xl font-bold">500+</p>
-                            <p className="text-muted-foreground">happy customers</p>
+                      <p className="text-4xl font-bold">500+</p>
+                      <p className="text-muted-foreground">happy customers</p>
                       <div className="mt-4">
                         <p className="text-xs text-muted-foreground mb-2">AS SEEN ON</p>
                         <div className="flex gap-2">
@@ -1918,7 +1607,37 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   {/* Social proof — desktop placement (above CTA) */}
                   <SocialProof vehicleId={vehicle.id} className="mt-3 hidden md:block" />
 
-                  {/* Primary CTA — Get Pre-Approved */}
+                  {/* Status banner for reserved/sold/pending vehicles */}
+                  {isReserved && (
+                    <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-300 dark:border-yellow-800 text-center">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <LockKeyhole className="w-5 h-5 text-yellow-600" />
+                        <span className="text-lg font-bold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">Reserved</span>
+                      </div>
+                      <p className="text-sm text-yellow-700/80 dark:text-yellow-400/70">This vehicle has been reserved by another customer.</p>
+                    </div>
+                  )}
+                  {isPending && (
+                    <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg border border-orange-300 dark:border-orange-800 text-center">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <LockKeyhole className="w-5 h-5 text-orange-600" />
+                        <span className="text-lg font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide">Sale Pending</span>
+                      </div>
+                      <p className="text-sm text-orange-700/80 dark:text-orange-400/70">This vehicle has a pending sale in progress.</p>
+                    </div>
+                  )}
+                  {isSold && (
+                    <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-300 dark:border-red-800 text-center">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <CheckCircle className="w-5 h-5 text-red-600" />
+                        <span className="text-lg font-bold text-red-700 dark:text-red-400 uppercase tracking-wide">Sold</span>
+                      </div>
+                      <p className="text-sm text-red-700/80 dark:text-red-400/70">This vehicle has been sold. Browse similar vehicles below.</p>
+                    </div>
+                  )}
+
+                  {/* Primary CTA — Get Pre-Approved (available vehicles only) */}
+                  {isAvailable && (
                   <div className="mt-4 space-y-2">
                     <Button
                       className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90"
@@ -1931,8 +1650,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">No credit impact · Decision in 2 min</p>
                   </div>
+                  )}
 
-                  {/* Secondary CTAs — Reserve & Buy */}
+                  {/* Secondary CTAs — Reserve & Buy (available vehicles only) */}
+                  {isAvailable && (
                   <div className="mt-3 pt-3 border-t space-y-2">
                     {user ? (
                       <ReserveVehicleModal
@@ -1974,6 +1695,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">48-hr hold · fully refundable</p>
                   </div>
+                  )}
 
                   {/* Trust Badges */}
                   <div className="mt-3 pt-3 border-t space-y-2">
@@ -1986,7 +1708,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                       <span className="text-sm font-semibold">$250 Refundable Deposit</span>
                     </div>
                   </div>
-
                   <p className="text-xs text-center text-muted-foreground mt-2">
                     Excl. HST & Licensing · Incl. OMVIC Fee
                   </p>
@@ -1994,27 +1715,23 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                   {/* AI Features Section */}
                   <div className="mt-4 pt-4 border-t space-y-3">
                     <h4 className="text-sm font-medium text-muted-foreground">AI-POWERED FEATURES</h4>
-
                     {/* AI Price Negotiator */}
                     <PriceNegotiator
                       vehicleId={vehicle.id}
                       vehiclePrice={vehicle.price}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-
                     {/* Live Video Call */}
                     <LiveVideoCall
                       vehicleId={vehicle.id}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                     />
-
                     {/* Price Drop Alert */}
                     <PriceDropAlert
                       vehicleId={vehicle.id}
                       vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                       currentPrice={vehicle.price}
                     />
-
                     {/* Add to Compare */}
                     <AddToCompare
                       vehicle={{
@@ -2041,7 +1758,6 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                         if (!isFavorite && vehicle) {
                           const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
                           trackAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
-                          trackMetaAddToWishlist({ id: vehicle.id, name, price: vehicle.price })
                           addFavorite({
                             id: vehicle.id,
                             year: vehicle.year,
@@ -2072,15 +1788,9 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     />
                   </div>
 
-                  {/* CARFAX */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                    <Badge variant="outline" className="border-red-500 text-red-600">CARFAX</Badge>
-                    <Button variant="link" className="text-primary p-0 h-auto" asChild>
-                      <Link href={`https://www.carfax.ca/vehicle/${vehicle.vin}`} target="_blank">
-                        View report <ExternalLink className="w-3 h-3 ml-1" />
-                      </Link>
-                    </Button>
-                  </div>
+                  {/* CARFAX inline link — same per-VIN tokenized URL as the
+                      panel above; no copy-paste deep link to carfax.ca. */}
+                  <CarfaxInlineLink vin={vehicle.vin ?? null} />
 
                   {/* Delivery Calculator */}
                   <div className="mt-4 pt-4 border-t">
@@ -2114,15 +1824,19 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                     {deliveryError && (
                       <p className="text-xs text-red-600 mt-2">{deliveryError}</p>
                     )}
-                    {deliveryQuote && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {deliveryQuote.isDeliveryAvailable
-                          ? deliveryQuote.isFreeDelivery
-                            ? `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
-                            : `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
-                          : `Delivery is not available for ${deliveryQuote.postalCode} right now.`}
-                      </p>
-                    )}
+                    {deliveryQuote && (() => {
+                      let deliveryMsg: string
+                      if (!deliveryQuote.isDeliveryAvailable) {
+                        deliveryMsg = `Delivery is not available for ${deliveryQuote.postalCode} right now.`
+                      } else if (deliveryQuote.isFreeDelivery) {
+                        deliveryMsg = `Free delivery to ${deliveryQuote.postalCode} (${deliveryQuote.distanceKm} km).`
+                      } else {
+                        deliveryMsg = `Delivery to ${deliveryQuote.postalCode}: $${deliveryQuote.deliveryCost.toFixed(2)} (${deliveryQuote.distanceKm} km).`
+                      }
+                      return (
+                        <p className="text-xs text-muted-foreground mt-2">{deliveryMsg}</p>
+                      )
+                    })()}
                   </div>
 
                   {/* Phone */}
@@ -2135,6 +1849,7 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
                 </CardContent>
               </Card>
             </div>
+
             </div>
           </div>
         </Tabs>
@@ -2148,9 +1863,10 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
             priceRange={vehicle.price}
           />
         </div>
-</main>
+      </main>
 
-      {/* Sticky Mobile CTA — finance-first */}
+      {/* Sticky Mobile CTA — finance-first (available vehicles only) */}
+      {isAvailable ? (
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">
         <div className="px-4 pt-2 pb-safe">
           {/* Price + payment row */}
@@ -2183,6 +1899,15 @@ export default function VDPClient({ serverVehicle }: VDPClientProps) {
           </div>
         </div>
       </div>
+      ) : (
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)] md:hidden z-50">
+        <div className="px-4 py-3 text-center">
+          <span className={`text-sm font-bold uppercase tracking-wide ${statusDisplay.inlineClassName}`}>
+            {statusDisplay.shortLabel}
+          </span>
+        </div>
+      </div>
+      )}
 
       <Footer />
 

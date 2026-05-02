@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import useSWR from "swr"
@@ -141,15 +141,20 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
   const [isAnimating, setIsAnimating] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const carouselRef = useRef<HTMLDivElement>(null)
 
   // Fetch vehicles from Supabase — use server-fetched data as fallbackData
   // so the first render already has real vehicle data + images (enables LCP preload).
+  // When server data is available, skip the immediate re-fetch on mount
+  // to reduce TBT (saves ~50-100ms of Supabase client init + network).
+  const hasServerData = !!serverVehicles && serverVehicles.length > 0
   const { data: dbVehicles } = useSWR('showcase-vehicles', fetcher, {
     refreshInterval: 120000,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    revalidateOnMount: !hasServerData,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server data matches fetcher shape
-    ...(serverVehicles ? { fallbackData: serverVehicles as any } : {}),
+    ...(hasServerData ? { fallbackData: serverVehicles as any } : {}),
   })
 
   // Transform to showcase format - use fallback if no DB data
@@ -178,6 +183,20 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
     return () => clearInterval(rotationTimer)
   }, [isHovering, showcaseVehicles.length])
 
+  // Pause auto-rotation while hovering carousel; bound via ref to keep wrapper element non-interactive
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    const enter = () => setIsHovering(true)
+    const leave = () => setIsHovering(false)
+    el.addEventListener("mouseenter", enter)
+    el.addEventListener("mouseleave", leave)
+    return () => {
+      el.removeEventListener("mouseenter", enter)
+      el.removeEventListener("mouseleave", leave)
+    }
+  }, [])
+
   const goToPrevious = () => {
     if (isAnimating || showcaseVehicles.length === 0) return
     setIsAnimating(true)
@@ -196,15 +215,14 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
   // No loading spinner needed as fallbackVehicles are always available
 
   return (
-    <div 
+    <div
+      ref={carouselRef}
       className="relative group w-full"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
     >
       {/* Main carousel container - prevent cutoff */}
       <div className="w-full max-w-6xl mx-auto px-2 sm:px-4">
         {/* Main image container */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
+        <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-linear-to-br from-[#f0f4ff] to-[#e8eef5] shadow-2xl">
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -224,7 +242,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
         )}
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Top badges row */}
         <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
@@ -329,7 +347,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
         <Button
           variant="ghost"
           size="icon"
-          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+          className="shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => {
             const container = document.querySelector('.thumbnail-scroll-container')
             if (container) {
@@ -348,7 +366,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
               key={vehicle.id}
               onClick={() => setCurrentIndex(index)}
               className={cn(
-                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0 border-2",
+                "relative w-12 h-9 sm:w-16 sm:h-12 rounded-lg overflow-hidden transition-all duration-200 shrink-0 border-2",
                 index === currentIndex 
                   ? "border-primary shadow-md" 
                   : "border-transparent opacity-60 hover:opacity-100 hover:border-gray-300"
@@ -374,7 +392,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
         <Button
           variant="ghost"
           size="icon"
-          className="flex-shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+          className="shrink-0 h-10 w-10 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
           onClick={() => {
             const container = document.querySelector('.thumbnail-scroll-container')
             if (container) {

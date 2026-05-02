@@ -1,3 +1,4 @@
+ 
 "use client"
 
 import { useState } from "react"
@@ -8,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Bell, Check, Mail, Phone } from "lucide-react"
-import { PHONE_LOCAL, PHONE_LOCAL_TEL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL } from "@/lib/constants/dealership"
 
 interface PriceDropAlertProps {
   vehicleId: string
@@ -26,7 +27,7 @@ export function PriceDropAlert({
   triggerLabel = "Price Alert",
   triggerVariant = "ghost",
   triggerClassName,
-}: PriceDropAlertProps) {
+}: Readonly<PriceDropAlertProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -39,7 +40,7 @@ export function PriceDropAlert({
     notifySms: false,
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
 
@@ -68,7 +69,7 @@ export function PriceDropAlert({
   }
 
   const formatPhoneNumber = (value: string) => {
-    const digits = value.replace(/\D/g, "")
+    const digits = value.replaceAll(/\D/g, "")
     if (digits.length <= 3) return digits
     if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
     return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
@@ -90,7 +91,38 @@ export function PriceDropAlert({
           </DialogTitle>
         </DialogHeader>
 
-        {!isSuccess ? (
+        {isSuccess ? (
+          <div className="text-center py-6 space-y-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <Check className="w-8 h-8 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Alert Set!</h3>
+              <p className="text-sm text-muted-foreground">
+                We&apos;ll notify you when the price drops.
+              </p>
+            </div>
+            <Card className="text-left">
+              <CardContent className="pt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Vehicle</span>
+                  <span className="font-semibold">{vehicleName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Current Price</span>
+                  <span className="font-semibold">${currentPrice.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Alert ID</span>
+                  <span className="font-mono text-xs">{alertId}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Button onClick={() => setIsOpen(false)} className="w-full">
+              Done
+            </Button>
+          </div>
+        ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <Card className="bg-muted/50">
               <CardContent className="pt-4">
@@ -163,37 +195,6 @@ export function PriceDropAlert({
               You can unsubscribe at any time. We only notify you about price drops.
             </p>
           </form>
-        ) : (
-          <div className="text-center py-6 space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Alert Set!</h3>
-              <p className="text-sm text-muted-foreground">
-                We&apos;ll notify you when the price drops.
-              </p>
-            </div>
-            <Card className="text-left">
-              <CardContent className="pt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Vehicle</span>
-                  <span className="font-semibold">{vehicleName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Current Price</span>
-                  <span className="font-semibold">${currentPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Alert ID</span>
-                  <span className="font-mono text-xs">{alertId}</span>
-                </div>
-              </CardContent>
-            </Card>
-            <Button onClick={() => setIsOpen(false)} className="w-full">
-              Done
-            </Button>
-          </div>
         )}
       </DialogContent>
     </Dialog>

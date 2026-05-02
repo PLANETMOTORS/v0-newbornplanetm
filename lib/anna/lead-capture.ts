@@ -7,6 +7,8 @@
 
 import { createClient } from "@supabase/supabase-js"
 import { sendNotificationEmail } from "@/lib/email"
+import { inquiryToAdfProspect } from "@/lib/adf/adapters"
+import { forwardLeadToAutoRaptor } from "@/lib/adf/forwarder"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
@@ -75,6 +77,31 @@ export async function createLead(data: LeadData): Promise<string | null> {
       },
     }).catch(err => console.error("Lead notification email failed:", err))
 
+    // Forward to AutoRaptor as ADF/XML email (non-blocking).
+    // Skipped silently when the customer hasn't shared an email yet
+    // (Anna asks for contact info up front, but a chat can start
+    // anonymously). The dealer sees no value in unidentifiable leads.
+    if (data.customerEmail) {
+      void forwardLeadToAutoRaptor(
+        inquiryToAdfProspect({
+          inquiryId: lead?.id || `anna-${Date.now().toString(36)}`,
+          customerName: data.customerName,
+          customerEmail: data.customerEmail,
+          customerPhone: data.customerPhone,
+          message: [
+            data.subject,
+            data.message,
+            data.vehicleInfo ? `Vehicle context: ${data.vehicleInfo}` : null,
+            `Source: ${data.source === "chat" ? "Anna AI Chat" : data.source}`,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        }),
+      ).catch((cause) =>
+        console.error("[anna] ADF forward failed:", cause),
+      )
+    }
+
     return lead?.id || null
   } catch (err) {
     console.error("Lead capture failed:", err)
@@ -141,11 +168,11 @@ export async function saveChatMessage(params: {
     // Update message count — RPC might not exist, ignore errors
     try {
       await client.rpc("increment_message_count", { conv_id: params.conversationId })
-    } catch {
-      // Fallback: just ignore — message count is non-critical
+    } catch (err) {
+      console.error("[anna] increment_message_count RPC failed:", err)
     }
-  } catch {
-    // Non-critical — don't fail the chat
+  } catch (err) {
+    console.error("[anna] saveChatMessage failed:", err)
   }
 }
 
@@ -170,8 +197,8 @@ export async function escalateConversation(params: {
         .from("chat_conversations")
         .update({ status: "escalated", escalated_at: new Date().toISOString() })
         .eq("id", params.conversationId)
-    } catch {
-      // Non-critical — continue with lead creation
+    } catch (err) {
+      console.error("[anna] escalateConversation status update failed:", err)
     }
   }
 

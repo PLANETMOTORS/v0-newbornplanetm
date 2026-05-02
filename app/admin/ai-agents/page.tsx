@@ -109,24 +109,28 @@ export default function AIAgentsPage() {
   }
 
   const addQuickAction = () => {
-    const currentActions = (editForm.quick_actions || []) as QuickAction[]
+    const currentActions = editForm.quick_actions || []
     setEditForm({ ...editForm, quick_actions: [...currentActions, { label: "", prompt: "" }] })
   }
 
   const removeQuickAction = (index: number) => {
-    const currentActions = [...((editForm.quick_actions || []) as QuickAction[])]
+    const currentActions = [...(editForm.quick_actions || [])]
     currentActions.splice(index, 1)
     setEditForm({ ...editForm, quick_actions: currentActions })
   }
 
   const updateQuickAction = (index: number, field: "label" | "prompt", value: string) => {
-    const currentActions = [...((editForm.quick_actions || []) as QuickAction[])]
+    const currentActions = [...(editForm.quick_actions || [])]
     currentActions[index] = { ...currentActions[index], [field]: value }
     setEditForm({ ...editForm, quick_actions: currentActions })
   }
 
   const updateConfig = (key: string, value: string | number) => {
-    const config = { ...((editForm.config || {}) as Record<string, unknown>) }
+    const existing =
+      editForm.config && typeof editForm.config === "object"
+        ? editForm.config
+        : null
+    const config: Record<string, unknown> = existing ? { ...existing } : {}
     config[key] = value
     setEditForm({ ...editForm, config })
   }
@@ -167,6 +171,17 @@ export default function AIAgentsPage() {
           const Icon = meta.icon
           const isEditing = editingAgent === agent.agent_type
           const config = (isEditing ? editForm.config : agent.config) as Record<string, unknown> || {}
+          // S6551: a config value may be any unknown shape — coerce to a primitive
+          // explicitly so that an accidental object never renders as
+          // "[object Object]" in the input.
+          const cfgString = (key: string, fallback: string): string => {
+            const v = config[key]
+            return typeof v === "string" ? v : fallback
+          }
+          const cfgNumber = (key: string, fallback: number): number => {
+            const v = config[key]
+            return typeof v === "number" ? v : fallback
+          }
 
           return (
             <Card key={agent.agent_type} className={saveSuccess === agent.agent_type ? "ring-2 ring-green-500" : ""}>
@@ -193,28 +208,40 @@ export default function AIAgentsPage() {
                     <button onClick={() => toggleAgent(agent.agent_type, agent.is_active)} className="p-2 hover:bg-gray-100 rounded-lg">
                       {agent.is_active ? <ToggleRight className="w-6 h-6 text-green-600" /> : <ToggleLeft className="w-6 h-6 text-gray-400" />}
                     </button>
-                    {!isEditing && knowledgeAgent !== agent.agent_type ? (
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => { setKnowledgeAgent(agent.agent_type); setEditingAgent(null) }}>
-                          <BookOpen className="w-4 h-4 mr-1" />
-                          Knowledge
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => { startEditing(agent); setKnowledgeAgent(null) }}>
-                          <Settings2 className="w-4 h-4 mr-1" />
-                          Configure
-                        </Button>
-                      </div>
-                    ) : isEditing ? (
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={cancelEditing}>Cancel</Button>
-                        <Button size="sm" onClick={saveAgent} disabled={saving === agent.agent_type}>
-                          <Save className="w-4 h-4 mr-1" />
-                          {saving === agent.agent_type ? "Saving..." : "Save"}
-                        </Button>
-                      </div>
-                    ) : knowledgeAgent === agent.agent_type ? (
-                      <Button variant="outline" size="sm" onClick={() => setKnowledgeAgent(null)}>Close Knowledge</Button>
-                    ) : null}
+                    {(() => {
+                      if (!isEditing && knowledgeAgent !== agent.agent_type) {
+                        return (
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => { setKnowledgeAgent(agent.agent_type); setEditingAgent(null) }}>
+                              <BookOpen className="w-4 h-4 mr-1" />
+                              Knowledge
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => { startEditing(agent); setKnowledgeAgent(null) }}>
+                              <Settings2 className="w-4 h-4 mr-1" />
+                              Configure
+                            </Button>
+                          </div>
+                        )
+                      }
+                      if (isEditing) {
+                        const saveLabel = saving === agent.agent_type ? "Saving..." : "Save"
+                        return (
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={cancelEditing}>Cancel</Button>
+                            <Button size="sm" onClick={saveAgent} disabled={saving === agent.agent_type}>
+                              <Save className="w-4 h-4 mr-1" />
+                              {saveLabel}
+                            </Button>
+                          </div>
+                        )
+                      }
+                      if (knowledgeAgent === agent.agent_type) {
+                        return (
+                          <Button variant="outline" size="sm" onClick={() => setKnowledgeAgent(null)}>Close Knowledge</Button>
+                        )
+                      }
+                      return null
+                    })()}
                   </div>
                 </div>
               </CardHeader>
@@ -225,16 +252,18 @@ export default function AIAgentsPage() {
                   {agent.agent_type === "anna" && (
                     <>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Display Name</label>
+                        <label htmlFor={`${agent.agent_type}-display-name`} className="text-sm font-medium text-gray-700 block mb-1">Display Name</label>
                         <Input
+                          id={`${agent.agent_type}-display-name`}
                           value={(editForm.display_name as string) || ""}
                           onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
                           placeholder="Anna"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Welcome Message</label>
+                        <label htmlFor={`${agent.agent_type}-welcome-message`} className="text-sm font-medium text-gray-700 block mb-1">Welcome Message</label>
                         <textarea
+                          id={`${agent.agent_type}-welcome-message`}
                           className="w-full border rounded-md p-3 text-sm min-h-[80px] resize-y"
                           value={(editForm.welcome_message as string) || ""}
                           onChange={(e) => setEditForm({ ...editForm, welcome_message: e.target.value })}
@@ -242,8 +271,9 @@ export default function AIAgentsPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Custom System Prompt (optional — overrides default)</label>
+                        <label htmlFor={`${agent.agent_type}-system-prompt`} className="text-sm font-medium text-gray-700 block mb-1">Custom System Prompt (optional — overrides default)</label>
                         <textarea
+                          id={`${agent.agent_type}-system-prompt`}
                           className="w-full border rounded-md p-3 text-sm min-h-[120px] resize-y font-mono"
                           value={(editForm.system_prompt as string) || ""}
                           onChange={(e) => setEditForm({ ...editForm, system_prompt: e.target.value })}
@@ -253,15 +283,15 @@ export default function AIAgentsPage() {
                       </div>
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-sm font-medium text-gray-700">Quick Actions</label>
+                          <span className="text-sm font-medium text-gray-700">Quick Actions</span>
                           <Button variant="outline" size="sm" onClick={addQuickAction}>
                             <Plus className="w-3 h-3 mr-1" />
                             Add
                           </Button>
                         </div>
                         <div className="space-y-2">
-                          {((editForm.quick_actions || []) as QuickAction[]).map((qa, i) => (
-                            <div key={i} className="flex gap-2 items-center">
+                          {(editForm.quick_actions || []).map((qa, i) => (
+                            <div key={qa.label} className="flex gap-2 items-center">
                               <Input
                                 value={qa.label}
                                 onChange={(e) => updateQuickAction(i, "label", e.target.value)}
@@ -283,18 +313,20 @@ export default function AIAgentsPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">Rate Limit (requests/hour)</label>
+                          <label htmlFor={`${agent.agent_type}-rate-limit`} className="text-sm font-medium text-gray-700 block mb-1">Rate Limit (requests/hour)</label>
                           <Input
+                            id={`${agent.agent_type}-rate-limit`}
                             type="number"
-                            value={String(config.rateLimit || 20)}
-                            onChange={(e) => updateConfig("rateLimit", parseInt(e.target.value))}
+                            value={String(cfgNumber("rateLimit", 20))}
+                            onChange={(e) => updateConfig("rateLimit", Number.parseInt(e.target.value))}
                           />
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">AI Model</label>
+                          <label htmlFor={`${agent.agent_type}-ai-model`} className="text-sm font-medium text-gray-700 block mb-1">AI Model</label>
                           <select
+                            id={`${agent.agent_type}-ai-model`}
                             className="w-full border rounded-md px-3 py-2 text-sm"
-                            value={String(config.model || "gpt-4o-mini")}
+                            value={cfgString("model", "gpt-4o-mini")}
                             onChange={(e) => updateConfig("model", e.target.value)}
                           >
                             <option value="gpt-4o-mini">GPT-4o Mini (fast, cost-effective)</option>
@@ -309,66 +341,72 @@ export default function AIAgentsPage() {
                   {agent.agent_type === "negotiator" && (
                     <>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-3">Discount Tiers — Vehicles Under $30K</label>
+                        <span className="text-sm font-medium text-gray-700 block mb-3">Discount Tiers — Vehicles Under $30K</span>
                         <div className="grid grid-cols-3 gap-4">
                           <div>
-                            <label className="text-xs text-gray-500">0-31 days (%)</label>
+                            <label htmlFor={`${agent.agent_type}-low-0-31`} className="text-xs text-gray-500">0-31 days (%)</label>
                             <Input
+                              id={`${agent.agent_type}-low-0-31`}
                               type="number"
                               step="0.25"
-                              value={String(config.lowPriceMaxDiscount_0_31days || 1)}
-                              onChange={(e) => updateConfig("lowPriceMaxDiscount_0_31days", parseFloat(e.target.value))}
+                              value={String(cfgNumber("lowPriceMaxDiscount_0_31days", 1))}
+                              onChange={(e) => updateConfig("lowPriceMaxDiscount_0_31days", Number.parseFloat(e.target.value))}
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">32-46 days (%)</label>
+                            <label htmlFor={`${agent.agent_type}-low-32-46`} className="text-xs text-gray-500">32-46 days (%)</label>
                             <Input
+                              id={`${agent.agent_type}-low-32-46`}
                               type="number"
                               step="0.25"
-                              value={String(config.lowPriceMaxDiscount_32_46days || 1.25)}
-                              onChange={(e) => updateConfig("lowPriceMaxDiscount_32_46days", parseFloat(e.target.value))}
+                              value={String(cfgNumber("lowPriceMaxDiscount_32_46days", 1.25))}
+                              onChange={(e) => updateConfig("lowPriceMaxDiscount_32_46days", Number.parseFloat(e.target.value))}
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">47+ days (%)</label>
+                            <label htmlFor={`${agent.agent_type}-low-47plus`} className="text-xs text-gray-500">47+ days (%)</label>
                             <Input
+                              id={`${agent.agent_type}-low-47plus`}
                               type="number"
                               step="0.25"
-                              value={String(config.lowPriceMaxDiscount_47plus || 1.5)}
-                              onChange={(e) => updateConfig("lowPriceMaxDiscount_47plus", parseFloat(e.target.value))}
+                              value={String(cfgNumber("lowPriceMaxDiscount_47plus", 1.5))}
+                              onChange={(e) => updateConfig("lowPriceMaxDiscount_47plus", Number.parseFloat(e.target.value))}
                             />
                           </div>
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-3">Discount Tiers — Vehicles $30K+</label>
+                        <span className="text-sm font-medium text-gray-700 block mb-3">Discount Tiers — Vehicles $30K+</span>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-xs text-gray-500">0-46 days (%)</label>
+                            <label htmlFor={`${agent.agent_type}-high-0-46`} className="text-xs text-gray-500">0-46 days (%)</label>
                             <Input
+                              id={`${agent.agent_type}-high-0-46`}
                               type="number"
                               step="0.25"
-                              value={String(config.highPriceMaxDiscount_0_46days || 0.75)}
-                              onChange={(e) => updateConfig("highPriceMaxDiscount_0_46days", parseFloat(e.target.value))}
+                              value={String(cfgNumber("highPriceMaxDiscount_0_46days", 0.75))}
+                              onChange={(e) => updateConfig("highPriceMaxDiscount_0_46days", Number.parseFloat(e.target.value))}
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">47+ days (%)</label>
+                            <label htmlFor={`${agent.agent_type}-high-47plus`} className="text-xs text-gray-500">47+ days (%)</label>
                             <Input
+                              id={`${agent.agent_type}-high-47plus`}
                               type="number"
                               step="0.25"
-                              value={String(config.highPriceMaxDiscount_47plus || 1)}
-                              onChange={(e) => updateConfig("highPriceMaxDiscount_47plus", parseFloat(e.target.value))}
+                              value={String(cfgNumber("highPriceMaxDiscount_47plus", 1))}
+                              onChange={(e) => updateConfig("highPriceMaxDiscount_47plus", Number.parseFloat(e.target.value))}
                             />
                           </div>
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">Low Price Threshold ($)</label>
+                        <label htmlFor={`${agent.agent_type}-low-price-threshold`} className="text-sm font-medium text-gray-700 block mb-1">Low Price Threshold ($)</label>
                         <Input
+                          id={`${agent.agent_type}-low-price-threshold`}
                           type="number"
-                          value={String(config.lowPriceThreshold || 30000)}
-                          onChange={(e) => updateConfig("lowPriceThreshold", parseInt(e.target.value))}
+                          value={String(cfgNumber("lowPriceThreshold", 30000))}
+                          onChange={(e) => updateConfig("lowPriceThreshold", Number.parseInt(e.target.value))}
                         />
                         <p className="text-xs text-gray-400 mt-1">Vehicles below this price use the &quot;Under $30K&quot; discount tiers</p>
                       </div>
@@ -376,34 +414,35 @@ export default function AIAgentsPage() {
                   )}
 
                   {/* Valuator-specific settings */}
+                  {/* S6749: fragment with a single child is redundant. */}
                   {agent.agent_type === "valuator" && (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">AI Temperature</label>
+                          <label htmlFor={`${agent.agent_type}-temperature`} className="text-sm font-medium text-gray-700 block mb-1">AI Temperature</label>
                           <Input
+                            id={`${agent.agent_type}-temperature`}
                             type="number"
                             step="0.1"
                             min="0"
                             max="1"
-                            value={String(config.temperature || 0.3)}
-                            onChange={(e) => updateConfig("temperature", parseFloat(e.target.value))}
+                            value={String(cfgNumber("temperature", 0.3))}
+                            onChange={(e) => updateConfig("temperature", Number.parseFloat(e.target.value))}
                           />
                           <p className="text-xs text-gray-400 mt-1">Lower = more consistent, Higher = more creative</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-700 block mb-1">AI Model</label>
+                          <label htmlFor={`${agent.agent_type}-valuator-model`} className="text-sm font-medium text-gray-700 block mb-1">AI Model</label>
                           <select
+                            id={`${agent.agent_type}-valuator-model`}
                             className="w-full border rounded-md px-3 py-2 text-sm"
-                            value={String(config.model || "gpt-4o-mini")}
+                            value={cfgString("model", "gpt-4o-mini")}
                             onChange={(e) => updateConfig("model", e.target.value)}
                           >
                             <option value="gpt-4o-mini">GPT-4o Mini</option>
                             <option value="gpt-4o">GPT-4o</option>
                           </select>
                         </div>
-                      </div>
-                    </>
+                    </div>
                   )}
 
                   {/* Common: Last updated info */}
@@ -432,22 +471,22 @@ export default function AIAgentsPage() {
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                     {agent.agent_type === "anna" && (
                       <>
-                        <span>Model: {String(config.model || "gpt-4o-mini")}</span>
-                        <span>Rate limit: {String(config.rateLimit || 20)}/hr</span>
+                        <span>Model: {cfgString("model", "gpt-4o-mini")}</span>
+                        <span>Rate limit: {String(cfgNumber("rateLimit", 20))}/hr</span>
                         <span>Quick actions: {(agent.quick_actions || []).length}</span>
                       </>
                     )}
                     {agent.agent_type === "negotiator" && (
                       <>
-                        <span>Low price max: {String(config.lowPriceMaxDiscount_47plus || 1.5)}%</span>
-                        <span>High price max: {String(config.highPriceMaxDiscount_47plus || 1)}%</span>
+                        <span>Low price max: {String(cfgNumber("lowPriceMaxDiscount_47plus", 1.5))}%</span>
+                        <span>High price max: {String(cfgNumber("highPriceMaxDiscount_47plus", 1))}%</span>
                         <span>Threshold: ${Number(config.lowPriceThreshold || 30000).toLocaleString()}</span>
                       </>
                     )}
                     {agent.agent_type === "valuator" && (
                       <>
-                        <span>Model: {String(config.model || "gpt-4o-mini")}</span>
-                        <span>Temperature: {String(config.temperature || 0.3)}</span>
+                        <span>Model: {cfgString("model", "gpt-4o-mini")}</span>
+                        <span>Temperature: {String(cfgNumber("temperature", 0.3))}</span>
                       </>
                     )}
                   </div>

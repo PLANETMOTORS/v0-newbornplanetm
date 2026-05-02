@@ -114,7 +114,17 @@ resource "aws_db_instance" "replica" {
   
   publicly_accessible    = false
   vpc_security_group_ids = [aws_security_group.rds.id]
-  
+
+  # Encryption at rest (S6303). Cross-region replicas require an explicit
+  # KMS key; same-region replicas inherit from the source, but we set the
+  # attribute explicitly so the audit always sees it.
+  storage_encrypted = true
+  kms_key_id        = aws_kms_key.rds.arn
+
+  # Backups (S6364). Replicas inherit point-in-time recovery from the
+  # source, but Sonar requires the field to be present and non-zero.
+  backup_retention_period = 7
+
   # Monitoring
   performance_insights_enabled          = true
   performance_insights_retention_period = 7

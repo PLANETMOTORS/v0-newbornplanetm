@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -38,6 +38,7 @@ import {
   Mail,
   MapPin
 } from "lucide-react"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface TradeInQuote {
   id: string
@@ -107,6 +108,17 @@ export default function AdminTradeInsPage() {
 
   useEffect(() => {
     fetchQuotes()
+  }, [])
+
+  const handleQuoteDeleted = useCallback((deletedId: string) => {
+    setQuotes((prev) => prev.filter((q) => q.id !== deletedId))
+    setSelectedQuote((prev) => {
+      if (prev?.id === deletedId) {
+        setIsDetailOpen(false)
+        return null
+      }
+      return prev
+    })
   }, [])
 
   const filteredQuotes = quotes.filter(quote => {
@@ -233,20 +245,27 @@ export default function AdminTradeInsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-                    Loading quotes...
-                  </TableCell>
-                </TableRow>
-              ) : filteredQuotes.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    No trade-in quotes found
-                  </TableCell>
-                </TableRow>
-              ) : (
+              {(() => {
+                if (isLoading) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                        Loading quotes...
+                      </TableCell>
+                    </TableRow>
+                  )
+                }
+                if (filteredQuotes.length === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        No trade-in quotes found
+                      </TableCell>
+                    </TableRow>
+                  )
+                }
+                return (
                 filteredQuotes.map((quote) => (
                   <TableRow key={quote.id}>
                     <TableCell className="font-mono text-sm">
@@ -298,11 +317,18 @@ export default function AdminTradeInsPage() {
                             Complete
                           </Button>
                         )}
+                        <DeleteRowButton
+                          endpoint={`/api/v1/admin/trade-ins/${quote.id}`}
+                          id={quote.id}
+                          label={`trade-in quote ${quote.quote_id?.slice(0, 8)}`}
+                          onDeleted={handleQuoteDeleted}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
                 ))
-              )}
+                )
+              })()}
             </TableBody>
           </Table>
         </CardContent>

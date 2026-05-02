@@ -16,14 +16,48 @@ function parseOrigin(raw: string, defaultScheme = "https"): string | null {
   }
 }
 
+/** Push origin + optional www. variant into the array. */
+function pushOriginWithWww(origins: string[], raw: string): void {
+  const o = parseOrigin(raw)
+  if (!o) return
+  origins.push(o)
+  if (!raw.startsWith("www.") && !raw.includes("://www.")) {
+    const wwwOrigin = parseOrigin(`www.${raw}`)
+    if (wwwOrigin) origins.push(wwwOrigin)
+  }
+}
+
+/** Extract hostname from a URL string, returning "" on failure. */
+function extractHostname(url: string): string {
+  try {
+    return new URL(url.startsWith("http") ? url : `https://${url}`).hostname
+  } catch {
+    return ""
+  }
+}
+
+function addBaseUrlOrigins(origins: string[], baseUrl: string): void {
+  const o = parseOrigin(baseUrl)
+  if (o) origins.push(o)
+  const host = extractHostname(baseUrl)
+  if (host && !host.startsWith("www.")) {
+    const wwwOrigin = parseOrigin(`www.${host}`)
+    if (wwwOrigin) origins.push(wwwOrigin)
+  }
+}
+
+function addSiteDomainOrigins(origins: string[], siteDomain: string): void {
+  for (const part of siteDomain.split(",")) {
+    const trimmed = part.trim()
+    if (trimmed) pushOriginWithWww(origins, trimmed)
+  }
+}
+
 function getAllowedOrigins(): string[] {
   const origins: string[] = []
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-  if (baseUrl) {
-    const o = parseOrigin(baseUrl)
-    if (o) origins.push(o)
-  }
+  if (baseUrl) addBaseUrlOrigins(origins, baseUrl)
 
   // Vercel deployment URL (auto-set by Vercel)
   const vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL
@@ -34,30 +68,7 @@ function getAllowedOrigins(): string[] {
 
   // Custom domain(s) — comma-separated list (e.g. "www.planetmotors.ca,planetmotors.ca")
   const siteDomain = process.env.NEXT_PUBLIC_SITE_DOMAIN
-  if (siteDomain) {
-    for (const part of siteDomain.split(",")) {
-      const trimmed = part.trim()
-      if (!trimmed) continue
-      const o = parseOrigin(trimmed)
-      if (o) {
-        origins.push(o)
-        // Auto-add www. variant if not already a www. domain
-        if (!trimmed.startsWith("www.") && !trimmed.includes("://www.")) {
-          const wwwOrigin = parseOrigin(`www.${trimmed}`)
-          if (wwwOrigin) origins.push(wwwOrigin)
-        }
-      }
-    }
-  }
-
-  // Also auto-add www. variant of the base URL
-  if (baseUrl) {
-    const baseHost = (() => { try { return new URL(baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`).hostname } catch { return "" } })()
-    if (baseHost && !baseHost.startsWith("www.")) {
-      const wwwOrigin = parseOrigin(`www.${baseHost}`)
-      if (wwwOrigin) origins.push(wwwOrigin)
-    }
-  }
+  if (siteDomain) addSiteDomainOrigins(origins, siteDomain)
 
   // Only allow localhost variants in development — never in production
   if (process.env.NODE_ENV !== "production") {
@@ -94,7 +105,7 @@ export function validateOrigin(request: Request): boolean {
 
   // Check Origin header first (most reliable)
   if (origin) {
-    return allowed.some((o) => origin === o)
+    return allowed.includes(origin)
   }
 
   // Fall back to Referer header

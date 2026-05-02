@@ -40,7 +40,7 @@ export function PaymentCalculator({
   specialPrice, 
   finance, 
   specialFinance 
-}: PaymentCalculatorProps) {
+}: Readonly<PaymentCalculatorProps>) {
   // Use special price if available — guard against NaN
   const effectivePrice = safeNum(specialPrice || price)
   
@@ -116,7 +116,7 @@ export function PaymentCalculator({
           <p className="text-sm text-muted-foreground mt-1">
             <span className="tabular-nums">Estimated for {selectedTier.label} credit at {calculation.effectiveApr}% APR</span>
           </p>
-          {specialFinance && calculation.effectiveApr === specialFinance.promoRate && (
+          {calculation.effectiveApr === specialFinance?.promoRate && (
             <p className="text-xs text-green-600 mt-1">
               Using {specialFinance.name} promotional rate
             </p>
@@ -128,7 +128,7 @@ export function PaymentCalculator({
           <Label>Your Credit Score</Label>
           <Select 
             value={selectedTierIndex.toString()} 
-            onValueChange={(val) => setSelectedTierIndex(parseInt(val))}
+            onValueChange={(val) => setSelectedTierIndex(Number.parseInt(val))}
           >
             <SelectTrigger aria-label="Credit profile">
               <SelectValue />
@@ -178,7 +178,7 @@ export function PaymentCalculator({
         {/* Term Selector */}
         <div className="space-y-2">
           <Label>Loan Term</Label>
-          <Select value={term.toString()} onValueChange={(val) => setTerm(parseInt(val))}>
+          <Select value={term.toString()} onValueChange={(val) => setTerm(Number.parseInt(val))}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

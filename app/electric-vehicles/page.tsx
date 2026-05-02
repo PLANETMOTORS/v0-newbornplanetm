@@ -55,7 +55,7 @@ const priceRanges = [
 
 const features = [
   { icon: Battery, title: "Battery Health Reports", description: "Every EV comes with a detailed battery health analysis showing capacity, range, and charging performance" },
-  { icon: Shield, title: "210-Point Inspection", description: "Our comprehensive inspection covers EV-specific components including motors, inverters, and thermal systems" },
+  { icon: Shield, title: "210-Point Inspection", description: "Our rigorous inspection covers EV-specific components including motors, inverters, and thermal systems" },
   { icon: TrendingDown, title: "Save on Fuel", description: "Average EV owners save $2,000-3,000/year on fuel costs compared to gas vehicles" },
   { icon: Leaf, title: "Zero Emissions", description: "Drive clean with zero tailpipe emissions and reduced environmental impact" },
 ]
@@ -66,9 +66,9 @@ export default function ElectricVehiclesPage() {
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Electric Vehicles", url: "/electric-vehicles" }]} />
       <Header />
 
-      <main id="main-content" role="main" aria-label="Electric vehicles">
+      <main id="main-content" aria-label="Electric vehicles">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
+        <section className="relative bg-linear-to-br from-green-900 via-green-800 to-emerald-900 text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl">
               <Badge className="bg-green-500/20 text-green-300 border-green-500/30 mb-4">
@@ -129,7 +129,7 @@ export default function ElectricVehiclesPage() {
                   className="group"
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
-                    <div className="relative aspect-[4/3]">
+                    <div className="relative aspect-4/3">
                       <Image
                         src={make.image}
                         alt={`Used ${make.name} electric vehicles`}
@@ -137,7 +137,7 @@ export default function ElectricVehiclesPage() {
                         className="object-cover group-hover:scale-105 transition-transform"
                         sizes="(max-width: 768px) 50vw, 16vw"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                       <div className="absolute bottom-2 left-2 right-2">
                         <p className="text-white font-semibold">{make.name}</p>
                         <p className="text-white/80 text-xs">{make.count} available</p>
@@ -176,7 +176,7 @@ export default function ElectricVehiclesPage() {
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-3xl font-bold mb-4">Why Buy an EV from Planet Motors?</h2>
               <p className="text-muted-foreground">
-                We specialize in certified pre-owned electric vehicles with comprehensive inspections and battery health guarantees.
+                We specialize in certified pre-owned electric vehicles with rigorous inspections and battery health guarantees.
               </p>
             </div>
             
@@ -319,8 +319,8 @@ export default function ElectricVehiclesPage() {
                   q: "Can you deliver an EV to my location?",
                   a: "Absolutely! We offer nationwide delivery across Canada. Your EV will arrive fully charged and ready to drive."
                 },
-              ].map((faq, i) => (
-                <Card key={i} className="p-6">
+              ].map((faq) => (
+                <Card key={faq.q} className="p-6">
                   <h3 className="font-semibold text-lg mb-2">{faq.q}</h3>
                   <p className="text-muted-foreground">{faq.a}</p>
                 </Card>

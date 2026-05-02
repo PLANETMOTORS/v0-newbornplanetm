@@ -4,6 +4,7 @@ import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { initiateOAuthLogin } from "@/lib/auth/oauth-helpers"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -12,7 +13,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, LockKeyhole, User, Phone, Chrome, Facebook, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Mail, LockKeyhole, User, Phone, CheckCircle } from "lucide-react"
+import { GoogleIcon, FacebookIcon } from "@/components/ui/brand-icons"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 function SignUpForm() {
@@ -41,7 +43,7 @@ function SignUpForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
@@ -64,7 +66,7 @@ function SignUpForm() {
         password: formData.password,
         options: {
           emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-            `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+            `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -86,22 +88,8 @@ function SignUpForm() {
   const handleOAuthLogin = async (provider: "google" | "facebook") => {
     setIsLoading(true)
     setError("")
-    
     try {
-      const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: callbackUrl,
-        },
-      })
-      
-      if (error) throw error
-      if (data?.url) {
-        window.location.assign(data.url)
-      }
+      await initiateOAuthLogin(provider, redirectTo)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "OAuth signup failed")
       setIsLoading(false)
@@ -117,7 +105,7 @@ function SignUpForm() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       <Header />
       
       <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-12">
@@ -130,12 +118,12 @@ function SignUpForm() {
               </Link>
               <h1 className="text-4xl font-bold tracking-[-0.01em] mb-4">Join Planet Motors</h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Create your account and unlock exclusive benefits
+                Create your account to access member-only perks and pricing
               </p>
               
               <div className="space-y-4">
-                {benefits.map((benefit, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                {benefits.map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                     </div>
@@ -182,7 +170,7 @@ function SignUpForm() {
                       onClick={() => handleOAuthLogin("google")}
                       disabled={isLoading}
                     >
-                      <Chrome className="mr-2 h-5 w-5" />
+                      <GoogleIcon className="mr-2 h-5 w-5" />
                       Google
                     </Button>
                     <Button 
@@ -191,7 +179,7 @@ function SignUpForm() {
                       onClick={() => handleOAuthLogin("facebook")}
                       disabled={isLoading}
                     >
-                      <Facebook className="mr-2 h-5 w-5" />
+                      <FacebookIcon className="mr-2 h-5 w-5" />
                       Facebook
                     </Button>
                   </div>

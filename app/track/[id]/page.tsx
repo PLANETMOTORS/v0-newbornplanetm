@@ -43,7 +43,7 @@ interface DeliveryData {
   etaMinutes?: number
 }
 
-export default function DeliveryTrackingPage({ params }: { params: Promise<{ id: string }> }) {
+export default function DeliveryTrackingPage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = use(params)
   const [delivery, setDelivery] = useState<DeliveryData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -215,7 +215,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
                     const isCompleted = index < delivery.timeline.length
                     const isLast = index === delivery.timeline.length - 1
                     return (
-                      <div key={index} className="flex gap-4">
+                      <div key={`${event.status}-${index}`} className="flex gap-4">
                         <div className="flex flex-col items-center">
                           {isCompleted ? (
                             <CheckCircle className="w-5 h-5 text-green-500" />
@@ -296,7 +296,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-3">
-                  <Truck className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  <Truck className="w-5 h-5 text-muted-foreground shrink-0" />
                   <div>
                     <p className="text-sm font-medium">Current Location</p>
                     <p className="text-sm text-muted-foreground">
@@ -305,7 +305,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  <MapPin className="w-5 h-5 text-muted-foreground shrink-0" />
                   <div>
                     <p className="text-sm font-medium">Destination</p>
                     <p className="text-sm text-muted-foreground">
@@ -314,7 +314,7 @@ export default function DeliveryTrackingPage({ params }: { params: Promise<{ id:
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  <Clock className="w-5 h-5 text-muted-foreground shrink-0" />
                   <div>
                     <p className="text-sm font-medium">ETA</p>
                     <p className="text-sm text-muted-foreground">

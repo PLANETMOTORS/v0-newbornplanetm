@@ -1,3 +1,4 @@
+ 
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
@@ -44,7 +45,7 @@ const STEP_DEFS = [
   { id: "deposit",    label: "Secure with deposit",  timeEstimate: "3 min" },
 ] as const
 
-export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
+export function CheckoutFlow({ vehicleId }: Readonly<CheckoutFlowProps>) {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAuth()
 
@@ -80,7 +81,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   const [timeLeft, setTimeLeft] = useState(40 * 60) // 40 minute countdown
   const [showOrderSummary, setShowOrderSummary] = useState(false)
   const orderSummaryTriggerRef = useRef<HTMLButtonElement>(null)
-  const orderSummaryModalRef = useRef<HTMLDivElement>(null)
+  const orderSummaryModalRef = useRef<HTMLDialogElement>(null)
 
   // Countdown timer — decrements every second
   useEffect(() => {
@@ -94,7 +95,8 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
   // Redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push(`/auth/login?redirectTo=${encodeURIComponent(`/checkout/${vehicleId}`)}`)
+      const redirectTo = encodeURIComponent(`/checkout/${vehicleId}`)
+      router.push(`/auth/login?redirectTo=${redirectTo}`)
     }
   }, [user, authLoading, router, vehicleId])
 
@@ -108,7 +110,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
   // Restore protection plan selection from sessionStorage (set by /protection-plans page)
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (globalThis.window === undefined) return
     const stored = sessionStorage.getItem("selectedProtectionPackage")
     const validIds: ProtectionPlanId[] = ["none", "essential", "smart", "lifeproof"]
     if (stored && validIds.includes(stored as ProtectionPlanId)) {
@@ -195,22 +197,21 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
             e.preventDefault()
             lastFocusable?.focus()
           }
-        } else {
-          if (document.activeElement === lastFocusable) {
-            e.preventDefault()
-            firstFocusable?.focus()
-          }
+        } else if (document.activeElement === lastFocusable) {
+          e.preventDefault()
+          firstFocusable?.focus()
         }
       }
 
       document.addEventListener("keydown", handleKeyDown)
       modalEl.addEventListener("keydown", handleFocusTrap)
 
+      const triggerEl = orderSummaryTriggerRef.current
       return () => {
         document.removeEventListener("keydown", handleKeyDown)
         modalEl.removeEventListener("keydown", handleFocusTrap)
         // Restore focus to trigger
-        orderSummaryTriggerRef.current?.focus()
+        triggerEl?.focus()
       }
     }
   }, [showOrderSummary])
@@ -221,7 +222,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
   const goToStep = useCallback((step: number) => {
     setCurrentStep(step)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    globalThis.scrollTo({ top: 0, behavior: "smooth" })
   }, [])
 
   const advanceFrom = useCallback((step: number) => {
@@ -242,38 +243,44 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
     }
   }, [currentStep, isSubmitting])
 
-  const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => ({
-    id: def.id,
-    label: def.label,
-    timeEstimate: def.timeEstimate,
-    status: completedSteps.has(idx)
-      ? "complete"
-      : idx === currentStep
-        ? "current"
-        : "upcoming",
-  }))
+  const sidebarSteps: PurchaseStep[] = STEP_DEFS.map((def, idx) => {
+    let status: "complete" | "current" | "upcoming"
+    if (completedSteps.has(idx)) {
+      status = "complete"
+    } else if (idx === currentStep) {
+      status = "current"
+    } else {
+      status = "upcoming"
+    }
+    return {
+      id: def.id,
+      label: def.label,
+      timeEstimate: def.timeEstimate,
+      status,
+    }
+  })
 
   // --- Loading / error states ---
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading">
+      <output className="min-h-screen flex items-center justify-center" aria-label="Loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading…</p>
         </div>
-      </div>
+      </output>
     )
   }
 
   if (vehicleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading vehicle">
+      <output className="min-h-screen flex items-center justify-center" aria-label="Loading vehicle">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading vehicle details…</p>
         </div>
-      </div>
+      </output>
     )
   }
 
@@ -346,16 +353,22 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
 
       {/* Mobile Order Summary Drawer */}
       {showOrderSummary && (
-        <div className="lg:hidden fixed inset-0 z-[60] bg-black/50" onClick={() => setShowOrderSummary(false)}>
-          <div
+        <div className="lg:hidden fixed inset-0 z-[60]">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/50"
+            aria-label="Close order summary"
+            onClick={() => setShowOrderSummary(false)}
+          />
+          {/* S6819: use the native <dialog open> element instead of role="dialog". */}
+          <dialog
+            open
             ref={orderSummaryModalRef}
             id="mobile-order-summary"
-            role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-order-summary-title"
             tabIndex={-1}
             className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl overflow-y-auto p-4"
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h2 id="mobile-order-summary-title" className="font-bold">Order Summary</h2>
@@ -383,7 +396,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
                 router.push(`/vehicles/${vehicleId}`)
               }}
             />
-          </div>
+          </dialog>
         </div>
       )}
 
@@ -466,7 +479,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
                 tradeIn={tradeIn}
                 paymentMethod={paymentMethod}
                 delivery={delivery}
-                protectionPlan={protection.selectedPlan as ProtectionPlanId}
+                protectionPlan={protection.selectedPlan}
                 agreeToTerms={agreeToTerms}
                 onAgreeToTermsChange={setAgreeToTerms}
                 onEditStep={goToStep}
@@ -482,7 +495,7 @@ export function CheckoutFlow({ vehicleId }: CheckoutFlowProps) {
                 customerEmail={personal.email}
                 customerName={`${personal.firstName} ${personal.lastName}`.trim()}
                 customerPhone={personal.phone}
-                protectionPlanId={protection.selectedPlan as ProtectionPlanId}
+                protectionPlanId={protection.selectedPlan}
                 licenseStoragePath={license.licenseStoragePath}
               />
             )}

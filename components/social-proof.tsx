@@ -32,7 +32,7 @@ interface SocialProofProps {
 
 const postedIds = new Set<string>()
 
-export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
+export function SocialProof({ vehicleId, className = "" }: Readonly<SocialProofProps>) {
   const { data } = useSWR<SocialProofData>(
     `/api/v1/vehicles/${vehicleId}/social-proof`,
     fetcher,
@@ -48,7 +48,7 @@ export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
     fetch(`/api/v1/vehicles/${vehicleId}/social-proof`, {
       method: "POST",
       keepalive: true,
-    }).catch(() => {})
+    }).catch((err) => console.warn("[silent-catch]", err))
   }, [vehicleId])
 
   // Don't render anything until data arrives — prevents CLS
@@ -92,11 +92,11 @@ export function SocialProof({ vehicleId, className = "" }: SocialProofProps) {
 
   return (
     <div className={`space-y-1.5 ${className}`}>
-      {signals.map((signal, i) => {
+      {signals.map((signal) => {
         const Icon = signal.icon
         return (
           <div
-            key={i}
+            key={signal.text}
             className={`flex items-center gap-2 text-xs ${
               signal.emphasis
                 ? "text-amber-600 dark:text-amber-400 font-medium"

@@ -7,10 +7,10 @@ interface FooterPhoneLinkProps {
   phone: string
 }
 
-export function FooterPhoneLink({ phone }: FooterPhoneLinkProps) {
+export function FooterPhoneLink({ phone }: Readonly<FooterPhoneLinkProps>) {
   return (
     <a
-      href={`tel:${phone.replace(/[^0-9]/g, '')}`}
+      href={`tel:${phone.replaceAll(/\D/g, '')}`}
       className="flex items-center gap-2.5 min-h-[44px] text-sm text-white/80 hover:text-white transition-colors"
       onClick={() => trackPhoneClick(phone)}
     >

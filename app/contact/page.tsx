@@ -1,6 +1,7 @@
+ 
 import { Metadata } from "next"
 import { getPublicSiteUrl } from "@/lib/site-url"
-import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, BUSINESS_HOURS_SHORT, PHONE_TOLL_FREE, PHONE_LOCAL, EMAIL_INFO, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
+import { WEEKDAY_HOURS_LONG, SATURDAY_HOURS_LONG, PHONE_TOLL_FREE, PHONE_LOCAL, EMAIL_INFO, DEALERSHIP_LOCATION, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 
 const SITE_URL = getPublicSiteUrl()
 
@@ -24,7 +25,6 @@ export const metadata: Metadata = {
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ContactPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import { LiveChatWidget } from "@/components/live-chat-widget"
 import { ContactForm } from "@/components/contact-form"
 import { Button } from "@/components/ui/button"
 import { Phone, MapPin, Mail, Clock, MessageCircle, Car } from "lucide-react"
@@ -180,7 +180,6 @@ export default function ContactPage() {
       </main>
 
       <Footer />
-      <LiveChatWidget />
     </div>
   )
 }

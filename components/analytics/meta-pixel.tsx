@@ -1,120 +1,131 @@
 "use client"
 
+/**
+ * Meta (Facebook) Pixel — gated on marketing consent + env var.
+ *
+ * NOTE: This is the CLIENT-SIDE pixel that fires PageView from the
+ * browser. The server-side Conversions API counterpart lives in
+ * `lib/meta-capi.ts` and is invoked from server actions / API routes
+ * for deduplicated, ad-blocker-resistant event delivery. Both should
+ * fire for the same user actions — Meta de-duplicates by event_id.
+ *
+ * Without the client pixel, Meta's Events Manager shows "0 websites
+ * found" and "Last event received Nd ago" because CAPI events don't
+ * count toward catalog match rate or pixel website attribution.
+ *
+ * Renders nothing when:
+ *   - NEXT_PUBLIC_META_PIXEL_ID is unset (env-stub mode)
+ *   - The user has not granted marketing consent
+ *
+ * Spec: https://developers.facebook.com/docs/meta-pixel/get-started
+ */
+
 import Script from "next/script"
 import { useCookieConsent } from "@/lib/hooks/use-cookie-consent"
 
-declare global {
-  interface Window {
-    fbq?: (...args: [string, ...unknown[]]) => void
-  }
-}
-
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
+
+interface FbqGlobal {
+  fbq?: ((...args: unknown[]) => void) & {
+    callMethod?: (...args: unknown[]) => void
+    queue?: unknown[][]
+    loaded?: boolean
+    version?: string
+    push?: (...args: unknown[]) => void
+  }
+  _fbq?: FbqGlobal["fbq"]
+}
 
 export function MetaPixel() {
   const { hasMarketingConsent } = useCookieConsent()
-
-  if (!META_PIXEL_ID || !hasMarketingConsent) return null
+  if (!META_PIXEL_ID) return null
+  if (!hasMarketingConsent) return null
 
   return (
     <>
-      <Script id="meta-pixel" strategy="lazyOnload">
+      <Script id="meta-pixel" strategy="afterInteractive">
         {`
-          !function(f,b,e,v,n,t,s)
-          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-          n.queue=[];t=b.createElement(e);t.async=!0;
-          t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window, document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
+          !function(f,b,e,v,n,t,s){
+            if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(globalThis, globalThis.document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '${META_PIXEL_ID}');
           fbq('track', 'PageView');
         `}
       </Script>
       <noscript>
-        <iframe
+        {/* 1x1 tracking pixel — must be a raw <img> per Meta's spec.
+            next/image cannot be used here because it requires JS to
+            bootstrap the optimised loader. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          height="1"
+          width="1"
+          style={{ display: "none" }}
+          alt=""
           src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-          height={1}
-          width={1}
-          style={{ display: "none", visibility: "hidden" }}
-          title="Meta Pixel"
-          aria-hidden="true"
         />
       </noscript>
     </>
   )
 }
 
-// Meta Pixel event helpers
-export function trackMetaEvent(event: string, data?: Record<string, unknown>) {
-  if (typeof window !== "undefined" && window.fbq) {
-    window.fbq("track", event, data)
+/**
+ * Fire a Meta Pixel event (no-op if pixel not loaded).
+ *
+ * Standard events (see https://developers.facebook.com/docs/meta-pixel/reference):
+ *   PageView, ViewContent, Search, AddToCart, AddToWishlist,
+ *   InitiateCheckout, AddPaymentInfo, Purchase, Lead,
+ *   CompleteRegistration, Contact, Schedule, SubmitApplication.
+ *
+ * Pass `eventID` to deduplicate against the server-side CAPI event
+ * fired from `lib/meta-capi.ts` for the same user action. Generate
+ * the ID server-side via `generateEventId()` and thread it into both
+ * the CAPI call AND this browser pixel call. Without an event ID,
+ * Meta's heuristic dedup is unreliable and events double-count.
+ *
+ * @example
+ *   const eventId = generateEventId()              // server
+ *   await sendMetaEvent({ eventName: 'Lead', eventId, ... })
+ *   // → return eventId to client →
+ *   trackMetaEvent('Lead', { value: 1 }, eventId)  // browser
+ */
+export function trackMetaEvent(
+  event: string,
+  props?: Record<string, unknown>,
+  eventID?: string,
+): void {
+  if (globalThis.document === undefined) return
+  const fbq = (globalThis as unknown as FbqGlobal).fbq
+  if (!fbq) return
+  if (eventID) {
+    fbq("track", event, props ?? {}, { eventID })
+  } else {
+    fbq("track", event, props ?? {})
   }
 }
 
-export function trackMetaViewContent(vehicle: {
-  id: string
-  name: string
-  price: number
-  make: string
-}) {
-  trackMetaEvent("ViewContent", {
-    content_ids: [vehicle.id],
-    content_name: vehicle.name,
-    content_type: "vehicle",
-    content_category: vehicle.make,
-    value: vehicle.price,
-    currency: "CAD",
-  })
-}
-
-export function trackMetaAddToWishlist(vehicle: {
-  id: string
-  name: string
-  price: number
-}) {
-  trackMetaEvent("AddToWishlist", {
-    content_ids: [vehicle.id],
-    content_name: vehicle.name,
-    content_type: "vehicle",
-    value: vehicle.price,
-    currency: "CAD",
-  })
-}
-
-export function trackMetaInitiateCheckout(vehicle: {
-  id: string
-  name: string
-  price: number
-}) {
-  trackMetaEvent("InitiateCheckout", {
-    content_ids: [vehicle.id],
-    content_name: vehicle.name,
-    content_type: "vehicle",
-    value: vehicle.price,
-    currency: "CAD",
-    num_items: 1,
-  })
-}
-
-export function trackMetaLead(formType: string) {
-  trackMetaEvent("Lead", {
-    content_name: formType,
-    content_category: "form_submission",
-  })
-}
-
-export function trackMetaPurchase(order: {
-  id: string
-  value: number
-  vehicle: { id: string; name: string }
-}) {
-  trackMetaEvent("Purchase", {
-    content_ids: [order.vehicle.id],
-    content_name: order.vehicle.name,
-    content_type: "vehicle",
-    value: order.value,
-    currency: "CAD",
-  })
+/**
+ * Fire a custom (non-standard) Meta Pixel event.
+ *
+ * Pass `eventID` to deduplicate against a server-side CAPI event
+ * fired with the same identifier for the same user action.
+ */
+export function trackMetaCustomEvent(
+  event: string,
+  props?: Record<string, unknown>,
+  eventID?: string,
+): void {
+  if (globalThis.document === undefined) return
+  const fbq = (globalThis as unknown as FbqGlobal).fbq
+  if (!fbq) return
+  if (eventID) {
+    fbq("trackCustom", event, props ?? {}, { eventID })
+  } else {
+    fbq("trackCustom", event, props ?? {})
+  }
 }

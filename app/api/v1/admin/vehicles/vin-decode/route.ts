@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { mapDrivetrain, mapTransmission, mapFuelType } from "@/lib/vin/mappers"
 
 /**
  * VIN Decoder using the free NHTSA vPIC API.
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const vin = searchParams.get("vin")?.trim().toUpperCase()
 
-    if (!vin || vin.length !== 17) {
+    if (vin?.length !== 17) {
       return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
     }
 
@@ -74,34 +75,6 @@ export async function GET(request: NextRequest) {
     console.error("VIN decode error:", error)
     return NextResponse.json({ error: "Failed to decode VIN" }, { status: 500 })
   }
-}
-
-function mapDrivetrain(raw: string): string {
-  const lower = raw.toLowerCase()
-  if (lower.includes("all wheel") || lower.includes("awd") || lower.includes("4wd")) return "AWD"
-  if (lower.includes("front wheel") || lower.includes("fwd")) return "FWD"
-  if (lower.includes("rear wheel") || lower.includes("rwd")) return "RWD"
-  if (lower.includes("4x4") || lower.includes("four wheel")) return "4WD"
-  return raw
-}
-
-function mapTransmission(raw: string): string {
-  const lower = raw.toLowerCase()
-  if (lower.includes("automatic")) return "Automatic"
-  if (lower.includes("manual")) return "Manual"
-  if (lower.includes("cvt")) return "CVT"
-  if (lower.includes("dual clutch") || lower.includes("dct")) return "DCT"
-  return raw
-}
-
-function mapFuelType(raw: string): string {
-  const lower = raw.toLowerCase()
-  if (lower.includes("gasoline")) return "Gasoline"
-  if (lower.includes("diesel")) return "Diesel"
-  if (lower.includes("electric")) return "Electric"
-  if (lower.includes("hybrid") || lower.includes("plug-in")) return "Hybrid"
-  if (lower.includes("hydrogen") || lower.includes("fuel cell")) return "Hydrogen"
-  return raw
 }
 
 function buildEngineString(r: Record<string, string>): string {

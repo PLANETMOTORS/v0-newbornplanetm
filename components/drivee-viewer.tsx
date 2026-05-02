@@ -41,7 +41,7 @@ export function DriveeViewer({
   uid = DRIVEE_DEALER_UID,
   vehicleName,
   className = "",
-}: DriveeViewerProps) {
+}: Readonly<DriveeViewerProps>) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [iframeLoaded, setIframeLoaded] = useState(false)
@@ -92,11 +92,11 @@ export function DriveeViewer({
   ].join("")
 
   if (hasError) {
+    // S6819: <section aria-label> instead of <div role="region">.
     return (
-      <div
+      <section
         className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden flex items-center justify-center ${className}`}
         style={{ backgroundColor: DRIVEE_BG }}
-        role="region"
         aria-label={`360° view unavailable for ${vehicleName}`}
       >
         <div className="text-center p-6">
@@ -104,15 +104,15 @@ export function DriveeViewer({
           <p className="text-sm text-muted-foreground">360° view unavailable</p>
           <p className="text-xs text-muted-foreground/70 mt-1">Interactive viewer could not be loaded</p>
         </div>
-      </div>
+      </section>
     )
   }
 
+  // S6819: <section aria-label> instead of <div role="region">.
   return (
-    <div
+    <section
       className={`relative h-[500px] md:h-[600px] rounded-xl overflow-hidden ${className}`}
       style={{ backgroundColor: DRIVEE_BG }}
-      role="region"
       aria-label={`360° Interactive View — ${vehicleName}`}
     >
       {/* Loading skeleton — matches Drivee background for seamless transition */}
@@ -143,6 +143,6 @@ export function DriveeViewer({
           setIsLoading(false)
         }}
       />
-    </div>
+    </section>
   )
 }

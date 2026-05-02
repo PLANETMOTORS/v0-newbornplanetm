@@ -11,7 +11,7 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/icon-dark-32x32.png",
+      "src": "/icon-light-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },
@@ -46,7 +46,10 @@
       "purpose": "any"
     }
   ],
-  "categories": ["auto", "shopping"],
+  "categories": [
+    "auto",
+    "shopping"
+  ],
   "shortcuts": [
     {
       "name": "Browse Inventory",
@@ -68,5 +71,11 @@
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ]
 }

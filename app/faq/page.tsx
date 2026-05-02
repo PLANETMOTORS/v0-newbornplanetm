@@ -49,7 +49,7 @@ const faqCategories = [
       },
       {
         question: "What warranty coverage is included?",
-        answer: "All vehicles come with the remainder of the manufacturer warranty if applicable. We also offer extended protection plans ranging from Basic (powertrain) to Ultimate (comprehensive bumper-to-bumper) coverage."
+        answer: "All vehicles come with the remainder of the manufacturer warranty if applicable. We also offer extended protection plans ranging from Basic (powertrain) to Ultimate (total bumper-to-bumper) coverage."
       },
       {
         question: "How do I initiate a return?",
@@ -99,7 +99,7 @@ const faqCategories = [
     faqs: [
       {
         question: "What is the 210-point inspection?",
-        answer: "Every vehicle undergoes our comprehensive 210-point inspection covering exterior, interior, mechanical, electrical, safety systems, and a road test. This ensures every car meets our quality standards before being listed."
+        answer: "Every vehicle undergoes our rigorous 210-point mechanical inspection covering exterior, interior, mechanical, electrical, safety systems, and a road test. This ensures every car meets our quality standards before being listed."
       },
       {
         question: "Can I see the inspection report?",
@@ -196,7 +196,7 @@ export default function FAQPage() {
                   <CardContent>
                     <Accordion type="single" collapsible className="w-full">
                       {category.faqs.map((faq, i) => (
-                        <AccordionItem key={i} value={`item-${i}`}>
+                        <AccordionItem key={faq.question} value={`item-${i}`}>
                           <AccordionTrigger className="text-left">
                             {faq.question}
                           </AccordionTrigger>

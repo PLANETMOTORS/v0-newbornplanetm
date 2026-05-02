@@ -10,10 +10,14 @@ import { DEALERSHIP_TIMEZONE, DEFAULT_PROVIDER } from "./constants"
 import { liveVideoTourRepository } from "./repository"
 import { sendLiveVideoTourNotifications, sendCancellationNotification } from "./notifications"
 
-// Generate unique booking ID
+// Generate unique booking ID using crypto for unpredictability.
+// Booking IDs are shared with customers and used as references — Math.random
+// would be predictable. (S2245 fixed)
 function generateBookingId(): string {
   const timestamp = Date.now().toString(36).toUpperCase()
-  const random = Math.random().toString(36).slice(2, 6).toUpperCase()
+  // crypto.randomBytes(3) gives 3 bytes → 6 hex chars; take first 4 for brevity
+  const { randomBytes } = require("node:crypto")
+  const random = randomBytes(3).toString("hex").toUpperCase().slice(0, 4)
   return `VT-${timestamp}-${random}`
 }
 
@@ -32,7 +36,7 @@ export async function createLiveVideoTourBooking(
 
   // 2. Validate business hours
   const scheduledDateTime = new Date(data.preferredTime)
-  if (isNaN(scheduledDateTime.getTime())) {
+  if (Number.isNaN(scheduledDateTime.getTime())) {
     return { ok: false, error: "Invalid date/time format" }
   }
 

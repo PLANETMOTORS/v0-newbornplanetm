@@ -39,9 +39,20 @@
   "exclude": [
     "node_modules",
     "__tests__",
+    "e2e",
     "app/sw.ts",
     "scripts",
     "src",
-    "supabase/functions"
+    "supabase/functions",
+    "studio",
+    "sanity.cli.ts",
+    "sanity.config.ts",
+    ".next/dev/types",
+    "Planet-Ultra",
+    "PLANET-WEB-FINAL",
+    "Website",
+    "next-platform-starter",
+    "v0-cms-site-build-m1",
+    "v0-planet-ultra-ui-ux-rebuild"
   ]
 }

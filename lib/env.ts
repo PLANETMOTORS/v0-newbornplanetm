@@ -13,6 +13,8 @@ import { z } from "zod"
 const requiredServerSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required"),
+  NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().min(1, "NEXT_PUBLIC_SANITY_PROJECT_ID is required"),
+  NEXT_PUBLIC_SANITY_DATASET: z.string().min(1, "NEXT_PUBLIC_SANITY_DATASET is required"),
 })
 
 /** OPTIONAL server-side: graceful degradation when missing */
@@ -56,19 +58,44 @@ const optionalServerSchema = z.object({
   TYPESENSE_API_KEY: z.string().optional(),
   TYPESENSE_HOST: z.string().optional(),
 
+  // IndexNow — Bing/Yandex/etc. instant search-engine notifications.
+  // Same value MUST be served at /<key>.txt at the site root. See
+  // lib/seo/indexnow.ts for the full contract.
+  INDEXNOW_KEY: z
+    .string()
+    .min(8, "INDEXNOW_KEY must be at least 8 characters")
+    .max(128, "INDEXNOW_KEY must be at most 128 characters")
+    .regex(/^[a-zA-Z0-9]+$/, "INDEXNOW_KEY must only contain alphanumeric characters")
+    .optional(),
+
+  // HomeNet inventory-floor guard — see lib/homenet/parser.ts.
+  // Percentage of currently-live inventory the incoming CSV must cover
+  // for the bulk soft-delete to proceed. A truncated/partial feed below
+  // this threshold triggers `safetyAborted: true` and skips the soft-delete.
+  // Set to 0 to disable (legitimate liquidations, dev/preview).
+  HOMENET_INVENTORY_FLOOR_PCT: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/, "HOMENET_INVENTORY_FLOOR_PCT must be a non-negative number")
+    .optional(),
+
   NODE_ENV: z.enum(["development", "production", "test"]).optional(),
 })
 
 /** CLIENT-side NEXT_PUBLIC_* variables */
 const clientSchema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
-  NEXT_PUBLIC_SANITY_PROJECT_ID: z.string().optional(),
-  NEXT_PUBLIC_SANITY_DATASET: z.string().optional(),
   NEXT_PUBLIC_BASE_URL: z.string().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().optional(),
   NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),
   NEXT_PUBLIC_GTM_ID: z.string().optional(),
   NEXT_PUBLIC_META_PIXEL_ID: z.string().optional(),
+  // Social/marketing pixels — all gated by marketing/analytics consent.
+  // Each is optional; component returns null when its env var is unset
+  // so unset = dormant (no script load, no console errors).
+  NEXT_PUBLIC_TIKTOK_PIXEL_ID: z.string().optional(),
+  NEXT_PUBLIC_CLARITY_PROJECT_ID: z.string().optional(),
+  NEXT_PUBLIC_BING_UET_ID: z.string().optional(),
+  NEXT_PUBLIC_SNAPCHAT_PIXEL_ID: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_MAPS_KEY: z.string().optional(),
   NEXT_PUBLIC_TYPESENSE_SEARCH_KEY: z.string().optional(),
   NEXT_PUBLIC_TYPESENSE_HOST: z.string().optional(),
@@ -115,6 +142,8 @@ function validateEnv(): Env {
     GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
     TYPESENSE_API_KEY: process.env.TYPESENSE_API_KEY,
     TYPESENSE_HOST: process.env.TYPESENSE_HOST,
+    INDEXNOW_KEY: process.env.INDEXNOW_KEY,
+    HOMENET_INVENTORY_FLOOR_PCT: process.env.HOMENET_INVENTORY_FLOOR_PCT,
     NODE_ENV: process.env.NODE_ENV,
     // Client
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
@@ -125,6 +154,10 @@ function validateEnv(): Env {
     NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
     NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
     NEXT_PUBLIC_META_PIXEL_ID: process.env.NEXT_PUBLIC_META_PIXEL_ID,
+    NEXT_PUBLIC_TIKTOK_PIXEL_ID: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID,
+    NEXT_PUBLIC_CLARITY_PROJECT_ID: process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID,
+    NEXT_PUBLIC_BING_UET_ID: process.env.NEXT_PUBLIC_BING_UET_ID,
+    NEXT_PUBLIC_SNAPCHAT_PIXEL_ID: process.env.NEXT_PUBLIC_SNAPCHAT_PIXEL_ID,
     NEXT_PUBLIC_GOOGLE_MAPS_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY,
     NEXT_PUBLIC_TYPESENSE_SEARCH_KEY: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_KEY,
     NEXT_PUBLIC_TYPESENSE_HOST: process.env.NEXT_PUBLIC_TYPESENSE_HOST,
@@ -151,9 +184,7 @@ let _env: Env | undefined
 /** Typed, validated environment variables. Throws on first access if required vars are missing. */
 export const env: Env = new Proxy({} as Env, {
   get(_target, prop: string) {
-    if (!_env) {
-      _env = validateEnv()
-    }
+    _env ??= validateEnv()
     return _env[prop as keyof Env]
   },
 })

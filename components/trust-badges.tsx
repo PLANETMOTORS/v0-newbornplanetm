@@ -4,7 +4,7 @@ const badges = [
   {
     icon: ClipboardCheck,
     title: "210-Point Inspection",
-    description: "Comprehensive 210-point process",
+    description: "Rigorous 210-Point Certified Inspection",
     highlight: true
   },
   {
@@ -41,7 +41,7 @@ const badges = [
 
 export function TrustBadges() {
   return (
-    <section className="py-16 border-y bg-gradient-to-b from-background to-muted/20">
+    <section className="py-16 border-y bg-linear-to-b from-background to-muted/20">
       <div className="container mx-auto px-4">
         {/* Section header */}
         <div className="text-center mb-10">

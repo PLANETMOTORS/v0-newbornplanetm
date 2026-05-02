@@ -25,7 +25,7 @@ const buyingSteps = [
   {
     icon: Search,
     title: "Browse & Select",
-    description: "Explore our inventory of quality vehicles. Use filters to find your perfect match, view 360° photos, and check detailed specs.",
+    description: "Explore our inventory of quality vehicles. Use filters to narrow your search, view 360° photos, and check detailed specs.",
     details: ["360° vehicle photos", "Detailed inspection reports", "Vehicle history included", "Compare up to 3 vehicles"]
   },
   {
@@ -105,8 +105,8 @@ export default function HowItWorksPage() {
                 { icon: Shield, text: "210-Point Inspection" },
                 { icon: RotateCcw, text: "10-Day Returns" },
                 { icon: Star, text: "4.8 Star Rating" }
-              ].map((badge, i) => (
-                <div key={i} className="flex items-center gap-2 text-muted-foreground">
+              ].map((badge) => (
+                <div key={badge.text} className="flex items-center gap-2 text-muted-foreground">
                   <badge.icon className="h-5 w-5 text-primary" />
                   <span>{badge.text}</span>
                 </div>
@@ -128,7 +128,7 @@ export default function HowItWorksPage() {
 
             <div className="max-w-4xl mx-auto">
               {buyingSteps.map((step, i) => (
-                <div key={i} className="flex gap-6 mb-12 last:mb-0">
+                <div key={step.title} className="flex gap-6 mb-12 last:mb-0">
                   <div className="flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                       <step.icon className="h-8 w-8" />
@@ -144,8 +144,8 @@ export default function HowItWorksPage() {
                     </div>
                     <p className="text-muted-foreground mb-4">{step.description}</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {step.details.map((detail, j) => (
-                        <div key={j} className="flex items-center gap-2 text-sm">
+                      {step.details.map((detail) => (
+                        <div key={detail} className="flex items-center gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-green-500" />
                           <span>{detail}</span>
                         </div>
@@ -203,7 +203,7 @@ export default function HowItWorksPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 max-w-5xl mx-auto">
               {sellingSteps.map((step, i) => (
-                <Card key={i} className="text-center relative">
+                <Card key={step.title} className="text-center relative">
                   {i < sellingSteps.length - 1 && (
                     <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
                       <ArrowRight className="h-6 w-6 text-muted-foreground" />

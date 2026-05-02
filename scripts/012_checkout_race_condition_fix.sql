@@ -21,56 +21,21 @@ ALTER TABLE public.vehicles
   CHECK (status IN ('available', 'reserved', 'sold', 'pending', 'checkout_in_progress'));
 
 -- ── Step 2: Ensure orders table exists ─────────────────────────────────────
--- (Idempotent — only creates if missing. Full schema from 004_create_orders_schema.sql)
-CREATE TABLE IF NOT EXISTS public.orders (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_number VARCHAR(32) UNIQUE NOT NULL,
-  customer_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  vehicle_id UUID NOT NULL REFERENCES public.vehicles(id) ON DELETE RESTRICT,
-
-  status VARCHAR(30) NOT NULL DEFAULT 'created'
-    CHECK (status IN ('created', 'confirmed', 'processing', 'ready_for_delivery', 'in_transit', 'delivered', 'cancelled', 'refunded')),
-
-  payment_method VARCHAR(20) NOT NULL
-    CHECK (payment_method IN ('financing', 'cash', 'bank_draft')),
-  financing_offer_id TEXT,
-  trade_in_offer_id TEXT,
-
-  delivery_type VARCHAR(20) NOT NULL DEFAULT 'pickup'
-    CHECK (delivery_type IN ('pickup', 'delivery')),
-  delivery_address_id UUID,
-  hub_id UUID,
-  preferred_date DATE,
-  preferred_time_slot VARCHAR(50),
-
-  protection_plan_id TEXT,
-
-  vehicle_price_cents INTEGER NOT NULL,
-  documentation_fee_cents INTEGER NOT NULL DEFAULT 49900,
-  omvic_fee_cents INTEGER NOT NULL DEFAULT 1000,
-  delivery_fee_cents INTEGER NOT NULL DEFAULT 0,
-  protection_plan_fee_cents INTEGER NOT NULL DEFAULT 0,
-  tax_rate_percent NUMERIC(5,2) NOT NULL DEFAULT 13.00,
-  tax_amount_cents INTEGER NOT NULL,
-  total_before_credits_cents INTEGER NOT NULL,
-  trade_in_credit_cents INTEGER NOT NULL DEFAULT 0,
-  down_payment_cents INTEGER NOT NULL DEFAULT 0,
-  total_credits_cents INTEGER NOT NULL DEFAULT 0,
-  total_price_cents INTEGER NOT NULL,
-  amount_financed_cents INTEGER NOT NULL DEFAULT 0,
-
-  timeline JSONB NOT NULL DEFAULT '[]'::jsonb,
-  documents_required JSONB NOT NULL DEFAULT '[]'::jsonb,
-  return_policy JSONB,
-
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON public.orders(customer_id);
-CREATE INDEX IF NOT EXISTS idx_orders_vehicle_id ON public.orders(vehicle_id);
-CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
-CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders(created_at DESC);
+-- Full schema is defined in 004_create_orders_schema.sql.
+-- Run that migration first; this step is a no-op if the table already exists.
+-- The CREATE TABLE IF NOT EXISTS and indexes are intentionally omitted here
+-- to avoid duplicating the schema definition. Apply 004 before this script.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'orders'
+  ) THEN
+    RAISE EXCEPTION
+      'orders table does not exist. Run 004_create_orders_schema.sql first.';
+  END IF;
+END;
+$$;
 
 -- ── Step 3: Unique partial index — prevents double-booking at DB level ─────
 -- Only one active order per vehicle. This is the last line of defense.
@@ -124,34 +89,13 @@ BEGIN
 END;
 $$;
 
--- ── Step 5: Updated_at trigger for orders ──────────────────────────────────
-CREATE OR REPLACE FUNCTION public.update_orders_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- ── Step 5: trigger already defined in 004_create_orders_schema.sql ──────────
+-- update_orders_updated_at() trigger is created by 004, which must run before
+-- this script (enforced by the DO block in Step 2 above).
 
-DROP TRIGGER IF EXISTS trg_update_orders_updated_at ON public.orders;
-CREATE TRIGGER trg_update_orders_updated_at
-  BEFORE UPDATE ON public.orders
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_orders_updated_at();
-
--- ── Step 6: RLS policies for orders ────────────────────────────────────────
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can view own orders" ON public.orders;
-CREATE POLICY "Users can view own orders"
-  ON public.orders FOR SELECT
-  USING (auth.uid() = customer_id);
-
-DROP POLICY IF EXISTS "Users can create own orders" ON public.orders;
-CREATE POLICY "Users can create own orders"
-  ON public.orders FOR INSERT
-  WITH CHECK (auth.uid() = customer_id);
-
+-- ── Step 6: RLS policies ────────────────────────────────────────────────────
+-- User-scoped policies (view/create/update) are created by 004.
+-- The service-role policy below is unique to this migration.
 DROP POLICY IF EXISTS "Service role full access to orders" ON public.orders;
 CREATE POLICY "Service role full access to orders"
   ON public.orders FOR ALL

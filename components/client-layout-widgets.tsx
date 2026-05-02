@@ -15,8 +15,46 @@ const GoogleTagManagerNoScript = dynamic(
   () => import('@/components/analytics/google-tag-manager').then(m => ({ default: m.GoogleTagManagerNoScript })),
   { ssr: false }
 )
+// Social/marketing pixels — same pattern, gated on consent + env var.
+// Each component returns null when its env var is unset, so unset
+// pixels add zero runtime cost and zero network requests.
+const TikTokPixel = dynamic(
+  () => import('@/components/analytics/tiktok-pixel').then(m => ({ default: m.TikTokPixel })),
+  { ssr: false }
+)
+const MicrosoftClarity = dynamic(
+  () => import('@/components/analytics/microsoft-clarity').then(m => ({ default: m.MicrosoftClarity })),
+  { ssr: false }
+)
+const BingUET = dynamic(
+  () => import('@/components/analytics/bing-uet').then(m => ({ default: m.BingUET })),
+  { ssr: false }
+)
+const SnapchatPixel = dynamic(
+  () => import('@/components/analytics/snapchat-pixel').then(m => ({ default: m.SnapchatPixel })),
+  { ssr: false }
+)
 const MetaPixel = dynamic(
   () => import('@/components/analytics/meta-pixel').then(m => ({ default: m.MetaPixel })),
+  { ssr: false }
+)
+// SPA route-change tracker — re-fires PageView for Meta/TikTok/Snap/Bing
+// on every Next.js navigation. Required because the pixel SDKs only
+// auto-fire PageView on initial script load. Renders nothing.
+const PixelRouteTracker = dynamic(
+  () => import('@/components/analytics/pixel-route-tracker').then(m => ({ default: m.PixelRouteTracker })),
+  { ssr: false }
+)
+
+// V1 Tracking — DataLayer-based route change + attribution tracking.
+// RouteChangeTracker pushes page_view events to the DataLayer on SPA navigations.
+// AttributionTracker captures UTM + click IDs + organic/referral/direct attribution.
+const RouteChangeTracker = dynamic(
+  () => import('@/components/tracking/route-change-tracker').then(m => ({ default: m.RouteChangeTracker })),
+  { ssr: false }
+)
+const AttributionTracker = dynamic(
+  () => import('@/components/tracking/attribution-tracker').then(m => ({ default: m.AttributionTracker })),
   { ssr: false }
 )
 
@@ -73,10 +111,17 @@ export function ClientLayoutWidgets() {
       <Toaster richColors position="top-right" />
       <CookieConsentBanner />
       <UTMTracker />
+      <AttributionTracker />
       <GoogleAnalytics />
       <GoogleTagManager />
       <GoogleTagManagerNoScript />
+      <TikTokPixel />
+      <MicrosoftClarity />
+      <BingUET />
+      <SnapchatPixel />
       <MetaPixel />
+      <PixelRouteTracker />
+      <RouteChangeTracker />
       {isVercelDeploy && <VercelAnalytics />}
       {isVercelDeploy && <VercelSpeedInsights />}
     </>

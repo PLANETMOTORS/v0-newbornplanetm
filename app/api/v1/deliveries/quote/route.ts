@@ -1,4 +1,32 @@
-import { NextRequest, NextResponse } from "next/server"
+ import { NextRequest, NextResponse } from "next/server"
+
+// ── Helpers (extracted from nested ternaries to satisfy SonarCloud S3358) ──
+
+interface DeliveryMessageInput {
+  isDeliveryAvailable: boolean
+  isFree: boolean
+  province: string
+  distance: number
+  cleanPostal: string
+  cost: number
+}
+
+function buildDeliveryMessage(input: DeliveryMessageInput): string {
+  const { isDeliveryAvailable, isFree, province, distance, cleanPostal, cost } = input
+  if (!isDeliveryAvailable) {
+    return `Delivery not available to ${province} (${distance}km)`
+  }
+  if (isFree) {
+    return `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
+  }
+  return `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`
+}
+
+function getRatePerKm(distance: number): number {
+  if (distance <= 500) return 0.7
+  if (distance <= 1000) return 0.75
+  return 0.8
+}
 
 // Origin location: Planet Motors, Richmond Hill, Ontario (L4B postal code area)
 
@@ -141,14 +169,14 @@ const POSTAL_DISTANCES: Record<string, number> = {
 // Delivery pricing tiers (per km after free zone)
 const DELIVERY_TIERS = [
   { maxKm: 300, pricePerKm: 0 }, // FREE within 300km
-  { maxKm: 499, pricePerKm: 0.70 },
+  { maxKm: 499, pricePerKm: 0.7 },
   { maxKm: 999, pricePerKm: 0.75 },
-  { maxKm: 2000, pricePerKm: 0.80 },
+  { maxKm: 2000, pricePerKm: 0.8 },
   { maxKm: 5000, pricePerKm: 0.65 },
 ]
 
 function normalizePostalCode(postalCode: string): string {
-  return postalCode.toUpperCase().replace(/\s/g, "").slice(0, 3)
+  return postalCode.toUpperCase().replaceAll(/\s/g, "").slice(0, 3)
 }
 
 // Out-of-province approximate distances from Richmond Hill
@@ -250,7 +278,7 @@ export function GET(request: NextRequest) {
   }
 
   // Validate Canadian postal code format
-  const cleanPostal = postalCode.toUpperCase().replace(/\s/g, "")
+  const cleanPostal = postalCode.toUpperCase().replaceAll(/\s/g, "")
   
   // Must be at least 3 characters and start with valid Canadian province letter
   const validFirstChars = "ABCEGHJKLMNPRSTVXY"
@@ -288,15 +316,11 @@ export function GET(request: NextRequest) {
     isDeliveryAvailable,
     freeDeliveryThreshold: 300,
     _disclaimer: "Delivery distance and cost are estimates only. Final delivery fees will be confirmed at time of purchase. Contact Planet Motors for an exact quote.",
-    message: !isDeliveryAvailable
-      ? `Delivery not available to ${province} (${distance}km)`
-      : isFree 
-        ? `Free delivery to ${cleanPostal} (estimated ${distance}km from Richmond Hill)`
-        : `Estimated delivery fee: $${cost.toFixed(2)} (estimated ${distance}km from Richmond Hill)`,
+    message: buildDeliveryMessage({ isDeliveryAvailable, isFree, province, distance, cleanPostal, cost }),
     breakdown: isFree ? null : {
       baseDistance: 300,
       chargeableDistance: distance - 300,
-      ratePerKm: distance <= 500 ? 0.70 : distance <= 1000 ? 0.75 : 0.80,
+      ratePerKm: getRatePerKm(distance),
     }
   })
 }

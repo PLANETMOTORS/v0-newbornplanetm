@@ -36,7 +36,7 @@ export function VehicleBadges({
   isEVCertified,
   batteryHealth,
   isHotDeal
-}: VehicleBadgesProps) {
+}: Readonly<VehicleBadgesProps>) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {/* Sale Pending - Most Important */}
@@ -108,7 +108,7 @@ export function NewArrivalBadge() {
   )
 }
 
-export function PriceDropBadge({ amount }: { amount?: number }) {
+export function PriceDropBadge({ amount }: Readonly<{ amount?: number }>) {
   return (
     <Badge className="bg-green-700 text-white">
       <TrendingDown className="w-3 h-3 mr-1" />
@@ -146,7 +146,7 @@ export function CBBBadge() {
   )
 }
 
-export function EVCertifiedBadge({ batteryHealth }: { batteryHealth?: number }) {
+export function EVCertifiedBadge({ batteryHealth }: Readonly<{ batteryHealth?: number }>) {
   return (
     <Badge variant="outline" className="border-green-600 text-green-800 bg-green-50">
       <Battery className="w-3 h-3 mr-1" />
@@ -155,7 +155,7 @@ export function EVCertifiedBadge({ batteryHealth }: { batteryHealth?: number }) 
   )
 }
 
-export function DaysOnLotBadge({ days }: { days: number }) {
+export function DaysOnLotBadge({ days }: Readonly<{ days: number }>) {
   return (
     <Badge variant="outline" className="text-muted-foreground">
       <Clock className="w-3 h-3 mr-1" />

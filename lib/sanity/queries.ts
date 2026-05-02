@@ -93,16 +93,26 @@ export const HOMEPAGE_QUERY = `
 `
 
 export const SELL_YOUR_CAR_PAGE_QUERY = `
-  *[_type == "sellYourCar"][0] {
+  *[_type == "sellYourCarPage"][0] {
     heroSection { headline, subheadline, highlightText, formSettings, trustBadges, "backgroundImage": backgroundImage.asset->url },
     benefits, comparisonTable, processSteps, testimonials, ctaSection, seo
   }
 `
 
 export const FINANCING_PAGE_QUERY = `
-  *[_type == "financing"][0] {
-    heroSection { headline, subheadline, featuredRateText, rateSubtext, primaryCta, secondaryCta, heroStats },
-    lenders, calculator, processSteps, benefits, faqs, seo
+  *[_type == "financingPage"][0] {
+    heroSection {
+      headline,
+      subheadline,
+      "highlight": highlightText,
+      featuredRateText,
+      rateSubtext,
+      primaryCta {
+        "buttonLabel": label,
+        url
+      }
+    },
+    benefits, calculator, processSteps, ctaSection, seo
   }
 `
 
@@ -179,7 +189,8 @@ export const VEHICLE_WITH_PAYMENT_CONTEXT_QUERY = `
 
 export const BLOG_LIST_QUERY = `
   *[_type == "blogPost"] | order(publishedAt desc)[$start...$end] {
-    _id, title, slug, publishedAt, excerpt, "coverImage": coverImage.asset->url, seoTitle, seoDescription
+    _id, title, slug, publishedAt, excerpt, "coverImage": coverImage.asset->url, seoTitle, seoDescription,
+    "categories": categories
   }
 `
 
@@ -187,8 +198,17 @@ export const BLOG_COUNT_QUERY = `count(*[_type == "blogPost"])`
 
 export const BLOG_POST_QUERY = `
   *[_type == "blogPost" && slug.current == $slug][0] {
-    _id, title, slug, publishedAt, excerpt, "coverImage": coverImage.asset->url, body, seoTitle, seoDescription
+    _id, title, slug, publishedAt, excerpt,
+    "coverImage": coverImage.asset->url,
+    body,
+    categories,
+    seoTitle, seoDescription
   }
+`
+
+/** Fetch all blog post slugs — used for generateStaticParams */
+export const BLOG_SLUGS_QUERY = `
+  *[_type == "blogPost"] { "slug": slug.current }
 `
 
 // ==========================================

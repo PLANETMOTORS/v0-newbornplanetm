@@ -109,13 +109,13 @@ interface VehicleCardProps {
   vehicle: (typeof vehicles)[0]
 }
 
-function VehicleCard({ vehicle }: VehicleCardProps) {
+function VehicleCard({ vehicle }: Readonly<VehicleCardProps>) {
   const [isFavorite, setIsFavorite] = useState(false)
 
   return (
     <div className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-shadow min-w-0" style={{ contain: 'layout style' }}>
       {/* Image - clickable to vehicle detail page */}
-      <Link href={`/vehicles/${vehicle.id}`} className="relative aspect-[4/3] overflow-hidden block">
+      <Link href={`/vehicles/${vehicle.id}`} className="relative aspect-4/3 overflow-hidden block">
         <Image
           src={vehicle.image}
           alt={vehicle.name}

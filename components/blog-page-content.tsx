@@ -1,3 +1,4 @@
+ 
 "use client"
 
 import { useState, useMemo } from "react"
@@ -12,21 +13,35 @@ import { blogPostsMeta } from "@/lib/blog-data"
 
 const POSTS_PER_PAGE = 9
 
-// Pre-sorted lightweight metadata — no heavy `content` fields in the client bundle
-const allPosts = [...blogPostsMeta]
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-const categories = [
-  "All",
-  ...Array.from(new Set(allPosts.map((p) => p.category))).sort(),
-]
+// Normalised post shape — works for both Sanity and static data
+export interface NormalisedPost {
+  slug: string
+  title: string
+  excerpt: string
+  date: string
+  readTime: string
+  category: string
+  image: string
+}
 
 interface BlogPageContentProps {
   /** Slug of the server-rendered featured post to exclude from the grid */
   featuredSlug?: string
+  /** Posts from Sanity CMS — falls back to static lib/blog-data.ts when empty */
+  initialPosts?: NormalisedPost[]
 }
 
-export function BlogPageContent({ featuredSlug }: BlogPageContentProps) {
+export function BlogPageContent({ featuredSlug, initialPosts }: Readonly<BlogPageContentProps>) {
+  // Use Sanity posts when available, otherwise fall back to static data
+  const allPosts = (initialPosts && initialPosts.length > 0 ? initialPosts : blogPostsMeta)
+    .slice()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  const categories = [
+    "All",
+    ...Array.from(new Set(allPosts.map((p) => p.category))).sort((a, b) => a.localeCompare(b)),
+  ]
+
   const [visibleCount, setVisibleCount] = useState(POSTS_PER_PAGE)
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
@@ -50,7 +65,7 @@ export function BlogPageContent({ featuredSlug }: BlogPageContentProps) {
       )
     }
     return result
-  }, [selectedCategory, searchQuery, featuredSlug])
+  }, [selectedCategory, searchQuery, featuredSlug, allPosts])
 
   // Reset visible count when filters change
   const visiblePosts = filteredPosts.slice(0, visibleCount)
@@ -146,6 +161,7 @@ export function BlogPageContent({ featuredSlug }: BlogPageContentProps) {
                           alt={post.title}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          quality={85}
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>

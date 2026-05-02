@@ -20,7 +20,7 @@ interface LiveVideoTourFormProps {
   onSuccess: (data: LiveVideoTourResponse) => void
 }
 
-export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVideoTourFormProps) {
+export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: Readonly<LiveVideoTourFormProps>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const nameInputRef = useRef<HTMLInputElement | null>(null)
@@ -49,7 +49,7 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: LiveVid
     formData.selectedDate !== "" &&
     formData.selectedTime !== ""
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     const customerName = formData.customerName.trim() || nameInputRef.current?.value.trim() || ""
     const customerEmail = formData.customerEmail.trim() || emailInputRef.current?.value.trim() || ""

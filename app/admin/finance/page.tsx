@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
 interface FinanceApplication {
   id: string
@@ -109,7 +110,8 @@ export default function AdminFinancePage() {
   const fetchApplications = async () => {
     setLoading(true)
     try {
-      const url = `/api/v1/admin/finance/applications${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`
+      const statusQuery = statusFilter === "all" ? "" : `?status=${statusFilter}`
+      const url = `/api/v1/admin/finance/applications${statusQuery}`
       const res = await fetch(url)
       if (res.ok) {
         const data = await res.json()
@@ -120,6 +122,31 @@ export default function AdminFinancePage() {
       console.error("Error fetching applications:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleApplicationDeleted = (appId: string) => {
+    setApplications((prev) => {
+      const removed = prev.find((a) => a.id === appId)
+      const next = prev.filter((a) => a.id !== appId)
+      // Recompute the stat panel from the new list so the operator sees
+      // the count + total value drop without a refetch round-trip.
+      setStats({
+        total: next.length,
+        pending: next.filter((a) =>
+          ["submitted", "under_review"].includes(a.status),
+        ).length,
+        approved: next.filter((a) => a.status === "approved").length,
+        funded: next.filter((a) => a.status === "funded").length,
+        totalValue: removed
+          ? Math.max(0, stats.totalValue - (removed.requested_amount ?? 0))
+          : stats.totalValue,
+      })
+      return next
+    })
+    if (selectedApp?.id === appId) {
+      setSelectedApp(null)
+      setDetailOpen(false)
     }
   }
 
@@ -149,14 +176,14 @@ export default function AdminFinancePage() {
       const res = await fetch(`/api/v1/financing/documents/download?pathname=${encodeURIComponent(pathname)}&admin=true`)
       if (res.ok) {
         const blob = await res.blob()
-        const url = window.URL.createObjectURL(blob)
+        const url = globalThis.URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
         a.download = fileName
         document.body.appendChild(a)
         a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+        globalThis.URL.revokeObjectURL(url)
+        a.remove()
       }
     } catch (error) {
       console.error("Error downloading document:", error)
@@ -298,17 +325,24 @@ export default function AdminFinancePage() {
       {/* Applications Table */}
       <Card>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-gray-500">Loading applications...</span>
-            </div>
-          ) : filteredApplications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <FileText className="w-12 h-12 text-gray-300 mb-4" />
-              <p className="text-gray-500">No applications found</p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
+                  <span className="ml-2 text-gray-500">Loading applications...</span>
+                </div>
+              )
+            }
+            if (filteredApplications.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <FileText className="w-12 h-12 text-gray-300 mb-4" />
+                  <p className="text-gray-500">No applications found</p>
+                </div>
+              )
+            }
+            return (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
@@ -349,14 +383,14 @@ export default function AdminFinancePage() {
                       <td className="py-3 px-4">
                         <p className="font-medium">${app.requested_amount?.toLocaleString()}</p>
                         <p className="text-sm text-gray-500">
-                          ${app.estimated_payment?.toLocaleString()}/{app.payment_frequency?.replace("_", "-")}
+                          ${app.estimated_payment?.toLocaleString()}/{app.payment_frequency?.replaceAll("_", "-")}
                         </p>
                       </td>
                       <td className="py-3 px-4">
                         <Badge className={statusColors[app.status]}>
                           <span className="flex items-center gap-1">
                             {statusIcons[app.status]}
-                            {app.status?.replace("_", " ")}
+                            {app.status?.replaceAll("_", " ")}
                           </span>
                         </Badge>
                       </td>
@@ -375,24 +409,33 @@ export default function AdminFinancePage() {
                         </p>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedApp(app)
-                            setDetailOpen(true)
-                          }}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
+                        <span className="inline-flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedApp(app)
+                              setDetailOpen(true)
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
+                          <DeleteRowButton
+                            endpoint={`/api/v1/admin/finance/applications/${app.id}`}
+                            id={app.id}
+                            label={`application ${app.application_number}`}
+                            onDeleted={handleApplicationDeleted}
+                          />
+                        </span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 
@@ -403,7 +446,7 @@ export default function AdminFinancePage() {
             <DialogTitle className="flex items-center gap-2">
               Application {selectedApp?.application_number}
               <Badge className={statusColors[selectedApp?.status || "draft"]}>
-                {selectedApp?.status?.replace("_", " ")}
+                {selectedApp?.status?.replaceAll("_", " ")}
               </Badge>
             </DialogTitle>
             <DialogDescription>
@@ -480,7 +523,7 @@ export default function AdminFinancePage() {
                     </div>
                     <div>
                       <Label className="text-gray-500">Payment Frequency</Label>
-                      <p className="font-medium capitalize">{selectedApp.payment_frequency?.replace("_", "-")}</p>
+                      <p className="font-medium capitalize">{selectedApp.payment_frequency?.replaceAll("_", "-")}</p>
                     </div>
                     <div>
                       <Label className="text-gray-500">Estimated Payment</Label>
@@ -518,7 +561,7 @@ export default function AdminFinancePage() {
                               <div>
                                 <p className="font-medium">{doc.document_name}</p>
                                 <p className="text-sm text-gray-500 capitalize">
-                                  {doc.document_type.replace(/_/g, " ")}
+                                  {doc.document_type.replaceAll("_", " ")}
                                 </p>
                               </div>
                             </div>

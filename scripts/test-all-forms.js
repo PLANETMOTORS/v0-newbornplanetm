@@ -38,15 +38,15 @@ async function testAPI(name, endpoint, method, body) {
     
     if (response.ok) {
       console.log(`SUCCESS: ${response.status}`)
-      console.log('Response:', JSON.stringify(data, null, 2).slice(0, 200))
+      console.log({ response: JSON.stringify(data, null, 2).slice(0, 200).replaceAll(/[\n\r]/g, ' ') })
       return { success: true, data }
     } else {
       console.log(`FAILED: ${response.status}`)
-      console.log('Error:', data)
+      console.log({ error: data })
       return { success: false, error: data }
     }
   } catch (error) {
-    console.log(`ERROR: ${error.message}`)
+    console.log({ error: String(error.message).replaceAll(/[\n\r]/g, '_') })
     return { success: false, error: error.message }
   }
 }

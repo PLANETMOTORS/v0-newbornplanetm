@@ -38,12 +38,42 @@ const CATEGORIES: { value: Category; label: string; icon: typeof MessageSquare; 
 
 const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map(c => [c.value, c]))
 
+// ── Placeholder / label helpers (extracted from nested ternaries) ──────────
+
+function getTriggerPlaceholder(category: Category): string {
+  switch (category) {
+    case "qa":
+      return 'e.g., "Do you offer extended warranty?" or "What is your return policy?"'
+    case "instruction":
+      return 'e.g., "Always greet customers in both English and French"'
+    case "objection":
+      return 'e.g., "The price is too high" or "I can get a better deal elsewhere"'
+    default:
+      return "Enter the trigger phrase or condition..."
+  }
+}
+
+function getResponsePlaceholder(category: Category): string {
+  if (category === "qa") {
+    return 'e.g., "Yes! Every vehicle comes with our PM Certified 210-point inspection and a 30-day/1,500 km powertrain warranty included at no extra charge."'
+  }
+  if (category === "objection") {
+    return 'e.g., "I understand price is important. Our prices include certification, OMVIC fees, and a 10-day money-back guarantee — many dealers charge extra for these."'
+  }
+  return "Enter the response or instruction details..."
+}
+
+function getSaveLabel(saving: boolean, editingId: string | null): string {
+  if (saving) return "Saving..."
+  return editingId ? "Update" : "Save"
+}
+
 interface AIKnowledgePanelProps {
   agentType: "anna" | "negotiator" | "valuator"
   agentName: string
 }
 
-export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePanelProps) {
+export default function AIKnowledgePanel({ agentType, agentName }: Readonly<AIKnowledgePanelProps>) {
   const [entries, setEntries] = useState<KnowledgeEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [tableExists, setTableExists] = useState(true)
@@ -275,7 +305,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
           <CardContent className="space-y-4">
             {/* Category selector */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">Category</label>
+              <span className="text-sm font-medium text-gray-700 block mb-2">Category</span>
               <div className="flex gap-2 flex-wrap">
                 {CATEGORIES.map(cat => (
                   <button
@@ -298,60 +328,50 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
 
             {/* Trigger phrase */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label htmlFor="kb-trigger" className="text-sm font-medium text-gray-700 block mb-1">
                 {formData.category === "instruction" ? "Instruction / Rule" : "IF customer asks..."}
               </label>
               <textarea
+                id="kb-trigger"
                 className="w-full border rounded-md p-3 text-sm min-h-[80px] resize-y"
                 value={formData.trigger_phrase}
                 onChange={e => setFormData({ ...formData, trigger_phrase: e.target.value })}
-                placeholder={
-                  formData.category === "qa"
-                    ? 'e.g., "Do you offer extended warranty?" or "What is your return policy?"'
-                    : formData.category === "instruction"
-                    ? 'e.g., "Always greet customers in both English and French"'
-                    : formData.category === "objection"
-                    ? 'e.g., "The price is too high" or "I can get a better deal elsewhere"'
-                    : 'Enter the trigger phrase or condition...'
-                }
+                placeholder={getTriggerPlaceholder(formData.category)}
               />
             </div>
 
             {/* Response */}
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label htmlFor="kb-response" className="text-sm font-medium text-gray-700 block mb-1">
                 {formData.category === "instruction" ? "Details / Context" : "THEN respond with..."}
               </label>
               <textarea
+                id="kb-response"
                 className="w-full border rounded-md p-3 text-sm min-h-[100px] resize-y"
                 value={formData.response}
                 onChange={e => setFormData({ ...formData, response: e.target.value })}
-                placeholder={
-                  formData.category === "qa"
-                    ? 'e.g., "Yes! Every vehicle comes with our PM Certified 210-point inspection and a 30-day/1,500 km powertrain warranty included at no extra charge."'
-                    : formData.category === "objection"
-                    ? 'e.g., "I understand price is important. Our prices include certification, OMVIC fees, and a 10-day money-back guarantee — many dealers charge extra for these."'
-                    : 'Enter the response or instruction details...'
-                }
+                placeholder={getResponsePlaceholder(formData.category)}
               />
             </div>
 
             {/* Priority + Tags row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
+                <label htmlFor="kb-priority" className="text-sm font-medium text-gray-700 block mb-1">Priority</label>
                 <Input
+                  id="kb-priority"
                   type="number"
                   value={formData.priority}
-                  onChange={e => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
+                  onChange={e => setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 0 })}
                   min={0}
                   max={100}
                 />
                 <p className="text-xs text-gray-400 mt-1">Higher number = matched first (0-100)</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Tags (comma-separated)</label>
+                <label htmlFor="kb-tags" className="text-sm font-medium text-gray-700 block mb-1">Tags (comma-separated)</label>
                 <Input
+                  id="kb-tags"
                   value={formData.tags}
                   onChange={e => setFormData({ ...formData, tags: e.target.value })}
                   placeholder="e.g., warranty, returns, common"
@@ -368,7 +388,7 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
               <Button variant="outline" onClick={resetForm}>Cancel</Button>
               <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700">
                 <Save className="w-4 h-4 mr-1" />
-                {saving ? "Saving..." : editingId ? "Update" : "Save"}
+                {getSaveLabel(saving, editingId)}
               </Button>
             </div>
           </CardContent>
@@ -376,25 +396,31 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
       )}
 
       {/* Entries list */}
-      {loading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 font-medium">No knowledge entries yet</p>
-            <p className="text-sm text-gray-400 mt-1">
-              {entries.length === 0
-                ? `Add Q&A pairs to train ${agentName} on specific responses`
-                : "No entries match your search/filter"}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
+      {(() => {
+        if (loading) {
+          return (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          )
+        }
+        if (filtered.length === 0) {
+          const emptyMessage = entries.length === 0
+            ? `Add Q&A pairs to train ${agentName} on specific responses`
+            : "No entries match your search/filter"
+          return (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 font-medium">No knowledge entries yet</p>
+                <p className="text-sm text-gray-400 mt-1">{emptyMessage}</p>
+              </CardContent>
+            </Card>
+          )
+        }
+        return (
         <div className="space-y-2">
           {filtered.map(entry => {
             const cat = CATEGORY_MAP[entry.category] || CATEGORY_MAP.qa
@@ -404,12 +430,13 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
             return (
               <Card
                 key={entry.id}
-                className={`transition-all ${!entry.is_active ? "opacity-60 bg-gray-50" : ""} ${
+                className={`transition-all ${entry.is_active ? "" : "opacity-60 bg-gray-50"} ${
                   isExpanded ? "ring-1 ring-indigo-200" : ""
                 }`}
               >
-                <div
-                  className="p-4 cursor-pointer"
+                <button
+                  type="button"
+                  className="w-full text-left p-4 cursor-pointer"
                   onClick={() => setExpandedId(isExpanded ? null : entry.id)}
                 >
                   <div className="flex items-start gap-3">
@@ -453,20 +480,20 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
                       )}
                     </div>
                   </div>
-                </div>
+                </button>
 
                 {/* Expanded view */}
                 {isExpanded && (
                   <div className="px-4 pb-4 border-t pt-3 space-y-3">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trigger / Question</label>
+                        <span className="text-xs font-medium text-gray-500 uppercase">Trigger / Question</span>
                         <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
                           {entry.trigger_phrase}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase">Trained Response</label>
+                        <span className="text-xs font-medium text-gray-500 uppercase">Trained Response</span>
                         <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded">
                           {entry.response}
                         </p>
@@ -514,7 +541,8 @@ export default function AIKnowledgePanel({ agentType, agentName }: AIKnowledgePa
             )
           })}
         </div>
-      )}
+        )
+      })()}
 
       {/* Summary */}
       {entries.length > 0 && (

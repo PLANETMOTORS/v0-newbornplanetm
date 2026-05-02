@@ -27,6 +27,16 @@ interface AddressAutocompleteProps {
   className?: string
 }
 
+/**
+ * Choose a border-colour class for the postal-code input. Extracted from
+ * a nested ternary to satisfy SonarCloud rule typescript:S3358.
+ */
+function pickPostalBorderClass(error: string | undefined, validationError: string | null, isValidFormat: boolean): string {
+  if (error || validationError) return "border-destructive"
+  if (isValidFormat) return "border-green-500"
+  return ""
+}
+
 // Canada Post address lookup (using free postal code API)
 async function searchCanadianAddresses(query: string): Promise<AddressResult[]> {
   if (query.length < 3) return []
@@ -34,11 +44,11 @@ async function searchCanadianAddresses(query: string): Promise<AddressResult[]> 
   try {
     // Use GeoNames or similar free API for Canadian postal codes
     // For demo, we'll simulate with common Canadian addresses
-    const postalCodeMatch = query.match(/^[A-Za-z]\d[A-Za-z][\s-]?\d[A-Za-z]\d$/i)
+    const postalCodeMatch = /^[A-Z]\d[A-Z][\s-]?\d[A-Z]\d$/i.exec(query)
     
     if (postalCodeMatch) {
       // Lookup by postal code
-      const response = await fetch(`https://geocoder.ca/?postal=${query.replace(/\s/g, '')}&json=1`)
+      const response = await fetch(`https://geocoder.ca/?postal=${query.replaceAll(/\s/g, '')}&json=1`)
       if (response.ok) {
         const data = await response.json()
         if (data.standard) {
@@ -49,7 +59,7 @@ async function searchCanadianAddresses(query: string): Promise<AddressResult[]> 
             streetLine: data.standard.staddress || '',
             city: data.standard.city || '',
             province: data.standard.prov || '',
-            postalCode: query.toUpperCase().replace(/\s/g, '').replace(/(.{3})(.{3})/, '$1 $2'),
+            postalCode: query.toUpperCase().replaceAll(/\s/g, '').replace(/(.{3})(.{3})/, '$1 $2'),
             country: 'Canada'
           }]
         }
@@ -103,7 +113,7 @@ export function AddressAutocomplete({
   required = false,
   error,
   className = "",
-}: AddressAutocompleteProps) {
+}: Readonly<AddressAutocompleteProps>) {
   const [suggestions, setSuggestions] = useState<AddressResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -205,7 +215,7 @@ export function AddressAutocomplete({
               className="w-full px-3 py-2 text-left hover:bg-muted flex items-start gap-2 border-b last:border-b-0"
               onClick={() => handleSelect(suggestion)}
             >
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <div>
                 <p className="font-medium text-sm">{suggestion.text}</p>
                 <p className="text-xs text-muted-foreground">{suggestion.description}</p>
@@ -235,13 +245,13 @@ export function PostalCodeInput({
   error,
   required = false,
   className = "",
-}: PostalCodeInputProps) {
+}: Readonly<PostalCodeInputProps>) {
   const [isValidating, setIsValidating] = useState(false)
   const [validationError, setValidationError] = useState("")
 
   // Format postal code as user types
   const formatPostalCode = (input: string) => {
-    const cleaned = input.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const cleaned = input.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
     if (cleaned.length <= 3) return cleaned
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
   }
@@ -252,10 +262,10 @@ export function PostalCodeInput({
     setValidationError("")
     
     // Validate when we have full postal code
-    if (formatted.replace(/\s/g, '').length === 6) {
+    if (formatted.replaceAll(/\s/g, '').length === 6) {
       setIsValidating(true)
       try {
-        const response = await fetch(`https://geocoder.ca/?postal=${formatted.replace(/\s/g, '')}&json=1`)
+        const response = await fetch(`https://geocoder.ca/?postal=${formatted.replaceAll(/\s/g, '')}&json=1`)
         if (response.ok) {
           const data = await response.json()
           if (data.standard?.city) {
@@ -287,7 +297,7 @@ export function PostalCodeInput({
           onChange={(e) => handleChange(e.target.value)}
           placeholder="M5V 3L9"
           maxLength={7}
-          className={`uppercase ${error || validationError ? "border-destructive" : isValidFormat ? "border-green-500" : ""}`}
+          className={`uppercase ${pickPostalBorderClass(error, validationError, isValidFormat)}`}
         />
         {isValidating && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />

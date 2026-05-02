@@ -4,6 +4,7 @@ import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { initiateOAuthLogin } from "@/lib/auth/oauth-helpers"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -12,7 +13,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Mail, LockKeyhole, Chrome, Facebook, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Mail, LockKeyhole, Loader2 } from "lucide-react"
+import { GoogleIcon, FacebookIcon } from "@/components/ui/brand-icons"
 import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 function LoginForm() {
@@ -30,7 +32,7 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
@@ -54,33 +56,16 @@ function LoginForm() {
   const handleOAuthLogin = async (provider: "google" | "facebook") => {
     setIsLoading(true)
     setError("")
-    
     try {
-      const supabase = createClient()
-      const callbackUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: callbackUrl,
-        },
-      })
-      
-      if (error) {
-        throw error
-      }
-      if (data?.url) {
-        window.location.assign(data.url)
-      }
+      await initiateOAuthLogin(provider, redirectTo)
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Sign in failed. Please try email login."
-      setError(errorMessage)
+      setError(err instanceof Error ? err.message : "Sign in failed. Please try email login.")
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30">
       <Header />
       
       <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-16">
@@ -111,7 +96,7 @@ function LoginForm() {
                   onClick={() => handleOAuthLogin("google")}
                   disabled={isLoading}
                 >
-                  <Chrome className="mr-2 h-5 w-5" />
+                  <GoogleIcon className="mr-2 h-5 w-5" />
                   Google
                 </Button>
                 <Button 
@@ -120,7 +105,7 @@ function LoginForm() {
                   onClick={() => handleOAuthLogin("facebook")}
                   disabled={isLoading}
                 >
-                  <Facebook className="mr-2 h-5 w-5" />
+                  <FacebookIcon className="mr-2 h-5 w-5" />
                   Facebook
                 </Button>
               </div>
@@ -242,7 +227,7 @@ function LoginForm() {
 
 function LoginLoading() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/30 flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   )

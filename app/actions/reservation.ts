@@ -1,6 +1,8 @@
+ 
 'use server'
 
 import { createHash } from 'node:crypto'
+import type Stripe from 'stripe'
 import { lockVehicle, unlockVehicle, rateLimit } from '@/lib/redis'
 import { getStripe } from '@/lib/stripe'
 import { getProductById } from '@/lib/products'
@@ -27,17 +29,136 @@ export interface ReservationResult {
   remaining?: number
 }
 
-export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
+type StructuredError = {
+  code?: unknown
+  type?: unknown
+  message?: unknown
+}
+
+function getStructuredErrorCode(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return ''
+  const candidate = (error as StructuredError).code
+  return typeof candidate === 'string' ? candidate.toLowerCase() : ''
+}
+
+function getStructuredErrorType(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return ''
+  const candidate = (error as StructuredError).type
+  return typeof candidate === 'string' ? candidate.toLowerCase() : ''
+}
+
+const PAYMENT_ERROR_CODES = new Set([
+  'payment_method_not_available',
+  'payment_method_invalid_parameter',
+  'parameter_invalid_empty',
+  'parameter_invalid_integer',
+  'resource_missing',
+  'card_declined',
+  'processing_error',
+  'api_connection_error',
+  'api_error',
+  'idempotency_key_in_use',
+  'rate_limit',
+])
+
+async function buildRateLimitScope(email: string): Promise<string> {
   const headersList = await headers()
   const forwardedFor = headersList.get('x-forwarded-for')
   const realIp = headersList.get('x-real-ip')
   const cfConnectingIp = headersList.get('cf-connecting-ip')
   const ipCandidate = forwardedFor?.split(',')[0]?.trim() || realIp || cfConnectingIp || 'unknown'
-  const normalizedIp = ipCandidate.toLowerCase()
-  const normalizedEmail = input.customerEmail.trim().toLowerCase()
-  const rateLimitScopeHash = createHash('sha256')
-    .update(`${normalizedIp}:${normalizedEmail}`)
+  return createHash('sha256')
+    .update(`${ipCandidate.toLowerCase()}:${email.trim().toLowerCase()}`)
     .digest('hex')
+}
+
+function mapReservationError(error: unknown): string {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+  const errorMessageLower = errorMessage.toLowerCase()
+  const structuredErrorCode = getStructuredErrorCode(error)
+  const structuredErrorType = getStructuredErrorType(error)
+  const isStripeLike = structuredErrorType.startsWith('stripe') || PAYMENT_ERROR_CODES.has(structuredErrorCode)
+
+  if (
+    PAYMENT_ERROR_CODES.has(structuredErrorCode) ||
+    isStripeLike ||
+    errorMessageLower.includes('stripe') ||
+    errorMessageLower.includes('payment_method') ||
+    errorMessageLower.includes('checkout') ||
+    errorMessageLower.includes('acss')
+  ) {
+    return 'Payment system error. Please try again in a moment.'
+  }
+  if (errorMessageLower.includes('vehicle')) {
+    return 'Unable to verify vehicle details. Please refresh and try again.'
+  }
+  if (
+    errorMessageLower.includes('database') ||
+    errorMessageLower.includes('supabase') ||
+    errorMessageLower.includes('permission') ||
+    errorMessageLower.includes('relation') ||
+    errorMessageLower.includes('column') ||
+    errorMessageLower.includes('row-level security')
+  ) {
+    return 'Database error. Please try again shortly.'
+  }
+  return 'An unexpected error occurred. Please try again.'
+}
+
+type StripeInstance = ReturnType<typeof getStripe>
+
+async function createStripeSessionWithFallback(
+  stripe: StripeInstance,
+  buildParams: (includeAcss: boolean) => Stripe.Checkout.SessionCreateParams,
+  enableAcssDebit: boolean,
+  idempotencyKey: string,
+  logContext?: Record<string, unknown>,
+) {
+  try {
+    return await stripe.checkout.sessions.create(buildParams(enableAcssDebit), {
+      idempotencyKey,
+    })
+  } catch (sessionError) {
+    const stripeErrorCode = getStructuredErrorCode(sessionError)
+    const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
+    const canRetryCardOnly =
+      enableAcssDebit &&
+      (
+        stripeErrorCode === 'payment_method_not_available' ||
+        stripeErrorCode === 'payment_method_invalid_parameter' ||
+        sessionErrorMessage.includes('acss') ||
+        sessionErrorMessage.includes('payment_method_options')
+      )
+    if (!canRetryCardOnly) throw sessionError
+
+    console.warn('ACSS checkout session failed, retrying with card only', {
+      ...logContext,
+      errorCode: stripeErrorCode || undefined,
+      error: sessionErrorMessage,
+    })
+    return await stripe.checkout.sessions.create(buildParams(false), {
+      idempotencyKey: `${idempotencyKey}:card-only`,
+    })
+  }
+}
+
+function logReservationError(error: unknown, input: ReservationInput) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+  const customerEmailHash = createHash('sha256')
+    .update(input.customerEmail.trim().toLowerCase())
+    .digest('hex')
+    .slice(0, 12)
+  const isProd = process.env.NODE_ENV === 'production'
+  console.error('Reservation error:', {
+    error: errorMessage,
+    vehicleId: input.vehicleId,
+    stockNumber: input.stockNumber,
+    customerEmailHash,
+    ...(isProd ? {} : { stack: error instanceof Error ? error.stack : undefined }),
+  })
+}
+export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
+  const rateLimitScopeHash = await buildRateLimitScope(input.customerEmail)
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -106,7 +227,7 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       return { error: claim?.error || 'Vehicle is not available for reservation.' }
     }
 
-    const reservationId = claim.reservation_id!
+    const reservationId = claim.reservation_id ?? ""
 
     // Look up vehicle details for notification metadata
     const { data: vehicle } = await adminClient
@@ -188,44 +309,10 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       expires_at: Math.floor(Date.now() / 1000) + 900, // 15 minutes
     })
 
-    let session
-    try {
-      session = await stripe.checkout.sessions.create(createSessionParams(enableAcssDebit), {
-        idempotencyKey,
-      })
-    } catch (sessionError) {
-      const stripeErrorCode =
-        typeof sessionError === 'object' &&
-        sessionError !== null &&
-        'code' in sessionError &&
-        typeof (sessionError as { code?: unknown }).code === 'string'
-          ? (sessionError as { code: string }).code
-          : ''
-      const sessionErrorMessage = sessionError instanceof Error ? sessionError.message.toLowerCase() : ''
-      const canRetryCardOnly =
-        enableAcssDebit &&
-        (
-          stripeErrorCode === 'payment_method_not_available' ||
-          stripeErrorCode === 'payment_method_invalid_parameter' ||
-          sessionErrorMessage.includes('acss') ||
-          sessionErrorMessage.includes('payment_method_options')
-        )
-
-      if (!canRetryCardOnly) {
-        throw sessionError
-      }
-
-      console.warn('ACSS checkout session failed, retrying with card only', {
-        reservationId,
-        stockNumber: input.stockNumber,
-        errorCode: stripeErrorCode || undefined,
-        error: sessionErrorMessage,
-      })
-
-      session = await stripe.checkout.sessions.create(createSessionParams(false), {
-        idempotencyKey: `${idempotencyKey}:card-only`,
-      })
-    }
+    const session = await createStripeSessionWithFallback(
+      stripe, createSessionParams, enableAcssDebit, idempotencyKey,
+      { reservationId, stockNumber: input.stockNumber },
+    )
 
     const { error: updateError } = await supabase
       .from('reservations')
@@ -247,53 +334,9 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
       sessionId: session.id,
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorMessageLower = errorMessage.toLowerCase()
-    const isStripeLike =
-      typeof error === 'object' &&
-      error !== null &&
-      'type' in error &&
-      typeof (error as { type?: unknown }).type === 'string'
-
-    const customerEmailHash = createHash('sha256')
-      .update(input.customerEmail.trim().toLowerCase())
-      .digest('hex')
-      .slice(0, 12)
-
-    console.error('Reservation error:', {
-      error: errorMessage,
-      vehicleId: input.vehicleId,
-      stockNumber: input.stockNumber,
-      customerEmailHash,
-      stack: error instanceof Error ? error.stack : undefined,
-    })
+    logReservationError(error, input)
     await unlockVehicle(input.stockNumber, input.customerEmail)
-    
-    // Return more specific error messages to help with debugging
-    if (
-      isStripeLike ||
-      errorMessageLower.includes('stripe') ||
-      errorMessageLower.includes('payment_method') ||
-      errorMessageLower.includes('checkout') ||
-      errorMessageLower.includes('acss')
-    ) {
-      return { error: 'Payment system error. Please try again in a moment.' }
-    }
-    if (errorMessageLower.includes('vehicle')) {
-      return { error: 'Unable to verify vehicle details. Please refresh and try again.' }
-    }
-    if (
-      errorMessageLower.includes('database') ||
-      errorMessageLower.includes('supabase') ||
-      errorMessageLower.includes('permission') ||
-      errorMessageLower.includes('relation') ||
-      errorMessageLower.includes('column') ||
-      errorMessageLower.includes('row-level security')
-    ) {
-      return { error: 'Database error. Please try again shortly.' }
-    }
-    
-    return { error: 'An unexpected error occurred. Please try again.' }
+    return { error: mapReservationError(error) }
   }
 }
 

@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 // Make this file a module so TypeScript doesn't merge its scope with other scripts.
 export {}
+
+import { randomInt as cryptoRandomInt } from 'node:crypto'
 
 /**
  * Race Condition Proof-of-Concept
@@ -33,9 +36,10 @@ let orderCount = 0
 const reservations: Array<{ id: number; email: string; createdAt: number }> = []
 const orders: Array<{ id: number; userId: string; createdAt: number }> = []
 
-// Simulate network/IO delay (the race window)
+// Simulate network/IO delay (the race window). Crypto-backed jitter avoids
+// Sonar S2245; this is a local proof-of-concept script with no security context.
 const simulateDelay = (ms: number) => new Promise(r => setTimeout(r, ms))
-const randomDelay = () => simulateDelay(Math.random() * 10) // 0-10ms jitter
+const randomDelay = () => simulateDelay(cryptoRandomInt(0, 11)) // 0-10ms jitter
 
 // ─────────────────────────────────────────────────────────────
 // OLD CODE: Vulnerable TOCTOU pattern (from reservation.ts before fix)
@@ -130,6 +134,7 @@ async function newCreateReservation(email: string): Promise<{ success: boolean; 
 
     return { success: true }
   } finally {
+     
     releaseLock!() // Release the lock
   }
 }
@@ -154,6 +159,7 @@ async function newCreateOrder(userId: string): Promise<{ success: boolean; error
 
     return { success: true }
   } finally {
+     
     releaseLock!()
   }
 }

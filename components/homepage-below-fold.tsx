@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // Below-fold homepage sections — code-split from homepage-content.tsx
 // to reduce initial JS bundle and improve LCP/TBT
 import Link from "next/link"
-import { ArrowRight, Shield, RotateCw, CheckCircle, Star, BadgeCheck, Clock, Battery, Phone, MapPin, DollarSign, Truck } from "lucide-react"
+import { ArrowRight, RotateCw, CheckCircle, Star, BadgeCheck, Clock, Battery, Phone, MapPin, DollarSign, Truck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WEEKDAY_HOURS_FALLBACK, SATURDAY_HOURS_FALLBACK } from "@/lib/constants/dealership"
 
@@ -18,7 +19,7 @@ const protectionPlans = [
     name: "Premium Coverage",
     price: "59",
     period: "/month",
-    description: "Comprehensive protection for your vehicle",
+    description: "Full protection for your vehicle",
     features: ["Everything in Basic", "Electrical system coverage", "Air conditioning coverage", "Suspension coverage", "Brake system coverage"],
     highlighted: true,
   },
@@ -52,7 +53,7 @@ const defaultReviews = [
     name: "David K.",
     location: "Richmond Hill, ON",
     rating: 5,
-    text: "Got pre-approved with TD in minutes. Great rates and the whole process was seamless. Highly recommend!",
+    text: "The buying process was incredibly easy and straightforward. Great rates and got pre-approved with TD in minutes. Highly recommend!",
     date: "3 weeks ago",
   },
 ]
@@ -71,7 +72,7 @@ type BelowFoldProps = {
   saturdayHours?: { open: string; close: string } | null
 }
 
-export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekdayHours, saturdayHours }: BelowFoldProps) {
+export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekdayHours, saturdayHours }: Readonly<BelowFoldProps>) {
   const displayReviews = defaultReviews
   return (
     <>
@@ -84,7 +85,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {([
-              { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle passes our comprehensive inspection with full transparency reports." },
+              { icon: CheckCircle, title: "210-Point Inspection", description: "Every vehicle passes our detailed 210-point mechanical inspection with full transparency reports." },
               { icon: Battery, title: "EV Battery Health", description: "Exclusive Aviloo battery certification for EVs - know exactly what you're getting.", href: "/aviloo" },
               { icon: RotateCw, title: "10-Day Returns", description: "Not satisfied? Return your vehicle within 10 days, no questions asked." },
               { icon: Truck, title: "Canada-Wide Delivery", description: "Get your vehicle delivered anywhere in Canada with our convenient delivery service." },
@@ -126,7 +127,7 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
               <p className="text-gray-600 text-lg mb-6">Get a competitive offer in minutes. We buy all makes and models - you don&apos;t need to purchase from us to sell to us.</p>
               <ul className="space-y-3 mb-8">
                 {["Instant online offer", "Free vehicle pickup", "Same-day payment available", "No obligation to buy from us"].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
+                  <li key={item} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-700" />
                     <span className="text-gray-700">{item}</span>
                   </li>
@@ -169,8 +170,8 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
             </div>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {displayReviews.map((review, index) => (
-              <div key={index} className="bg-[#f0f4f8] rounded-xl p-6 border border-[#dce3ed]">
+            {displayReviews.map((review) => (
+              <div key={review.name} className="bg-[#f0f4f8] rounded-xl p-6 border border-[#dce3ed]">
                 <div className="flex items-center gap-1 mb-4">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star key={star} className={`w-4 h-4 ${star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
@@ -209,13 +210,13 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3 text-sm">
-                      <CheckCircle className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? "text-[#1e3a8a]" : "text-green-400"}`} />
+                      <CheckCircle className={`w-5 h-5 shrink-0 ${plan.highlighted ? "text-[#1e3a8a]" : "text-green-400"}`} />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <Button className={`w-full mt-8 ${plan.highlighted ? "bg-[#1e3a8a] text-white hover:bg-[#172554]" : "bg-white text-[#1A202C] hover:bg-[#eef2f7]"}`} asChild>
-                  <Link href={`/protection-plans#${plan.name.toLowerCase().replace(" ", "-")}`}>Get Started</Link>
+                  <Link href={`/protection-plans#${plan.name.toLowerCase().replaceAll(" ", "-")}`}>Get Started</Link>
                 </Button>
               </div>
             ))}
@@ -228,8 +229,8 @@ export function HomepageBelowFold({ siteSettings, ratingValue, lowestRate, weekd
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white">Ready to find your perfect vehicle?</h2>
-              <p className="mt-4 text-white max-w-xl">Browse our inventory of certified pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.</p>
+              <h2 className="text-3xl font-bold text-white">Ready to drive a certified used EV?</h2>
+              <p className="mt-4 text-white max-w-xl">Browse battery-health certified used EVs and 210-point inspected pre-owned vehicles. Get pre-approved for financing in minutes with rates from {lowestRate}% APR.</p>
               <div className="mt-8 flex flex-wrap gap-6">
                 <Button size="lg" className="bg-white text-[#1e5a8e] hover:bg-[#eef2f7]" asChild>
                   <Link href="/inventory">Browse Inventory<ArrowRight className="ml-2 w-4 h-4" /></Link>

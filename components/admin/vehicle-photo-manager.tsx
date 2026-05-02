@@ -32,7 +32,7 @@ export default function VehiclePhotoManager({
   vehicleTitle,
   onClose,
   onPhotosChanged,
-}: VehiclePhotoManagerProps) {
+}: Readonly<VehiclePhotoManagerProps>) {
   const [photos, setPhotos] = useState<PhotoData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -75,13 +75,13 @@ export default function VehiclePhotoManager({
 
     // Validate
     const maxSize = 10 * 1024 * 1024
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"]
+    const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
     for (const f of fileArray) {
       if (f.size > maxSize) {
         setError(`"${f.name}" exceeds 10 MB limit`)
         return
       }
-      if (!allowedTypes.includes(f.type)) {
+      if (!allowedTypes.has(f.type)) {
         setError(`"${f.name}" is not a supported format (JPEG, PNG, WebP, AVIF)`)
         return
       }
@@ -221,14 +221,14 @@ export default function VehiclePhotoManager({
         <div className="px-6 pt-4 space-y-2">
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 shrink-0" />
               {error}
               <button onClick={() => setError(null)} className="ml-auto font-bold">&times;</button>
             </div>
           )}
           {successMsg && (
             <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
-              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <CheckCircle className="w-4 h-4 shrink-0" />
               {successMsg}
             </div>
           )}
@@ -236,8 +236,9 @@ export default function VehiclePhotoManager({
 
         {/* Upload Area */}
         <div className="p-4 sm:p-6">
-          <div
-            className={`border-2 border-dashed rounded-xl p-4 sm:p-8 text-center transition-colors cursor-pointer ${
+          <button
+            type="button"
+            className={`w-full border-2 border-dashed rounded-xl p-4 sm:p-8 text-center transition-colors cursor-pointer ${
               dragOver
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-300 hover:border-gray-400"
@@ -275,26 +276,33 @@ export default function VehiclePhotoManager({
               }}
               disabled={uploading}
             />
-          </div>
+          </button>
         </div>
 
         {/* Photo Grid */}
         <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-            </div>
-          ) : imageUrls.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <ImagePlus className="w-12 h-12 mb-3" />
-              <p className="text-sm font-medium">No photos yet</p>
-              <p className="text-xs">Upload photos to get started</p>
-            </div>
-          ) : (
+          {(() => {
+            if (loading) {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                </div>
+              )
+            }
+            if (imageUrls.length === 0) {
+              return (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <ImagePlus className="w-12 h-12 mb-3" />
+                  <p className="text-sm font-medium">No photos yet</p>
+                  <p className="text-xs">Upload photos to get started</p>
+                </div>
+              )
+            }
+            return (
             <>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-gray-600">
-                  {imageUrls.length} photo{imageUrls.length !== 1 ? "s" : ""}
+                  {imageUrls.length} photo{imageUrls.length === 1 ? "" : "s"}
                 </p>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -315,7 +323,7 @@ export default function VehiclePhotoManager({
                       }`}
                     >
                       {/* Image */}
-                      <div className="aspect-[4/3] relative bg-gray-100">
+                      <div className="aspect-4/3 relative bg-gray-100">
                         <Image
                           src={url}
                           alt={`Photo ${idx + 1}`}
@@ -385,7 +393,8 @@ export default function VehiclePhotoManager({
                 })}
               </div>
             </>
-          )}
+            )
+          })()}
         </div>
 
         {/* Footer */}

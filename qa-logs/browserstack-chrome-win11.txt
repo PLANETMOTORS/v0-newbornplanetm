@@ -1,0 +1,5 @@
+
+Running 128 tests using 3 workers
+
+  ✘    3 [bs-chrome-win11] › e2e/accessibility.spec.ts:36:7 › Section A11Y — Accessibility (WCAG 2.2 AA) › A11Y-001 — Homepage: zero critical/serious axe violations (1ms)
+  ✘    2 [bs-chrome-win11] › e2e/auth-gated-flows.spec.ts:117:7 › Auth-Gated Flows — Finance Submission & ID Upload › Full finance application → confirmation number → ID upload (0ms)

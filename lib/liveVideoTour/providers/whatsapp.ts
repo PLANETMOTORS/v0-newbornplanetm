@@ -15,7 +15,7 @@ export const whatsappProvider: LiveVideoTourProviderAdapter = {
       // The staff will call the customer at the scheduled time
       
       // Generate a WhatsApp deep link for the staff to use
-      const customerPhoneDigits = booking.customerPhone.replace(/\D/g, "")
+      const customerPhoneDigits = booking.customerPhone.replaceAll(/\D/g, "")
       const staffWhatsAppLink = `https://wa.me/${customerPhoneDigits}`
 
       // In production:

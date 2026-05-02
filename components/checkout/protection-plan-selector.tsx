@@ -12,7 +12,7 @@ interface ProtectionPlanSelectorProps {
   onChange: (value: string) => void
 }
 
-export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelectorProps) {
+export function ProtectionPlanSelector({ value, onChange }: Readonly<ProtectionPlanSelectorProps>) {
   return (
     <Card>
       <CardHeader>
@@ -24,17 +24,17 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
       <CardContent>
         <RadioGroup value={value} onValueChange={onChange} className="space-y-3">
           {CHECKOUT_PLANS.map((plan) => (
-            <div
+            <Label
               key={plan.id}
+              htmlFor={plan.id}
               className={`relative flex items-start p-4 rounded-lg border-2 cursor-pointer transition-colors ${
                 value === plan.id
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/50"
               }`}
-              onClick={() => onChange(plan.id)}
             >
               <RadioGroupItem value={plan.id} id={plan.id} className="mt-1" />
-              <Label htmlFor={plan.id} className="flex-1 ml-3 cursor-pointer">
+              <span className="flex-1 ml-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{plan.name}</span>
@@ -50,16 +50,16 @@ export function ProtectionPlanSelector({ value, onChange }: ProtectionPlanSelect
                 </div>
                 {plan.features.length > 0 && (
                   <ul className="mt-2 space-y-1">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Check className="w-3 h-3 text-green-700 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}
                   </ul>
                 )}
-              </Label>
-            </div>
+              </span>
+            </Label>
           ))}
         </RadioGroup>
       </CardContent>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { asScalarString } from "@/lib/safe-coerce"
+import { pingVehicleChange } from "@/lib/seo/indexnow"
 
 /**
  * Admin Single Vehicle API
@@ -17,6 +19,61 @@ async function authorize() {
     return null
   }
   return user
+}
+
+const ALLOWED_VEHICLE_UPDATE_FIELDS = [
+  "stock_number", "vin", "year", "make", "model", "trim", "body_style",
+  "exterior_color", "interior_color", "price", "msrp", "mileage",
+  "drivetrain", "transmission", "engine", "fuel_type",
+  "fuel_economy_city", "fuel_economy_highway", "is_ev",
+  "battery_capacity_kwh", "range_miles", "status", "is_certified",
+  "is_new_arrival", "featured", "has_360_spin",
+  "primary_image_url", "image_urls", "video_url", "location",
+  "inspection_score", "inspection_date",
+  "ev_battery_health_percent",
+] as const
+
+const VEHICLE_INT_FIELDS = [
+  "year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway",
+  "range_miles", "inspection_score", "ev_battery_health_percent", "savings",
+] as const
+
+function buildVehicleUpdate(body: Record<string, unknown>): Record<string, unknown> {
+  const update: Record<string, unknown> = {}
+  for (const field of ALLOWED_VEHICLE_UPDATE_FIELDS) {
+    if (field in body) update[field] = body[field]
+  }
+  for (const f of VEHICLE_INT_FIELDS) {
+    if (f in update && update[f] !== null) {
+      update[f] = Number.parseInt(asScalarString(update[f]))
+    }
+  }
+  if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
+    update.battery_capacity_kwh = Number.parseFloat(asScalarString(update.battery_capacity_kwh))
+  }
+  return update
+}
+
+async function validateVinForUpdate(
+  adminClient: ReturnType<typeof createAdminClient>,
+  vehicleId: string,
+  rawVin: unknown,
+): Promise<{ ok: true; normalised: string } | { ok: false; res: NextResponse }> {
+  if (typeof rawVin !== "string") return { ok: true, normalised: "" }
+  const normalised = rawVin.toUpperCase()
+  if (normalised.length !== 17) {
+    return { ok: false, res: NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 }) }
+  }
+  const { data: existingVin } = await adminClient
+    .from("vehicles")
+    .select("id")
+    .eq("vin", normalised)
+    .neq("id", vehicleId)
+    .maybeSingle()
+  if (existingVin) {
+    return { ok: false, res: NextResponse.json({ error: "A vehicle with this VIN already exists" }, { status: 409 }) }
+  }
+  return { ok: true, normalised }
 }
 
 export async function GET(
@@ -71,59 +128,14 @@ export async function PUT(
     }
 
     const body = await request.json()
-
-    // Build update object — only include fields that are present in the request
-    const allowedFields = [
-      "stock_number", "vin", "year", "make", "model", "trim", "body_style",
-      "exterior_color", "interior_color", "price", "msrp", "mileage",
-      "drivetrain", "transmission", "engine", "fuel_type",
-      "fuel_economy_city", "fuel_economy_highway", "is_ev",
-      "battery_capacity_kwh", "range_miles", "status", "is_certified",
-      "is_new_arrival", "featured", "has_360_spin",
-      "primary_image_url", "image_urls", "video_url", "location",
-      "inspection_score", "inspection_date",
-      "ev_battery_health_percent",
-    ]
-
-    const update: Record<string, unknown> = {}
-    for (const field of allowedFields) {
-      if (field in body) {
-        update[field] = body[field]
-      }
-    }
-
+    const update = buildVehicleUpdate(body)
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 })
     }
 
-    // Uppercase VIN if provided and validate
-    if (typeof update.vin === "string") {
-      update.vin = (update.vin as string).toUpperCase()
-      if ((update.vin as string).length !== 17) {
-        return NextResponse.json({ error: "VIN must be exactly 17 characters" }, { status: 400 })
-      }
-      // Check for duplicate VIN (excluding current vehicle)
-      const { data: existingVin } = await adminClient
-        .from("vehicles")
-        .select("id")
-        .eq("vin", update.vin as string)
-        .neq("id", id)
-        .maybeSingle()
-      if (existingVin) {
-        return NextResponse.json({ error: "A vehicle with this VIN already exists" }, { status: 409 })
-      }
-    }
-
-    // Numeric conversions
-    const intFields = ["year", "price", "msrp", "mileage", "fuel_economy_city", "fuel_economy_highway", "range_miles", "inspection_score", "ev_battery_health_percent", "savings"]
-    for (const f of intFields) {
-      if (f in update && update[f] !== null) {
-        update[f] = parseInt(String(update[f]))
-      }
-    }
-    if ("battery_capacity_kwh" in update && update.battery_capacity_kwh !== null) {
-      update.battery_capacity_kwh = parseFloat(String(update.battery_capacity_kwh))
-    }
+    const vinResult = await validateVinForUpdate(adminClient, id, update.vin)
+    if (!vinResult.ok) return vinResult.res
+    if (vinResult.normalised) update.vin = vinResult.normalised
 
     update.updated_at = new Date().toISOString()
 
@@ -143,7 +155,16 @@ export async function PUT(
       return NextResponse.json({ error: "Vehicle not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, vehicle: data })
+    // Notify search engines that this VDP + the inventory listing
+    // changed. Non-blocking — IndexNow failures must never cascade
+    // into a 500 for the admin user.
+    const indexNow = await pingVehicleChange(id)
+
+    return NextResponse.json({
+      success: true,
+      vehicle: data,
+      indexNow: { ok: indexNow.ok, count: indexNow.count },
+    })
   } catch (error) {
     console.error("Admin vehicle PUT error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -188,9 +209,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Failed to delete vehicle", details: error.message }, { status: 500 })
     }
 
+    // Notify search engines that the VDP is gone and the inventory
+    // listing changed. Same non-blocking semantics as PUT.
+    const indexNow = await pingVehicleChange(id)
+
     return NextResponse.json({
       success: true,
       message: `Deleted ${existing.year} ${existing.make} ${existing.model} (${existing.vin})`,
+      indexNow: { ok: indexNow.ok, count: indexNow.count },
     })
   } catch (error) {
     console.error("Admin vehicle DELETE error:", error)

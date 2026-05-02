@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
 interface KnowledgeEntry {
   id: string
@@ -27,10 +28,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const agentType = request.nextUrl.searchParams.get("agent_type")
     const category = request.nextUrl.searchParams.get("category")
@@ -74,10 +72,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const body = await request.json()
     const { agent_type, category, trigger_phrase, response, priority, tags } = body
@@ -120,16 +115,10 @@ export async function POST(request: NextRequest) {
 // PUT — update an existing knowledge entry
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const admin = await getAuthenticatedAdmin()
+    if (admin.error) return admin.error
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const body = await request.json()
     const { id, ...updates } = body
@@ -139,7 +128,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Clean up updates
-    const cleanUpdates: Record<string, unknown> = { updated_by: user.email }
+    const cleanUpdates: Record<string, unknown> = { updated_by: admin.user?.email }
     if (updates.trigger_phrase !== undefined) cleanUpdates.trigger_phrase = updates.trigger_phrase.trim()
     if (updates.response !== undefined) cleanUpdates.response = updates.response.trim()
     if (updates.category !== undefined) cleanUpdates.category = updates.category
@@ -175,10 +164,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const adminClient = createAdminClient()
 
     const id = request.nextUrl.searchParams.get("id")
     if (!id) {

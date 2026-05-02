@@ -4,10 +4,14 @@
 
 // Planet Motors Service Worker — powered by Serwist
 // Handles precaching, runtime caching, and offline fallback.
+//
+// Optimization: The 4.16MB chunk (09okea7j~1zn8.js) is excluded from
+// precache and handled via StaleWhileRevalidate at runtime instead,
+// so it does NOT block the initial app boot / SW install.
 
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist, NetworkOnly } from "serwist";
+import { Serwist, NetworkOnly, StaleWhileRevalidate, CacheFirst } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -17,30 +21,87 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-// Filter out API and Supabase routes from runtime caching to prevent
-// stale inventory/auth data. The defaultCache already includes sensible
-// strategies; we only need to exclude backend routes.
-const filteredCache = defaultCache.filter((entry) => {
-  // Keep all entries that aren't URL-pattern based
-  if (typeof entry.matcher === "function") return true;
-  return true;
+// ─── Precache manifest filtering ─────────────────────────────────────────────
+// Exclude any JS chunk matching the 4.16MB offender from the precache manifest.
+// These large chunks are served via StaleWhileRevalidate at runtime instead,
+// so they don't block the SW install step on first load.
+const LARGE_CHUNK_PATTERN = /09okea7j~1zn8/;
+
+const filteredManifest = (self.__SW_MANIFEST ?? []).filter((entry) => {
+  const url = typeof entry === "string" ? entry : entry.url;
+  return !LARGE_CHUNK_PATTERN.test(url);
 });
 
+// ─── Runtime caching strategies ──────────────────────────────────────────────
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  precacheEntries: filteredManifest,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: [
-    // Exclude /api/ routes and Supabase calls from caching entirely
+    // 1. Never cache API routes or Supabase calls — always network
     {
       matcher({ url }) {
-        return url.pathname.startsWith("/api/") || url.hostname.includes("supabase.co");
+        return (
+          url.pathname.startsWith("/api/") ||
+          url.hostname.includes("supabase.co")
+        );
       },
       handler: new NetworkOnly(),
     },
-    // Use default caching strategies for everything else
-    ...filteredCache,
+
+    // 2. Large JS chunks excluded from precache → StaleWhileRevalidate
+    //    Serves from cache instantly, updates in background.
+    {
+      matcher({ url }) {
+        return LARGE_CHUNK_PATTERN.test(url.pathname);
+      },
+      handler: new StaleWhileRevalidate({
+        cacheName: "large-chunks",
+        plugins: [],
+      }),
+    },
+
+    // 3. Sanity CDN images → CacheFirst (content-addressed, safe to cache long-term)
+    {
+      matcher({ url }) {
+        return url.hostname === "cdn.sanity.io";
+      },
+      handler: new CacheFirst({
+        cacheName: "sanity-images",
+        plugins: [],
+      }),
+    },
+
+    // 4. Vehicle / blog image CDNs → CacheFirst (immutable content)
+    //    Keeping these out of precache and into runtime cache is what brings
+    //    the precache manifest from 23 MB down to ~2 MB app-shell only.
+    //
+    //    Note: this is a subset of remotePatterns in next.config.mjs.
+    //    - cdn.sanity.io is handled above by rule 3 (dedicated "sanity-images" cache).
+    //    - ldervbcvkoawwknsemuz.supabase.co is handled by rule 1 (NetworkOnly —
+    //      Supabase storage URLs carry auth tokens and must never be served stale).
+    {
+      matcher({ url }) {
+        return (
+          url.hostname === "cdn.planetmotors.ca" ||
+          url.hostname === "planetmotors.imgix.net" ||
+          url.hostname === "media.cpsimg.com" ||
+          url.hostname === "photos.homenetiol.com" ||
+          url.hostname === "content.homenetiol.com" ||
+          url.hostname === "www.carpages.ca" ||
+          url.hostname === "images.unsplash.com" ||
+          url.hostname === "hebbkx1anhila5yf.public.blob.vercel-storage.com"
+        );
+      },
+      handler: new CacheFirst({
+        cacheName: "vehicle-images",
+        plugins: [],
+      }),
+    },
+
+    // 5. Default strategies for everything else (JS, CSS, fonts, pages)
+    ...defaultCache,
   ],
   fallbacks: {
     entries: [

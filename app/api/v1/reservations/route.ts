@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createReservation } from '@/app/actions/reservation'
 import { trackInitiateCheckout } from '@/lib/meta-capi-helpers'
+import { reservationToAdfProspect } from '@/lib/adf/adapters'
+import { forwardLeadToAutoRaptor } from '@/lib/adf/forwarder'
+
+const RESERVATION_DEPOSIT_CAD = 250
 
 /**
  * POST /api/v1/reservations
@@ -48,8 +52,20 @@ export async function POST(request: NextRequest) {
       firstName: customerName,
       contentName: `Vehicle ${stockNumber}`,
       contentIds: [vehicleId],
-      value: 250, // refundable deposit amount
+      value: RESERVATION_DEPOSIT_CAD,
     })
+
+    // Forward to AutoRaptor as ADF/XML email (non-blocking)
+    void forwardLeadToAutoRaptor(
+      reservationToAdfProspect({
+        reservationId: result.reservationId ?? `res-${Date.now().toString(36)}`,
+        customerName,
+        customerEmail,
+        customerPhone,
+        stockNumber,
+        depositAmount: RESERVATION_DEPOSIT_CAD,
+      }),
+    ).catch((cause) => console.error('[reservations] ADF forward failed:', cause))
 
     return NextResponse.json({
       success: true,

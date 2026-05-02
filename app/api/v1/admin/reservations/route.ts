@@ -1,20 +1,37 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { createClient as createServiceClient, SupabaseClient } from "@supabase/supabase-js"
 import { ADMIN_EMAILS } from "@/lib/admin"
+import { fullPaymentVerification } from "@/lib/reservation-payment-rules"
+import type { ReservationPaymentFields } from "@/lib/reservation-payment-rules"
+import {
+  adminReservationPatchSchema,
+  parseAdminPatch,
+} from "@/lib/security/admin-mutation-schemas"
+
+/** Authenticate the request and return a service-role admin client.
+ *  Returns null (with a 401 response already sent) if the user is not an admin. */
+async function requireAdminClient(): Promise<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | { adminClient: SupabaseClient<any>; unauthorized: null }
+  | { adminClient: null; unauthorized: NextResponse }
+> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) {
+    return { adminClient: null, unauthorized: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  const adminClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
+  )
+  return { adminClient, unauthorized: null }
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
+    const { adminClient, unauthorized } = await requireAdminClient()
+    if (!adminClient) return unauthorized
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -82,19 +99,54 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { adminClient, unauthorized } = await requireAdminClient()
+    if (!adminClient) return unauthorized
 
-    const adminClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
-
-    const { id, ...updates } = await request.json()
+    const { id, ...rawUpdates } = await request.json()
     if (!id) return NextResponse.json({ error: "Reservation ID required" }, { status: 400 })
+
+    // ── Mass-assignment defence (OWASP API3) ────────────────────────────
+    // Whitelist the admin-mutable columns + validate value domains. Any
+    // unexpected key (customer_email, vehicle_id, deposit_amount, …) is
+    // rejected with a 400 instead of silently rewritten.
+    const parsed = parseAdminPatch(adminReservationPatchSchema, rawUpdates)
+    if (!parsed.ok) {
+      return NextResponse.json(
+        { error: "Invalid reservation update", details: parsed.issues },
+        { status: 400 }
+      )
+    }
+    const updates = parsed.data
+
+    // Payment validation: if attempting to confirm a reservation, verify payment first
+    if (updates.status === "confirmed") {
+      const { data: existing, error: fetchError } = await adminClient
+        .from("reservations")
+        .select("deposit_status, stripe_payment_intent_id, stripe_checkout_session_id, status, expires_at")
+        .eq("id", id)
+        .single()
+
+      if (fetchError || !existing) {
+        return NextResponse.json({ error: "Reservation not found" }, { status: 404 })
+      }
+
+      // Merge incoming updates with existing data for validation
+      const reservationForValidation: ReservationPaymentFields = {
+        deposit_status: updates.deposit_status ?? existing.deposit_status,
+        stripe_payment_intent_id: existing.stripe_payment_intent_id,
+        stripe_checkout_session_id: existing.stripe_checkout_session_id,
+        status: existing.status,
+        expires_at: updates.expires_at ?? existing.expires_at,
+      }
+
+      const validation = await fullPaymentVerification(reservationForValidation)
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: `Cannot confirm reservation: ${validation.reason}` },
+          { status: 422 }
+        )
+      }
+    }
 
     const { data, error } = await adminClient
       .from("reservations")
@@ -104,6 +156,10 @@ export async function PATCH(request: NextRequest) {
       .single()
 
     if (error) {
+      // Surface database trigger errors (from enforce_payment_before_confirm)
+      if (error.message?.includes("Cannot confirm reservation")) {
+        return NextResponse.json({ error: error.message }, { status: 422 })
+      }
       return NextResponse.json({ error: "Failed to update reservation" }, { status: 500 })
     }
 

@@ -1,7 +1,42 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import {
+  authenticateAdmin,
+  getSearchParams,
+  parsePagination,
+  sanitizeSearch,
+} from "@/lib/admin-api"
+
+type AdminClient = Awaited<ReturnType<typeof authenticateAdmin>> extends { adminClient: infer C } ? C : never
+
+async function fetchCustomerCounts(
+  adminClient: AdminClient,
+  customerIds: string[],
+): Promise<{ orderCounts: Record<string, number>; reservationCounts: Record<string, number> }> {
+  if (customerIds.length === 0) return { orderCounts: {}, reservationCounts: {} }
+  const fetchCount = (table: string, fk: string) =>
+    Promise.all(customerIds.map(async (id) => {
+      const { count } = await (adminClient as unknown as {
+        from: (t: string) => {
+          select: (s: string, opts: { count: 'exact'; head: true }) => {
+            eq: (col: string, value: string) => Promise<{ count: number | null }>
+          }
+        }
+      })
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq(fk, id)
+      return { id, count: count ?? 0 }
+    }))
+  const [orderResults, reservationResults] = await Promise.all([
+    fetchCount("orders", "customer_id"),
+    fetchCount("reservations", "user_id"),
+  ])
+  const orderCounts: Record<string, number> = {}
+  const reservationCounts: Record<string, number> = {}
+  for (const r of orderResults) if (r.count > 0) orderCounts[r.id] = r.count
+  for (const r of reservationResults) if (r.count > 0) reservationCounts[r.id] = r.count
+  return { orderCounts, reservationCounts }
+}
 
 /**
  * Return a paginated, optionally search-filtered list of customer profiles for admin users.
@@ -18,26 +53,13 @@ import { ADMIN_EMAILS } from "@/lib/admin"
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const auth = await authenticateAdmin()
+    if (!auth.ok) return auth.response
+    const { adminClient } = auth
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { searchParams } = new URL(request.url)
+    const searchParams = getSearchParams(request)
     const search = searchParams.get("search") || ""
-    const rawLimit = parseInt(searchParams.get("limit") || "50")
-    const limit = Math.min(Math.max(1, isNaN(rawLimit) ? 50 : rawLimit), 200)
-    const rawOffset = parseInt(searchParams.get("offset") || "0")
-    const offset = Math.max(0, isNaN(rawOffset) ? 0 : rawOffset)
-
-    let adminClient: ReturnType<typeof createAdminClient>
-    try {
-      adminClient = createAdminClient()
-    } catch {
-      return NextResponse.json({ error: "Admin client not configured" }, { status: 500 })
-    }
+    const { limit, offset } = parsePagination(searchParams)
 
     // Fetch profiles with search
     let query = adminClient
@@ -47,9 +69,8 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (search) {
-      // Sanitize to prevent PostgREST filter injection via commas/parentheses
       // Allow @ and . for email searches, - for phone numbers
-      const sanitizedSearch = search.trim().slice(0, 200).replace(/[^a-zA-Z0-9\s@.\-]/g, "").trim()
+      const sanitizedSearch = sanitizeSearch(search, { allowEmail: true })
       if (sanitizedSearch) {
         query = query.or(
           `email.ilike.%${sanitizedSearch}%,first_name.ilike.%${sanitizedSearch}%,last_name.ilike.%${sanitizedSearch}%,phone.ilike.%${sanitizedSearch}%`
@@ -67,38 +88,7 @@ export async function GET(request: NextRequest) {
     // Fetch order and reservation counts per customer using exact count queries
     // to avoid Supabase's default 1000-row limit silently truncating results
     const customerIds = (profiles || []).map(p => p.id)
-    let orderCounts: Record<string, number> = {}
-    let reservationCounts: Record<string, number> = {}
-
-    if (customerIds.length > 0) {
-      const [orderResults, reservationResults] = await Promise.all([
-        Promise.all(
-          customerIds.map(async (id) => {
-            const { count } = await adminClient
-              .from("orders")
-              .select("id", { count: "exact", head: true })
-              .eq("customer_id", id)
-            return { id, count: count ?? 0 }
-          })
-        ),
-        Promise.all(
-          customerIds.map(async (id) => {
-            const { count } = await adminClient
-              .from("reservations")
-              .select("id", { count: "exact", head: true })
-              .eq("user_id", id)
-            return { id, count: count ?? 0 }
-          })
-        ),
-      ])
-
-      for (const r of orderResults) {
-        if (r.count > 0) orderCounts[r.id] = r.count
-      }
-      for (const r of reservationResults) {
-        if (r.count > 0) reservationCounts[r.id] = r.count
-      }
-    }
+    const { orderCounts, reservationCounts } = await fetchCustomerCounts(adminClient as AdminClient, customerIds)
 
     const customers = (profiles || []).map(p => ({
       id: p.id,

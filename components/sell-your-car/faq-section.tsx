@@ -12,7 +12,7 @@ interface FAQSectionProps {
   faqs: FAQ[]
 }
 
-export function FAQSection({ title, faqs }: FAQSectionProps) {
+export function FAQSection({ title, faqs }: Readonly<FAQSectionProps>) {
   if (!faqs || faqs.length === 0) return null
 
   return (
@@ -22,7 +22,7 @@ export function FAQSection({ title, faqs }: FAQSectionProps) {
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`} className="bg-background rounded-lg border px-6">
+              <AccordionItem key={faq.question} value={`item-${index}`} className="bg-background rounded-lg border px-6">
                 <AccordionTrigger className="text-left hover:no-underline py-4">
                   {faq.question}
                 </AccordionTrigger>

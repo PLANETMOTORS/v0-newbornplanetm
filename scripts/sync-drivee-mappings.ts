@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+ 
 /**
  * Sync drivee_mappings table from migration-manifest.json
  *
@@ -75,17 +76,17 @@ async function main() {
         },
         body: JSON.stringify(body),
       })
-
-      if (!res.ok) {
+      if (res.ok) {
+        console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
+        synced++
+      } else {
         const text = await res.text()
         console.error(`  ❌ ${entry.vehicle} (${entry.vin}): ${res.status} ${text}`)
         failed++
-      } else {
-        console.log(`  ✅ ${entry.vehicle} — MID: ${entry.mid}, ${entry.frameCount} frames`)
-        synced++
       }
-    } catch (err: any) {
-      console.error(`  ❌ ${entry.vehicle}: ${err.message}`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(`  ❌ ${entry.vehicle}: ${msg}`)
       failed++
     }
   }

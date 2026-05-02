@@ -14,9 +14,10 @@ test.describe("Navigation", () => {
     await page.goto("/")
     // Use the footer link which is a direct <a> tag
     const inventoryLink = page.locator('footer a[href="/inventory"]').first()
-    await expect(inventoryLink).toBeVisible()
-    await inventoryLink.click()
-    await page.waitForURL(/\/inventory/)
+    await inventoryLink.scrollIntoViewIfNeeded()
+    await expect(inventoryLink).toBeVisible({ timeout: 10_000 })
+    await inventoryLink.click({ force: false })
+    await page.waitForURL(/\/inventory/, { timeout: 15_000 })
     // Inventory page may show heading (success) or error state (API down)
     const heading = page.getByRole("heading", { name: /Vehicle Inventory/i })
     const error = page.getByText(/Error loading inventory/i)
@@ -26,10 +27,11 @@ test.describe("Navigation", () => {
   test("clicking contact link navigates to contact page", async ({ page }) => {
     await page.goto("/")
     const contactLink = page.locator('footer a[href="/contact"]').first()
-    await expect(contactLink).toBeVisible()
-    await contactLink.click()
-    await page.waitForURL(/\/contact/)
-    await expect(page.getByRole("heading", { name: /Contact Us/i })).toBeVisible()
+    await contactLink.scrollIntoViewIfNeeded()
+    await expect(contactLink).toBeVisible({ timeout: 10_000 })
+    await contactLink.click({ force: false })
+    await page.waitForURL(/\/contact/, { timeout: 15_000 })
+    await expect(page.getByRole("heading", { name: /Contact Us/i })).toBeVisible({ timeout: 10_000 })
   })
 
   test("mobile menu toggle works", async ({ page }) => {
@@ -45,7 +47,7 @@ test.describe("Navigation", () => {
     await menuButton.click()
 
     // Mobile nav items should appear
-    await expect(page.locator('button#mobile-nav-Shop\\ Inventory').or(page.getByText("Shop Inventory").nth(1))).toBeVisible()
+    await expect(page.locator(String.raw`button#mobile-nav-Shop\ Inventory`).or(page.getByText("Shop Inventory").nth(1))).toBeVisible()
   })
 
   test("mobile menu navigation works", async ({ page }) => {
@@ -53,15 +55,18 @@ test.describe("Navigation", () => {
     await page.goto("/")
 
     const menuButton = page.getByRole("button", { name: /open menu/i })
+    await expect(menuButton).toBeVisible({ timeout: 10_000 })
     await menuButton.click()
+    await page.waitForTimeout(500) // Let mobile menu animation complete
 
     // Expand Shop Inventory submenu — the mobile nav button id contains spaces
-    const shopButton = page.locator('#mobile-nav-Shop\\ Inventory')
-    if (await shopButton.isVisible()) {
+    const shopButton = page.locator(String.raw`#mobile-nav-Shop\ Inventory`)
+    if (await shopButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
       await shopButton.click()
+      await page.waitForTimeout(300) // Submenu animation
       // Submenu items should appear in the mobile nav region
       const submenuRegion = page.locator('[aria-labelledby="mobile-nav-Shop Inventory"]')
-      await expect(submenuRegion.getByText("All Vehicles")).toBeVisible()
+      await expect(submenuRegion.getByText("All Vehicles")).toBeVisible({ timeout: 5_000 })
     }
   })
 

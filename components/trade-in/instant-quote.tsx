@@ -154,7 +154,7 @@ const vehicleData: Record<string, Record<string, string[]>> = {
 
 // Format postal code: A1A 1A1
 function formatPostalCode(value: string): string {
-  const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const cleaned = value.toUpperCase().replaceAll(/[^A-Z0-9]/g, '')
   if (cleaned.length <= 3) return cleaned
   return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`
 }
@@ -251,7 +251,7 @@ export function InstantQuote() {
   
   // Mileage handler - only allow numbers, prevent scroll glitches
   const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '')
+    const value = e.target.value.replaceAll(/\D/g, '')
     setFormData(prev => ({ ...prev, mileage: value }))
   }, [])
   
@@ -262,10 +262,10 @@ export function InstantQuote() {
     
     // Only validate when user has entered enough characters (complete postal code is 7 chars with space)
     if (formatted.length === 7) {
-      if (!isValidPostalCode(formatted)) {
-        setPostalCodeError("Please enter a valid Canadian postal code (e.g., M5V 1J2)")
-      } else {
+      if (isValidPostalCode(formatted)) {
         setPostalCodeError("")
+      } else {
+        setPostalCodeError("Please enter a valid Canadian postal code (e.g., M5V 1J2)")
       }
     } else if (formatted.length < 6) {
       // Clear error while user is still typing
@@ -292,7 +292,7 @@ export function InstantQuote() {
     const formatted = formatCanadianPhoneNumber(e.target.value)
     setFormData(prev => ({ ...prev, phone: formatted }))
     
-    const digitsOnly = e.target.value.replace(/\D/g, '')
+    const digitsOnly = e.target.value.replaceAll(/\D/g, '')
     if (digitsOnly.length > 0 && digitsOnly.length < 10) {
       setPhoneError("Please enter a complete 10-digit phone number")
     } else if (digitsOnly.length >= 10 && !isValidCanadianPhoneNumber(formatted)) {
@@ -373,8 +373,8 @@ export function InstantQuote() {
   // Local fallback valuation calculation (used if API fails)
   const calculateLocalValue = (data: typeof formData) => {
     const currentYear = new Date().getFullYear()
-    const age = currentYear - parseInt(data.year)
-    const mileageNum = parseInt(data.mileage.replace(/,/g, '')) || 50000
+    const age = currentYear - Number.parseInt(data.year)
+    const mileageNum = Number.parseInt(data.mileage.replaceAll(",", "")) || 50000
     
     // Base values by model/make
     const baseValues: Record<string, number> = {
@@ -397,10 +397,10 @@ export function InstantQuote() {
     // Depreciation curve
     let value = baseValue
     for (let y = 0; y < age; y++) {
-      if (y === 0) value *= 0.80
+      if (y === 0) value *= 0.8
       else if (y === 1) value *= 0.85
       else if (y === 2) value *= 0.88
-      else if (y < 6) value *= 0.90
+      else if (y < 6) value *= 0.9
       else value *= 0.92
     }
     
@@ -415,18 +415,18 @@ export function InstantQuote() {
     
     // Condition adjustment
     const conditionMultipliers: Record<string, number> = {
-      "excellent": 1.10, "good": 1.00, "fair": 0.85, "poor": 0.65,
+      "excellent": 1.1, "good": 1, "fair": 0.85, "poor": 0.65,
     }
-    value *= conditionMultipliers[data.condition] || 1.0
+    value *= conditionMultipliers[data.condition] || 1
     
     // Minimum and rounding
     value = Math.max(500, value)
     value = Math.round(value / 50) * 50
     
     return {
-      lowValue: Math.round(value * 0.90 / 50) * 50,
+      lowValue: Math.round(value * 0.9 / 50) * 50,
       midValue: value,
-      highValue: Math.round(value * 1.10 / 50) * 50,
+      highValue: Math.round(value * 1.1 / 50) * 50,
     }
   }
   
@@ -438,12 +438,11 @@ export function InstantQuote() {
     setCalculationProgress(0)
     
     // Call AI-powered valuation API
+    const tickProgress = () => setCalculationProgress(prev => Math.min(prev + 5, 90))
     const result = await (async () => {
       try {
         // Start progress animation
-        const progressInterval = setInterval(() => {
-          setCalculationProgress(prev => Math.min(prev + 5, 90))
-        }, 300)
+        const progressInterval = setInterval(tickProgress, 300)
 
         const response = await fetch("/api/vehicle-valuation", {
           method: "POST",
@@ -498,7 +497,7 @@ export function InstantQuote() {
   }
   
   return (
-    <Card className="shadow-xl border-0 bg-gradient-to-br from-card to-card/95">
+    <Card className="shadow-xl border-0 bg-linear-to-br from-card to-card/95">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -539,7 +538,7 @@ export function InstantQuote() {
                 <SelectValue placeholder="Select make" />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(vehicleData).sort().map((make) => (
+                {Object.keys(vehicleData).sort((a, b) => a.localeCompare(b)).map((make) => (
                   <SelectItem key={make} value={make}>{make}</SelectItem>
                 ))}
               </SelectContent>
@@ -719,7 +718,7 @@ export function InstantQuote() {
             <Input
               placeholder="Enter 6-digit code"
               value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))}
               className="text-center text-2xl tracking-widest"
               maxLength={6}
             />
@@ -816,7 +815,7 @@ export function InstantQuote() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Mileage:</span>
-                  <span className="tabular-nums">{parseInt(formData.mileage).toLocaleString()} km</span>
+                  <span className="tabular-nums">{Number.parseInt(formData.mileage).toLocaleString()} km</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Location:</span>

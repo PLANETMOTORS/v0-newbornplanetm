@@ -50,7 +50,10 @@ export async function GET() {
       adminClient.from("profiles").select("id", { count: "exact", head: true }),
       adminClient.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", sevenDaysAgo),
       adminClient.from("trade_in_quotes").select("id", { count: "exact", head: true }),
-      // Try leads table (may not exist yet)
+      // Leads table — may be empty even though it exists; we always
+      // aggregate from finance/reservation/trade-in tables AS WELL so the
+      // dashboard never shows "No leads yet" when capture-lead, finance
+      // applications, reservations, or trade-in quotes are flowing.
       adminClient.from("leads").select("id, source, status, customer_name, customer_email, subject, vehicle_info, created_at").order("created_at", { ascending: false }).limit(10),
       // Recent activity items
       adminClient.from("orders").select("id, order_number, status, total_price_cents, created_at").order("created_at", { ascending: false }).limit(5),
@@ -110,6 +113,68 @@ export async function GET() {
     // Sort by time descending
     recentActivity.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
 
+    // Build the unified Recent Leads feed.
+    //
+    // Rule: always surface the most recent customer-facing intake events
+    // (finance pre-approvals, trade-in quotes, reservations) in addition
+    // to whatever sits in the `leads` table directly. The dashboard
+    // becomes useless if the operator has to bounce between four tabs to
+    // see who came in this hour.
+    const leadsTableRows = (leadsResult.data || []).map((row) => ({
+      id: row.id as string,
+      source: row.source as string,
+      status: row.status as string,
+      customer_name: (row.customer_name as string | null) ?? "",
+      customer_email: (row.customer_email as string | null) ?? "",
+      subject: (row.subject as string | null) ?? "",
+      vehicle_info: (row.vehicle_info as string | null) ?? null,
+      created_at: row.created_at as string,
+    }))
+    const aggregated: typeof leadsTableRows = []
+    for (const ti of recentTradeInsResult.data || []) {
+      aggregated.push({
+        id: ti.id,
+        source: "trade_in",
+        status: ti.status === "accepted" ? "converted" : "new",
+        customer_name: ti.customer_name || ti.customer_email || "Unknown",
+        customer_email: ti.customer_email || "",
+        subject: `Trade-In: ${ti.vehicle_year} ${ti.vehicle_make} ${ti.vehicle_model}`,
+        vehicle_info: `Offered $${(ti.offer_amount || 0).toLocaleString()}`,
+        created_at: ti.created_at,
+      })
+    }
+    for (const app of recentFinanceResult.data || []) {
+      aggregated.push({
+        id: app.id,
+        source: "finance_app",
+        status: app.status === "approved" ? "qualified" : "new",
+        customer_name: `Finance Application ${app.application_number}`,
+        customer_email: "",
+        subject: `Finance Application — $${(app.requested_amount || 0).toLocaleString()}`,
+        vehicle_info: null,
+        created_at: app.created_at,
+      })
+    }
+    for (const res of recentReservationsResult.data || []) {
+      aggregated.push({
+        id: res.id,
+        source: "reservation",
+        status: res.status === "completed" ? "converted" : "new",
+        customer_name: res.customer_name || res.customer_email || "Unknown",
+        customer_email: res.customer_email || "",
+        subject: `Reservation — $${Math.round((res.deposit_amount || 0) / 100).toLocaleString()} deposit`,
+        vehicle_info: null,
+        created_at: res.created_at,
+      })
+    }
+    const seenIds = new Set(leadsTableRows.map((r) => r.id))
+    const merged = [
+      ...leadsTableRows,
+      ...aggregated.filter((r) => !seenIds.has(r.id)),
+    ].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
+
     return NextResponse.json({
       stats: {
         totalInventory: vehiclesCount.count || 0,
@@ -124,7 +189,7 @@ export async function GET() {
         newCustomersThisWeek: profilesRecent.count || 0,
         totalTradeIns: tradeInsTotal.count || 0,
       },
-      recentLeads: leadsResult.data || [],
+      recentLeads: merged.slice(0, 10),
       recentActivity: recentActivity.slice(0, 10),
     })
   } catch (error) {

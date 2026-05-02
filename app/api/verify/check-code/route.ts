@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ verified: false, error: "Invalid code" }, { status: 401 })
     }
 
-    const { timingSafeEqual } = await import("crypto")
+    const { timingSafeEqual } = await import("node:crypto")
     const isValid = timingSafeEqual(codeBuffer, storedBuffer)
 
     if (isValid) {

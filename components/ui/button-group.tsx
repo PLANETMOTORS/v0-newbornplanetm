@@ -26,9 +26,10 @@ function ButtonGroup({
   orientation,
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof buttonGroupVariants>) {
+  // S6819: drop role="group" — it's a visual wrapper for buttons. Consumers
+  // who need a labelled group should add aria-label themselves.
   return (
     <div
-      role="group"
       data-slot="button-group"
       data-orientation={orientation}
       className={cn(buttonGroupVariants({ orientation }), className)}

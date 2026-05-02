@@ -40,7 +40,7 @@ const openPositions = [
     department: "Customer Service",
     location: "Remote / Hybrid",
     type: "Full-time",
-    description: "Provide exceptional support to customers throughout their buying journey via phone, chat, and email.",
+    description: "Provide personalized support to customers throughout their buying process via phone, chat, and email.",
     requirements: ["Excellent communication skills", "Problem-solving mindset", "Bilingual (English/French) a plus"],
   },
   {
@@ -48,7 +48,7 @@ const openPositions = [
     department: "Service",
     location: "Richmond Hill, ON",
     type: "Full-time",
-    description: "Perform our comprehensive 210-point inspections and ensure every vehicle meets our quality standards.",
+    description: "Perform our rigorous 210-point mechanical inspections and ensure every vehicle meets our quality standards.",
     requirements: ["310S or 310T certification", "EV experience preferred", "Diagnostic tool proficiency"],
   },
   {
@@ -62,7 +62,7 @@ const openPositions = [
 ]
 
 const benefits = [
-  { icon: Heart, title: "Health & Dental", description: "Comprehensive benefits for you and your family" },
+  { icon: Heart, title: "Health & Dental", description: "Full benefits for you and your family" },
   { icon: TrendingUp, title: "RRSP Matching", description: "We match up to 4% of your contributions" },
   { icon: Car, title: "Employee Vehicle Program", description: "Discounts on vehicle purchases and leases" },
   { icon: Zap, title: "EV Charging", description: "Free workplace charging for electric vehicles" },
@@ -89,7 +89,7 @@ export default function CareersPage() {
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
               Help us transform the car buying experience in Canada. We are looking for passionate 
-              individuals who share our commitment to fairness, integrity, and exceptional customer service.
+              individuals who share our commitment to fairness, integrity, and world-class customer service.
             </p>
           </div>
         </section>
@@ -104,8 +104,8 @@ export default function CareersPage() {
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {benefits.map((benefit, i) => (
-                <Card key={i} className="text-center">
+              {benefits.map((benefit) => (
+                <Card key={benefit.title} className="text-center">
                   <CardContent className="pt-6">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                       <benefit.icon className="h-6 w-6 text-primary" />
@@ -128,8 +128,8 @@ export default function CareersPage() {
             </p>
             
             <div className="space-y-6 max-w-4xl mx-auto">
-              {openPositions.map((position, i) => (
-                <Card key={i} className="overflow-hidden hover:shadow-lg transition-shadow">
+              {openPositions.map((position) => (
+                <Card key={position.title} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                       <div className="flex-1">
@@ -150,8 +150,8 @@ export default function CareersPage() {
                         <div className="space-y-1">
                           <p className="text-sm font-semibold">Requirements:</p>
                           <ul className="text-sm text-muted-foreground space-y-1">
-                            {position.requirements.map((req, j) => (
-                              <li key={j} className="flex items-center gap-2">
+                            {position.requirements.map((req) => (
+                              <li key={req} className="flex items-center gap-2">
                                 <CheckCircle className="w-3 h-3 text-green-500" />
                                 {req}
                               </li>

@@ -112,15 +112,15 @@ export default function SitemapPage() {
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {sitemapSections.map((section, i) => (
-                <div key={i}>
+              {sitemapSections.map((section) => (
+                <div key={section.title}>
                   <div className="flex items-center gap-2 mb-4">
                     <section.icon className="w-5 h-5 text-primary" />
                     <h2 className="font-semibold text-lg">{section.title}</h2>
                   </div>
                   <ul className="space-y-2">
-                    {section.links.map((link, j) => (
-                      <li key={j}>
+                    {section.links.map((link) => (
+                      <li key={link.href}>
                         <Link 
                           href={link.href}
                           className="text-muted-foreground hover:text-primary transition-colors text-sm"

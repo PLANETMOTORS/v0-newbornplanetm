@@ -34,7 +34,7 @@ export default function FavoritesPage() {
                 Saved Vehicles
               </h1>
               <p className="text-muted-foreground">
-                {favorites.length} vehicle{favorites.length !== 1 ? 's' : ''} saved
+                {favorites.length} vehicle{favorites.length === 1 ? '' : 's'} saved
               </p>
             </div>
             <Button variant="outline" asChild>
@@ -64,7 +64,7 @@ export default function FavoritesPage() {
                     <div className="flex flex-col md:flex-row">
                       {/* Image */}
                       <div className="relative md:w-72 aspect-video md:aspect-auto bg-muted">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                           <Car className="w-12 h-12 text-primary/50" />
                         </div>
                         {vehicle.originalPrice && vehicle.price < vehicle.originalPrice && (
@@ -121,7 +121,7 @@ export default function FavoritesPage() {
                           >
                             <Bell className={`w-4 h-4 ${notifications[vehicle.id] ? "fill-current" : ""}`} />
                           </Button>
-                          <Button variant="outline" size="icon">
+                          <Button variant="outline" size="icon" aria-label="Share vehicle">
                             <Share2 className="w-4 h-4" />
                           </Button>
                           <Button 

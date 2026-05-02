@@ -1,3 +1,4 @@
+import { Metadata } from 'next'
 import { getSellYourCarPage } from '@/lib/sanity/fetch'
 import { SellYourCarHero } from '@/components/sell-your-car/hero'
 import { BenefitsSection } from '@/components/sell-your-car/benefits-section'
@@ -9,19 +10,16 @@ import { FAQSection } from '@/components/sell-your-car/faq-section'
 import { SellYourCarForm } from '@/components/sell-your-car/form'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { BreadcrumbJsonLd, FAQJsonLd, ServiceJsonLd, HowToJsonLd } from '@/components/seo/json-ld'
-import { generateSEOMetadata } from '@/lib/seo/metadata'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Shield, Calendar, Banknote, Truck } from 'lucide-react'
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld'
 import type { SellYourCarPage as SellYourCarPageType } from '@/lib/sanity/types'
 
-export const metadata = generateSEOMetadata({
-  title: "Sell Your Car in Canada | Best Price, No Hassle",
-  description: "Get the best price for your vehicle at Planet Motors. Instant offers, same-day payment, free pickup across Canada. OMVIC licensed since 2005.",
-  path: "/sell-your-car",
-  keywords: ["sell my car Canada", "sell car online", "instant car offer", "sell used car", "car valuation Canada", "OMVIC dealer buy car"],
-})
+export const metadata: Metadata = {
+  title: 'Sell Your Car | Planet Motors',
+  description: 'Get the best price for your vehicle. No hassle, no hidden fees. Get an instant offer and same-day payment.',
+  alternates: {
+    canonical: '/sell-your-car',
+  },
+}
 
 type ComparisonRow = {
   feature: string
@@ -91,10 +89,14 @@ function normalizeComparisonRows(input: unknown): ComparisonRow[] {
         const others = record.others ?? record.competitors
 
         if (feature || us || others) {
+          // S6551: only stringify primitives; objects would render as
+          // "[object Object]" and badly mislead the comparison table.
+          const asStr = (v: unknown) =>
+            typeof v === "string" || typeof v === "number" ? String(v) : ""
           return {
-            feature: String(feature ?? ''),
-            us: String(us ?? ''),
-            others: String(others ?? ''),
+            feature: asStr(feature),
+            us: asStr(us),
+            others: asStr(others),
           }
         }
       }
@@ -116,6 +118,11 @@ function normalizeTestimonials(input: unknown): TestimonialCard[] {
       const quote = record.quote ?? record.review
 
       if (!name || !quote) return null
+
+      // S6551: keep testimonials text as primitives — never coerce a stray
+      // object reference into "[object Object]".
+      if (typeof name !== "string" && typeof name !== "number") return null
+      if (typeof quote !== "string" && typeof quote !== "number") return null
 
       return {
         name: String(name),
@@ -172,61 +179,11 @@ export default async function SellYourCarPage() {
   return (
     <div className="min-h-screen bg-background">
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Sell Your Car", url: "/sell-your-car" }]} />
-      <ServiceJsonLd
-        name="Vehicle Acquisition Service"
-        description="Sell your car to Planet Motors for the best price in Canada. Instant offers, same-day payment, and free pickup across Canada. OMVIC licensed dealer since 2005."
-        serviceType="Vehicle Purchase"
-        url="/sell-your-car"
-      />
-      <HowToJsonLd
-        name="How to Sell Your Car to Planet Motors"
-        description="Sell your vehicle in three easy steps with Planet Motors."
-        steps={processSteps.map(s => ({ title: s.title, description: s.description }))}
-      />
-      <FAQJsonLd faqs={faqs} />
       <Header />
       <main id="main-content" tabIndex={-1}>
-        {/* Trust Chip Bar */}
-        <div className="border-b bg-muted/30">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Shield className="h-4 w-4 text-primary" />
-                OMVIC Licensed
-              </span>
-              <span className="hidden sm:inline text-border">|</span>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4 text-primary" />
-                Since 2005
-              </span>
-              <span className="hidden sm:inline text-border">|</span>
-              <span className="flex items-center gap-1.5">
-                <Banknote className="h-4 w-4 text-primary" />
-                Same-Day Payment
-              </span>
-              <span className="hidden sm:inline text-border">|</span>
-              <span className="flex items-center gap-1.5">
-                <Truck className="h-4 w-4 text-primary" />
-                Free Canada-Wide Pickup
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* Hero Section with Form */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-background">
-          {/* Hero background image */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/images/acquisition/sell-your-car-hero.svg"
-              alt="Sell your car to Planet Motors — instant cash offers, free pickup, same-day payment"
-              fill
-              className="object-cover opacity-[0.07] dark:opacity-[0.04]"
-              priority
-              sizes="100vw"
-            />
-          </div>
-          <div className="relative z-10 container mx-auto px-4 py-12 md:py-20">
+        <section className="relative bg-linear-to-br from-primary/10 via-background to-background">
+          <div className="container mx-auto px-4 py-12 md:py-20">
             <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
               <SellYourCarHero
                 headline={heroContent.headline}
@@ -250,25 +207,6 @@ export default async function SellYourCarPage() {
           steps={processSteps}
         />
 
-        {/* Lifestyle Image Break */}
-        <section className="relative h-64 md:h-80 lg:h-96 overflow-hidden">
-          <Image
-            src="/images/acquisition/sell-your-car-lifestyle.svg"
-            alt="Happy customer receiving same-day payment after selling their car to Planet Motors"
-            fill
-            className="object-cover"
-            loading="lazy"
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
-          <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
-            <div className="max-w-md">
-              <p className="text-2xl md:text-3xl font-bold text-foreground">Trusted by thousands of Canadians</p>
-              <p className="text-muted-foreground mt-2">4.8★ Google Rating · OMVIC Licensed Since 2005</p>
-            </div>
-          </div>
-        </section>
-
         {/* Comparison Table */}
         <ComparisonTable
           title={pageData?.comparisonTitle || pageData?.comparisonTable?.headline || 'Planet Motors vs. Other Options'}
@@ -290,75 +228,6 @@ export default async function SellYourCarPage() {
           title={pageData?.faqTitle || 'Frequently Asked Questions'}
           faqs={faqs}
         />
-
-        {/* Related Services */}
-        <section className="py-12 bg-muted/20">
-          <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold text-center mb-8">Related Services</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
-              <Link
-                href="/sell-your-tesla"
-                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
-              >
-                <span className="text-2xl">⚡</span>
-                <div>
-                  <p className="font-bold text-sm">Sell Your Tesla</p>
-                  <p className="text-xs text-muted-foreground">Top dollar for Tesla vehicles</p>
-                </div>
-              </Link>
-              <Link
-                href="/we-buy-cars"
-                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
-              >
-                <span className="text-2xl">🏷️</span>
-                <div>
-                  <p className="font-bold text-sm">We Buy Cars</p>
-                  <p className="text-xs text-muted-foreground">Instant cash offers, any make or model</p>
-                </div>
-              </Link>
-              <Link
-                href="/free-pickup"
-                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
-              >
-                <span className="text-2xl">🚚</span>
-                <div>
-                  <p className="font-bold text-sm">Free Pickup</p>
-                  <p className="text-xs text-muted-foreground">We come to you — anywhere in Canada</p>
-                </div>
-              </Link>
-              <Link
-                href="/trade-in"
-                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
-              >
-                <span className="text-2xl">🔄</span>
-                <div>
-                  <p className="font-bold text-sm">Trade-In Valuation</p>
-                  <p className="text-xs text-muted-foreground">Get your vehicle&apos;s trade-in value</p>
-                </div>
-              </Link>
-              <Link
-                href="/inventory"
-                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
-              >
-                <span className="text-2xl">🚗</span>
-                <div>
-                  <p className="font-bold text-sm">Browse Inventory</p>
-                  <p className="text-xs text-muted-foreground">Shop our certified pre-owned vehicles</p>
-                </div>
-              </Link>
-              <Link
-                href="/financing"
-                className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50"
-              >
-                <span className="text-2xl">💰</span>
-                <div>
-                  <p className="font-bold text-sm">Financing Options</p>
-                  <p className="text-xs text-muted-foreground">Competitive rates from 20+ lenders</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </section>
 
         {/* CTA Section */}
         <CTASection

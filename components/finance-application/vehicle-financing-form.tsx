@@ -24,8 +24,31 @@ interface VehicleFinancingFormProps {
   setAdditionalNotes: (notes: string) => void
 }
 
+/**
+ * Map a payment-frequency code to its display label. Extracted from a
+ * 4-way nested ternary to satisfy SonarCloud rule typescript:S3358.
+ * Parameter is typed against the strict union from FinancingTerms so
+ * invalid values are caught at compile time.
+ */
+function getPaymentFrequencyLabel(frequency: FinancingTerms["paymentFrequency"]): string {
+  switch (frequency) {
+    case "bi-weekly":
+      return "Bi-Weekly"
+    case "weekly":
+      return "Weekly"
+    case "semi-monthly":
+      return "Semi-Monthly"
+    case "monthly":
+      return "Monthly"
+    default: {
+      const _exhaustive: never = frequency
+      return _exhaustive ?? "Monthly"
+    }
+  }
+}
+
 export
-function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: VehicleFinancingFormProps) {
+function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn, financingTerms, setFinancingTerms, financing, additionalNotes, setAdditionalNotes }: Readonly<VehicleFinancingFormProps>) {
   // Check if vehicle data was pre-filled (has year and make)
   const isVehicleSelected = Boolean(vehicleInfo.year && vehicleInfo.make && vehicleInfo.totalPrice)
   const [showInventoryModal, setShowInventoryModal] = useState(false)
@@ -123,15 +146,22 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               />
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              {isLoadingInventory ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : filteredVehicles.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  No vehicles found in inventory
-                </div>
-              ) : (
+              {(() => {
+                if (isLoadingInventory) {
+                  return (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    </div>
+                  )
+                }
+                if (filteredVehicles.length === 0) {
+                  return (
+                    <div className="text-center py-12 text-muted-foreground">
+                      No vehicles found in inventory
+                    </div>
+                  )
+                }
+                return (
                 <div className="grid gap-3">
                   {filteredVehicles.map((vehicle) => (
                     <button
@@ -140,7 +170,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                       className="flex items-center gap-4 p-3 rounded-lg border hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-primary w-full text-left"
                       onClick={() => handleSelectVehicle(vehicle)}
                     >
-                      <div className="w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
+                      <div className="w-24 h-16 bg-muted rounded overflow-hidden shrink-0">
                         {vehicle.primary_image_url ? (
                           /* eslint-disable-next-line @next/next/no-img-element -- External CDN URL in modal */
                           <img
@@ -172,7 +202,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                     </button>
                   ))}
                 </div>
-              )}
+                )
+              })()}
               <p className="text-xs text-muted-foreground italic mt-3 px-1">*Prices are estimates. Final all-in price confirmed at signing per OMVIC regulations.</p>
             </div>
           </div>
@@ -190,7 +221,95 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
             )}
           </h4>
           
-          {!isVehicleSelected ? (
+          {isVehicleSelected ? (
+            // Vehicle selected - show read-only details
+            (() => {
+              const trimSuffix = vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''
+              const modelTrim = `${vehicleInfo.model}${trimSuffix}`
+              return (
+            <>
+              <p className="text-sm text-muted-foreground mb-4">
+                Vehicle details have been automatically filled from your selected vehicle.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label>VIN</Label>
+                  <Input 
+                    data-testid="finance-step-3-vin" value={vehicleInfo.vin} 
+                    readOnly
+                    className="bg-muted font-mono text-sm"
+                  />
+                </div>
+                <div>
+                  <Label>Year</Label>
+                  <Input 
+                    data-testid="finance-step-3-year" value={vehicleInfo.year} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Make</Label>
+                  <Input 
+                    data-testid="finance-step-3-make" value={vehicleInfo.make} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Model/Trim</Label>
+                  <Input 
+                    value={modelTrim} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Color</Label>
+                  <Input 
+                    value={vehicleInfo.color} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Current KMs</Label>
+                  <Input 
+                    value={vehicleInfo.mileage ? Number.parseInt(vehicleInfo.mileage).toLocaleString() : ""} 
+                    readOnly
+                    className="bg-muted"
+                  />
+                </div>
+                <div>
+                  <Label>Total Price Before Tax</Label>
+                  <Input 
+                    value={vehicleInfo.totalPrice ? `$${Number.parseFloat(vehicleInfo.totalPrice).toLocaleString()}` : ""} 
+                    readOnly
+                    className="bg-muted font-semibold"
+                  />
+                </div>
+                <div>
+                  <Label>Down Payment</Label>
+                  <Input type="number" data-testid="finance-step-3-down-payment" value={vehicleInfo.downPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, downPayment: e.target.value })} className="bg-green-50" />
+                </div>
+                <div>
+                  <Label>Max Down Payment If Needed</Label>
+                  <Input type="number" value={vehicleInfo.maxDownPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, maxDownPayment: e.target.value })} />
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-4"
+                onClick={() => setShowInventoryModal(true)}
+              >
+                <Car className="w-4 h-4 mr-2" />
+                Change Vehicle
+              </Button>
+            </>
+              )
+            })()
+          ) : (
             // No vehicle selected - show browse button
             <div className="border-2 border-dashed border-primary/30 bg-primary/5 rounded-xl p-8 text-center">
               <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -208,88 +327,6 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                 Vehicle selection is required to continue
               </p>
             </div>
-          ) : (
-            // Vehicle selected - show read-only details
-            <>
-              <p className="text-sm text-muted-foreground mb-4">
-                Vehicle details have been automatically filled from your selected vehicle.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <Label>VIN</Label>
-                  <Input 
-                    value={vehicleInfo.vin} 
-                    readOnly
-                    className="bg-muted font-mono text-sm"
-                  />
-                </div>
-                <div>
-                  <Label>Year</Label>
-                  <Input 
-                    value={vehicleInfo.year} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Make</Label>
-                  <Input 
-                    value={vehicleInfo.make} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Model/Trim</Label>
-                  <Input 
-                    value={`${vehicleInfo.model}${vehicleInfo.trim ? ` ${vehicleInfo.trim}` : ''}`} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Color</Label>
-                  <Input 
-                    value={vehicleInfo.color} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Current KMs</Label>
-                  <Input 
-                    value={vehicleInfo.mileage ? parseInt(vehicleInfo.mileage).toLocaleString() : ""} 
-                    readOnly
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label>Total Price Before Tax</Label>
-                  <Input 
-                    value={vehicleInfo.totalPrice ? `$${parseFloat(vehicleInfo.totalPrice).toLocaleString()}` : ""} 
-                    readOnly
-                    className="bg-muted font-semibold"
-                  />
-                </div>
-                <div>
-                  <Label>Down Payment</Label>
-                  <Input type="number" value={vehicleInfo.downPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, downPayment: e.target.value })} className="bg-green-50" />
-                </div>
-                <div>
-                  <Label>Max Down Payment If Needed</Label>
-                  <Input type="number" value={vehicleInfo.maxDownPayment} onChange={(e) => setVehicleInfo({ ...vehicleInfo, maxDownPayment: e.target.value })} />
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-4"
-                onClick={() => setShowInventoryModal(true)}
-              >
-                <Car className="w-4 h-4 mr-2" />
-                Change Vehicle
-              </Button>
-            </>
           )}
         </section>
         
@@ -310,7 +347,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
               <div className="col-span-2">
                 <Label>VIN</Label>
-                <Input value={tradeIn.vin} onChange={(e) => setTradeIn({ ...tradeIn, vin: e.target.value })} />
+                <Input data-testid="finance-step-3-trade-vin" value={tradeIn.vin} onChange={(e) => setTradeIn({ ...tradeIn, vin: e.target.value })} />
               </div>
               <div>
                 <Label>Year</Label>
@@ -326,7 +363,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               </div>
               <div>
                 <Label>Mileage (km)</Label>
-                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replace(/[^0-9]/g, '') })} autoComplete="off" />
+                <Input type="text" inputMode="numeric" pattern="[0-9]*" value={tradeIn.mileage} onChange={(e) => setTradeIn({ ...tradeIn, mileage: e.target.value.replaceAll(/\D/g, '') })} autoComplete="off" />
               </div>
               <div>
                 <Label>Condition</Label>
@@ -342,7 +379,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               </div>
               <div>
                 <Label>Estimated Value</Label>
-                <Input type="number" value={tradeIn.estimatedValue} onChange={(e) => setTradeIn({ ...tradeIn, estimatedValue: e.target.value })} />
+                <Input type="number" data-testid="finance-step-3-trade-value" value={tradeIn.estimatedValue} onChange={(e) => setTradeIn({ ...tradeIn, estimatedValue: e.target.value })} />
               </div>
               <div className="col-span-2 flex items-center gap-3 mt-2">
                 <Checkbox
@@ -374,7 +411,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
         <section>
           <Label>Additional Notes</Label>
           <Textarea
-            value={additionalNotes}
+            data-testid="finance-step-3-notes" value={additionalNotes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
             placeholder="Any additional information for your application..."
             rows={3}
@@ -459,8 +496,8 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {parseFloat(financingTerms.deliveryFee) > 0 
-                      ? `Delivery: $${parseFloat(financingTerms.deliveryFee).toFixed(0)}` 
+                    {Number.parseFloat(financingTerms.deliveryFee) > 0 
+                      ? `Delivery: $${Number.parseFloat(financingTerms.deliveryFee).toFixed(0)}` 
                       : "Free within 300km of Richmond Hill"}
                   </p>
                 </div>
@@ -579,9 +616,7 @@ function VehicleFinancingForm({ vehicleInfo, setVehicleInfo, tradeIn, setTradeIn
               {/* Payment Display */}
               <div className="mt-4 p-6 bg-primary/10 rounded-xl text-center">
                 <div className="text-sm text-muted-foreground mb-1">
-                  {financingTerms.paymentFrequency === "bi-weekly" ? "Bi-Weekly" : 
-                   financingTerms.paymentFrequency === "weekly" ? "Weekly" :
-                   financingTerms.paymentFrequency === "semi-monthly" ? "Semi-Monthly" : "Monthly"} Payment
+                  {getPaymentFrequencyLabel(financingTerms.paymentFrequency)} Payment
                 </div>
                 <div className="text-4xl font-bold text-primary tabular-nums">
                   ${financing.payment.toFixed(2)}

@@ -1,8 +1,9 @@
+ 
 "use client"
 
 import { useState, useEffect } from "react"
 import {
-  DollarSign, Users, Car, FileText, TrendingUp,
+  DollarSign, Users, Car, TrendingUp,
   RefreshCw, ShoppingCart, ArrowUpRight, CreditCard,
   BarChart3
 } from "lucide-react"
@@ -386,7 +387,7 @@ export default function AdminAnalyticsPage() {
                   .sort((a, b) => b[1] - a[1])
                   .map(([status, count]) => (
                     <div key={status} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 capitalize">{status.replace(/_/g, " ")}</span>
+                      <span className="text-sm text-gray-600 capitalize">{status.replaceAll("_", " ")}</span>
                       <span className="font-bold">{count}</span>
                     </div>
                   ))}
@@ -409,7 +410,7 @@ export default function AdminAnalyticsPage() {
                   .sort((a, b) => b[1] - a[1])
                   .map(([method, count]) => (
                     <div key={method} className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 capitalize">{method.replace(/_/g, " ")}</span>
+                      <span className="text-sm text-gray-600 capitalize">{method.replaceAll("_", " ")}</span>
                       <span className="font-bold">{count}</span>
                     </div>
                   ))}

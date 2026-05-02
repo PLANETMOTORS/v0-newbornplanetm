@@ -19,17 +19,17 @@ export function ScheduleLiveVideoTourModal({
   vehicleId,
   vehicleName,
   variant = "default",
-}: ScheduleLiveVideoTourModalProps) {
+}: Readonly<ScheduleLiveVideoTourModalProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [successData, setSuccessData] = useState<LiveVideoTourResponse | null>(null)
 
   // Detect mobile
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => setIsMobile(globalThis.innerWidth < 768)
     checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
+    globalThis.addEventListener("resize", checkMobile)
+    return () => globalThis.removeEventListener("resize", checkMobile)
   }, [])
 
   const handleSuccess = (data: LiveVideoTourResponse) => {
@@ -46,7 +46,7 @@ export function ScheduleLiveVideoTourModal({
   const triggerButton = (
     <Button
       variant={variant === "prominent" ? "default" : "outline"}
-      className={`w-full gap-2 min-h-[44px] ${
+      className={`w-full gap-2 min-h-11 ${
         variant === "prominent" ? "bg-primary hover:bg-primary/90" : ""
       }`}
     >

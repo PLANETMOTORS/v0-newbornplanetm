@@ -21,21 +21,24 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 9.15.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: npx tsc --noEmit
 
       - name: Lint
         run: pnpm lint
@@ -45,6 +48,20 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          # Public env vars required for Next.js static generation in CI
+          # Non-secret values safe to hardcode; secrets pulled from repo secrets
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
   bundle-check:
     runs-on: ubuntu-latest
@@ -53,15 +70,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 9.15.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: pnpm
@@ -71,6 +88,18 @@ jobs:
 
       - name: Build with bundle stats
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Check bundle budget (1700 KB first-load JS per page)
         run: node scripts/check-bundle-size.mjs
@@ -78,22 +107,22 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: lint-and-build
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
       TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 9.15.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: pnpm
@@ -103,6 +132,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
@@ -142,7 +183,7 @@ jobs:
 
       - name: Upload test results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: playwright-report
           path: playwright-report/
@@ -156,15 +197,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 9.15.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: pnpm
@@ -174,6 +215,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -183,7 +236,7 @@ jobs:
 
       - name: Upload accessibility results
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: accessibility-report
           path: playwright-report/
@@ -197,15 +250,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 9.15.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: pnpm
@@ -215,6 +268,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -225,7 +290,7 @@ jobs:
 
       - name: Upload VRT snapshots diff
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: vrt-snapshots
           path: |
@@ -241,15 +306,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: 9.15.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
           cache: pnpm
@@ -259,6 +324,18 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: "wlxj8olw"
+          NEXT_PUBLIC_SANITY_DATASET: "production"
+          NEXT_PUBLIC_SITE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_BASE_URL: "https://www.planetmotors.ca"
+          NEXT_PUBLIC_SUPABASE_URL: "https://ldervbcvkoawwknsemuz.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZXJ2YmN2a29hd3drbnNlbXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NjI0MTAsImV4cCI6MjA5MDIzODQxMH0.jWTd3qESw1KMdtlvKXZTt6TJyCd5kHDCncuTltQu5j8"
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-PLACEHOLDER"
+          NEXT_PUBLIC_GTM_ID: "GTM-PLACEHOLDER"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
       - name: Run Lighthouse CI
         run: npx @lhci/cli autorun
@@ -267,7 +344,7 @@ jobs:
 
       - name: Upload Lighthouse report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: lighthouse-report
           path: .lighthouseci/

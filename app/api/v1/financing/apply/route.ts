@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from "node:crypto"
 import { createClient } from '@/lib/supabase/server'
 import { sendNotificationEmail } from '@/lib/email'
 import { validateOrigin } from '@/lib/csrf'
@@ -12,13 +13,91 @@ function asNumber(value: unknown, fallback = 0): number {
 }
 
 function validateEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  // Linear-time email check: anchored, no nested quantifiers, no backtracking risk.
+  // Accepts the vast majority of valid RFC 5321 addresses without catastrophic backtracking.
+  if (!/^[^\s@]{1,64}@[^\s@]{1,253}$/.test(email)) {
+    return false
+  }
+
+  const atIndex = email.lastIndexOf('@')
+  const domain = email.slice(atIndex + 1)
+  // Domain must contain a dot AND the dot must not be the first or last character
+  const dotIndex = domain.indexOf(".")
+  return dotIndex > 0 && dotIndex < domain.length - 1
 }
 
 function generateApplicationNumber(): string {
   const ts = Date.now().toString(36).toUpperCase()
-  const rand = Math.floor(Math.random() * 36 ** 4).toString(36).toUpperCase().padStart(4, '0')
+  const rand = randomBytes(3).toString("hex").toUpperCase()
   return `PM-FA-${ts}-${rand}`
+}
+
+function jsonError(code: string, message: string, status: number) {
+  return NextResponse.json({ success: false, error: { code, message } }, { status })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateApplyPayload(body: any) {
+  const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
+  const missingFields = requiredFields.filter((field) => !body[field])
+  if (missingFields.length > 0) {
+    return jsonError('MISSING_FIELDS', `Missing required fields: ${missingFields.join(', ')}`, 400)
+  }
+  if (!validateEmail(String(body.email))) {
+    return jsonError('INVALID_EMAIL', 'Invalid email format', 400)
+  }
+  return null
+}
+
+interface NormalisedFinancials {
+  requestedAmountValue: number
+  annualIncomeValue: number
+  downPaymentValue: number
+  requestedTermValue: number
+}
+
+function normaliseFinancials(body: Record<string, unknown>):
+  | { ok: true; values: NormalisedFinancials }
+  | { ok: false; res: NextResponse } {
+  const requestedAmountValue = asNumber(body.requestedAmount)
+  const annualIncomeValue = asNumber(body.annualIncome)
+  const downPaymentValue = Math.max(0, asNumber(body.downPayment))
+  const requestedTermValue = Math.max(24, Math.min(96, Math.round(asNumber(body.requestedTerm, 72))))
+  if (requestedAmountValue <= 0 || annualIncomeValue <= 0) {
+    return { ok: false, res: jsonError('INVALID_FINANCIAL_INPUT', 'requestedAmount and annualIncome must be greater than 0', 400) }
+  }
+  return { ok: true, values: { requestedAmountValue, annualIncomeValue, downPaymentValue, requestedTermValue } }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ensureVehicleExists(supabase: any, vehicleId: string | null | undefined): Promise<NextResponse | null> {
+  if (!vehicleId) return null
+  const { data: vehicle, error: vehicleError } = await supabase
+    .from('vehicles')
+    .select('id, status')
+    .eq('id', vehicleId)
+    .maybeSingle()
+  if (vehicleError) return jsonError('DB_ERROR', vehicleError.message, 500)
+  if (!vehicle) return jsonError('NOT_FOUND', 'Vehicle not found', 404)
+  return null
+}
+
+async function authoriseUser(): Promise<
+  | { ok: true; supabase: Awaited<ReturnType<typeof createClient>>; userId: string }
+  | { ok: false; res: NextResponse }
+> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      ok: false,
+      res: NextResponse.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
+        { status: 401 },
+      ),
+    }
+  }
+  return { ok: true, supabase, userId: user.id }
 }
 
 // POST /api/v1/financing/apply - Full application submission (review pipeline)
@@ -27,127 +106,39 @@ export async function POST(request: NextRequest) {
     if (!validateOrigin(request)) {
       return NextResponse.json(
         { success: false, error: { code: 'FORBIDDEN', message: 'Forbidden' } },
-        { status: 403 }
+        { status: 403 },
       )
     }
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
-        { status: 401 }
-      )
-    }
+    const auth = await authoriseUser()
+    if (!auth.ok) return auth.res
+    const { supabase, userId } = auth
 
     const body = await request.json()
     const {
-      customerId,
-      vehicleId,
-      selectedLenderIds,
-      firstName,
-      lastName,
-      email,
-      phone,
-      dateOfBirth,
-      sin,
-      streetAddress,
-      city,
-      province,
-      postalCode,
-      residenceStatus,
-      monthlyPayment: _monthlyPayment,
-      yearsAtAddress,
-      employmentStatus,
-      employerName,
-      jobTitle,
-      employmentYears,
-      annualIncome,
-      requestedAmount,
-      requestedTerm,
-      downPayment,
-      tradeInId,
+      customerId, vehicleId, selectedLenderIds,
+      firstName, lastName, email, phone, dateOfBirth, sin,
+      streetAddress, city, province, postalCode, residenceStatus,
+      monthlyPayment: _monthlyPayment, yearsAtAddress,
+      employmentStatus, employerName, jobTitle, employmentYears,
+      annualIncome: _annualIncome, requestedAmount: _requestedAmount,
+      requestedTerm: _requestedTerm, downPayment: _downPayment, tradeInId,
     } = body
 
-    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'annualIncome', 'requestedAmount']
-    const missingFields = requiredFields.filter((field) => !body[field])
+    const validationError = validateApplyPayload(body)
+    if (validationError) return validationError
 
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'MISSING_FIELDS',
-            message: `Missing required fields: ${missingFields.join(', ')}`,
-          },
-        },
-        { status: 400 }
-      )
+    const financials = normaliseFinancials(body)
+    if (!financials.ok) return financials.res
+    const { requestedAmountValue, annualIncomeValue, downPaymentValue, requestedTermValue } = financials.values
+
+    if (customerId && customerId !== userId) {
+      return jsonError('FORBIDDEN', 'customerId must match authenticated user', 403)
     }
+    const effectiveCustomerId = customerId || userId
 
-    if (!validateEmail(String(email))) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_EMAIL',
-            message: 'Invalid email format',
-          },
-        },
-        { status: 400 }
-      )
-    }
-
-    const requestedAmountValue = asNumber(requestedAmount)
-    const annualIncomeValue = asNumber(annualIncome)
-    const downPaymentValue = Math.max(0, asNumber(downPayment))
-    const requestedTermValue = Math.max(24, Math.min(96, Math.round(asNumber(requestedTerm, 72))))
-
-    if (requestedAmountValue <= 0 || annualIncomeValue <= 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'INVALID_FINANCIAL_INPUT',
-            message: 'requestedAmount and annualIncome must be greater than 0',
-          },
-        },
-        { status: 400 }
-      )
-    }
-
-    if (customerId) {
-      if (customerId !== user.id) {
-        return NextResponse.json(
-          { success: false, error: { code: 'FORBIDDEN', message: 'customerId must match authenticated user' } },
-          { status: 403 }
-        )
-      }
-    }
-
-    const effectiveCustomerId = customerId || user.id
-
-    if (vehicleId) {
-      const { data: vehicle, error: vehicleError } = await supabase
-        .from('vehicles')
-        .select('id, status')
-        .eq('id', vehicleId)
-        .maybeSingle()
-
-      if (vehicleError) {
-        return NextResponse.json(
-          { success: false, error: { code: 'DB_ERROR', message: vehicleError.message } },
-          { status: 500 }
-        )
-      }
-
-      if (!vehicle) {
-        return NextResponse.json(
-          { success: false, error: { code: 'NOT_FOUND', message: 'Vehicle not found' } },
-          { status: 404 }
-        )
-      }
-    }
+    const vehicleError = await ensureVehicleExists(supabase, vehicleId)
+    if (vehicleError) return vehicleError
 
     const applicationNumber = generateApplicationNumber()
     const submittedAt = new Date().toISOString()
@@ -159,7 +150,7 @@ export async function POST(request: NextRequest) {
       .from('finance_applications_v2')
       .insert({
         application_number: applicationNumber,
-        user_id: user.id,
+        user_id: userId,
         customer_id: effectiveCustomerId,
         vehicle_id: vehicleId || null,
         status: 'submitted',
@@ -208,7 +199,7 @@ export async function POST(request: NextRequest) {
         application_id: application.id,
         from_status: null,
         to_status: 'submitted',
-        changed_by: user.id,
+        changed_by: userId,
         notes: 'Application submitted for manual/compliance review',
       })
 

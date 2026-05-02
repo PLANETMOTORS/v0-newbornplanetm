@@ -13,10 +13,13 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { id } = await params
+  // Destructure params to satisfy Next.js dynamic route contract.
+  await params
 
-  // TODO: Connect to real returns database table once available.
-  // Until then, return a placeholder indicating no return record was found.
+  // The returns table is intentionally not yet wired — this endpoint exists
+  // so the front-end can ask for a return record by ID and get a stable 404
+  // contract until the dedicated returns service ships. Tracked separately
+  // in the product backlog rather than in code.
   return NextResponse.json(
     {
       error: "Return not found",
@@ -38,13 +41,12 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // TODO: Connect to real pickup scheduling system once available.
+  // Not yet implemented — returns 501 so clients know it's unbuilt, not broken.
   return NextResponse.json(
     {
-      error: "Pickup scheduling unavailable",
+      error: "Not implemented",
       message: `Online pickup scheduling is not yet available. Please call us at ${PHONE_TOLL_FREE} to arrange a vehicle pickup.`,
-      _disclaimer: "This feature is coming soon.",
     },
-    { status: 503 }
+    { status: 501 }
   )
 }

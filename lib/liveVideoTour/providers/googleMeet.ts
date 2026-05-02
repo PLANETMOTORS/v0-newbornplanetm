@@ -6,9 +6,13 @@ import type { LiveVideoTourProviderAdapter } from "./index"
 // https://developers.google.com/calendar/api/guides/create-events
 
 function generateMeetCode(): string {
+  // Use crypto.randomInt for cryptographically secure meeting code generation.
+  // Meeting codes are used as identifiers shared with participants — Math.random
+  // would be predictable and guessable. (S2245 fixed)
+  const { randomInt } = require("node:crypto")
   const chars = "abcdefghijklmnopqrstuvwxyz"
   const segment = (len: number) =>
-    Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("")
+    Array.from({ length: len }, () => chars[randomInt(chars.length)]).join("")
   return `${segment(3)}-${segment(4)}-${segment(3)}`
 }
 

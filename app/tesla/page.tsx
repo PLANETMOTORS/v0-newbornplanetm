@@ -76,7 +76,7 @@ const teslaModels = [
 
 const whyBuyTesla = [
   { title: "Battery Health Certified", description: "Every Tesla comes with a detailed battery analysis showing capacity and degradation" },
-  { title: "210-Point Inspection", description: "Comprehensive inspection covering all Tesla-specific components and systems" },
+  { title: "210-Point Inspection", description: "Rigorous inspection covering all Tesla-specific components and systems" },
   { title: "Supercharger Ready", description: "All our Teslas are ready to use the Supercharger network across Canada" },
   { title: "Software Updated", description: "We ensure all Teslas have the latest software updates installed" },
   { title: "10-Day Guarantee", description: "Not happy? Return within 10 days for a full refund" },
@@ -89,7 +89,7 @@ export default function TeslaPage() {
       <BreadcrumbJsonLd items={[{ name: "Home", url: "/" }, { name: "Tesla", url: "/tesla" }]} />
       <Header />
 
-      <main id="main-content" role="main" aria-label="Tesla vehicles">
+      <main id="main-content" aria-label="Tesla vehicles">
         {/* Hero Section */}
         <section className="relative bg-black text-white py-16 lg:py-24">
           <div className="container mx-auto px-4">
@@ -104,7 +104,7 @@ export default function TeslaPage() {
                 </h1>
                 <p className="text-xl text-gray-300 mb-8 leading-relaxed">
                   Shop certified pre-owned Tesla Model 3, Model Y, Model S & Model X. 
-                  Every Tesla includes a battery health report and our comprehensive 210-point inspection.
+                  Every Tesla includes a battery health report and our rigorous 210-point mechanical inspection.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
@@ -192,7 +192,7 @@ export default function TeslaPage() {
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-2 text-center">Why Buy a Used Tesla from Planet Motors?</h2>
             <p className="text-muted-foreground mb-12 text-center max-w-2xl mx-auto">
-              We specialize in certified pre-owned Tesla vehicles with comprehensive inspections and battery health guarantees.
+              We specialize in certified pre-owned Tesla vehicles with rigorous inspections and battery health guarantees.
             </p>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

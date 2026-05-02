@@ -24,46 +24,46 @@ export interface RegionInfo {
 // First character of postal code → province mapping
 const POSTAL_PREFIX_MAP: Record<string, RegionInfo> = {
   // Ontario
-  K: { province: "ON", regionName: "Eastern Ontario", multiplier: 0.98, truckBonus: 1.0, evBonus: 1.0, marketDescription: "Eastern Ontario (Ottawa/Kingston area)" },
-  L: { province: "ON", regionName: "Central Ontario", multiplier: 1.0, truckBonus: 1.0, evBonus: 1.0, marketDescription: "Central Ontario (GTA/Hamilton/Niagara)" },
+  K: { province: "ON", regionName: "Eastern Ontario", multiplier: 0.98, truckBonus: 1, evBonus: 1, marketDescription: "Eastern Ontario (Ottawa/Kingston area)" },
+  L: { province: "ON", regionName: "Central Ontario", multiplier: 1, truckBonus: 1, evBonus: 1, marketDescription: "Central Ontario (GTA/Hamilton/Niagara)" },
   M: { province: "ON", regionName: "Toronto", multiplier: 1.02, truckBonus: 0.97, evBonus: 1.05, marketDescription: "Toronto/GTA — largest Canadian used-car market" },
-  N: { province: "ON", regionName: "Southwestern Ontario", multiplier: 0.98, truckBonus: 1.02, evBonus: 1.0, marketDescription: "Southwestern Ontario (London/Windsor)" },
+  N: { province: "ON", regionName: "Southwestern Ontario", multiplier: 0.98, truckBonus: 1.02, evBonus: 1, marketDescription: "Southwestern Ontario (London/Windsor)" },
   P: { province: "ON", regionName: "Northern Ontario", multiplier: 0.95, truckBonus: 1.05, evBonus: 0.95, marketDescription: "Northern Ontario (Sudbury/Thunder Bay)" },
 
   // Quebec
-  G: { province: "QC", regionName: "Eastern Quebec", multiplier: 0.95, truckBonus: 1.0, evBonus: 1.08, marketDescription: "Eastern Quebec (Quebec City area)" },
-  H: { province: "QC", regionName: "Montreal", multiplier: 0.98, truckBonus: 0.98, evBonus: 1.10, marketDescription: "Montreal — strong EV incentives & infrastructure" },
-  J: { province: "QC", regionName: "Western Quebec", multiplier: 0.96, truckBonus: 1.0, evBonus: 1.08, marketDescription: "Western Quebec (Gatineau/Sherbrooke)" },
+  G: { province: "QC", regionName: "Eastern Quebec", multiplier: 0.95, truckBonus: 1, evBonus: 1.08, marketDescription: "Eastern Quebec (Quebec City area)" },
+  H: { province: "QC", regionName: "Montreal", multiplier: 0.98, truckBonus: 0.98, evBonus: 1.1, marketDescription: "Montreal — strong EV incentives & infrastructure" },
+  J: { province: "QC", regionName: "Western Quebec", multiplier: 0.96, truckBonus: 1, evBonus: 1.08, marketDescription: "Western Quebec (Gatineau/Sherbrooke)" },
 
   // British Columbia
-  V: { province: "BC", regionName: "British Columbia", multiplier: 1.03, truckBonus: 1.0, evBonus: 1.12, marketDescription: "British Columbia — highest EV adoption rate, strong used-car market" },
+  V: { province: "BC", regionName: "British Columbia", multiplier: 1.03, truckBonus: 1, evBonus: 1.12, marketDescription: "British Columbia — highest EV adoption rate, strong used-car market" },
 
   // Alberta
-  T: { province: "AB", regionName: "Alberta", multiplier: 1.02, truckBonus: 1.10, evBonus: 0.92, marketDescription: "Alberta — high truck/SUV demand (oil & gas, rural)" },
+  T: { province: "AB", regionName: "Alberta", multiplier: 1.02, truckBonus: 1.1, evBonus: 0.92, marketDescription: "Alberta — high truck/SUV demand (oil & gas, rural)" },
 
   // Saskatchewan
-  S: { province: "SK", regionName: "Saskatchewan", multiplier: 0.95, truckBonus: 1.08, evBonus: 0.90, marketDescription: "Saskatchewan — strong truck demand, limited EV infrastructure" },
+  S: { province: "SK", regionName: "Saskatchewan", multiplier: 0.95, truckBonus: 1.08, evBonus: 0.9, marketDescription: "Saskatchewan — strong truck demand, limited EV infrastructure" },
 
   // Manitoba
   R: { province: "MB", regionName: "Manitoba", multiplier: 0.96, truckBonus: 1.05, evBonus: 0.93, marketDescription: "Manitoba — moderate market, truck-friendly" },
 
   // Atlantic provinces
   B: { province: "NS", regionName: "Nova Scotia", multiplier: 0.93, truckBonus: 1.02, evBonus: 0.95, marketDescription: "Nova Scotia — smaller market, salt corrosion factor" },
-  C: { province: "PE", regionName: "Prince Edward Island", multiplier: 0.90, truckBonus: 1.0, evBonus: 0.92, marketDescription: "Prince Edward Island — small island market" },
+  C: { province: "PE", regionName: "Prince Edward Island", multiplier: 0.9, truckBonus: 1, evBonus: 0.92, marketDescription: "Prince Edward Island — small island market" },
   E: { province: "NB", regionName: "New Brunswick", multiplier: 0.93, truckBonus: 1.03, evBonus: 0.93, marketDescription: "New Brunswick — bilingual market, salt exposure" },
-  A: { province: "NL", regionName: "Newfoundland & Labrador", multiplier: 0.90, truckBonus: 1.05, evBonus: 0.88, marketDescription: "Newfoundland & Labrador — remote market, high shipping costs" },
+  A: { province: "NL", regionName: "Newfoundland & Labrador", multiplier: 0.9, truckBonus: 1.05, evBonus: 0.88, marketDescription: "Newfoundland & Labrador — remote market, high shipping costs" },
 
   // Territories
-  X: { province: "NT/NU", regionName: "Northwest Territories / Nunavut", multiplier: 0.85, truckBonus: 1.10, evBonus: 0.80, marketDescription: "Northern territories — very limited market, extreme conditions" },
+  X: { province: "NT/NU", regionName: "Northwest Territories / Nunavut", multiplier: 0.85, truckBonus: 1.1, evBonus: 0.8, marketDescription: "Northern territories — very limited market, extreme conditions" },
   Y: { province: "YT", regionName: "Yukon", multiplier: 0.88, truckBonus: 1.08, evBonus: 0.82, marketDescription: "Yukon — small remote market" },
 }
 
 const DEFAULT_REGION: RegionInfo = {
   province: "ON",
   regionName: "Ontario (default)",
-  multiplier: 1.0,
-  truckBonus: 1.0,
-  evBonus: 1.0,
+  multiplier: 1,
+  truckBonus: 1,
+  evBonus: 1,
   marketDescription: "Ontario/GTA market (default — postal code not recognized)",
 }
 

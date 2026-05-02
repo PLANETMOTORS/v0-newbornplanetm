@@ -113,8 +113,8 @@ function isWithinBusinessHours(): { isOpen: boolean; currentDay: string; message
   }).formatToParts(now)
 
   const day = eastern.find(p => p.type === 'weekday')?.value || ''
-  const hour = parseInt(eastern.find(p => p.type === 'hour')?.value || '0')
-  const minute = parseInt(eastern.find(p => p.type === 'minute')?.value || '0')
+  const hour = Number.parseInt(eastern.find(p => p.type === 'hour')?.value || '0')
+  const minute = Number.parseInt(eastern.find(p => p.type === 'minute')?.value || '0')
   const currentTime = hour + minute / 60
 
   if (day === 'Sunday') {
@@ -186,7 +186,7 @@ export async function POST(req: Request) {
   })
 
   // Save user's latest message (non-blocking)
-  const latestUserMessage = messages.filter(m => m.role === "user").pop()
+  const latestUserMessage = messages.findLast((m: { role: string }) => m.role === "user")
   if (latestUserMessage) {
     conversationPromise.then(convId => {
       if (convId) {
@@ -259,7 +259,7 @@ PLANET MOTORS GUARANTEES & POLICIES:
 =============================================
 
 PM CERTIFIED™ 210-POINT INSPECTION:
-Every vehicle undergoes a comprehensive 210-point inspection covering:
+Every vehicle undergoes a rigorous 210-point inspection covering:
 - Engine & transmission performance
 - Brake system & suspension
 - Electrical systems & battery health
