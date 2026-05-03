@@ -40,6 +40,7 @@ import { safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 import { CarfaxSection } from "@/components/vdp/carfax-section"
+import { useCarfaxSummary } from "@/hooks/use-carfax-summary"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 
@@ -143,6 +144,10 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
   const { exteriorImgs, interiorImgs } = buildVdpImages(serverVehicle)
   const vehicle = buildMergedVehicle(serverVehicle, exteriorImgs, interiorImgs)
+
+  // CARFAX summary at page level — needed for the Power Bar CTA
+  const carfaxState = useCarfaxSummary(vehicle.vin ?? null)
+  const carfaxReportUrl = carfaxState.status === "ready" ? carfaxState.summary.vhrReportUrl : null
 
   const vehicleId = vehicle.id
   const isAvailable = vehicle.status === "available"
@@ -725,30 +730,44 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </div>
                   </div>
 
-                  {/* SENIOR UI DESIGN: 3-Column Highlights Dashboard */}
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+                  {/* ── FERRARI-TIER: THE AUTHORITATIVE CARFAX POWER BAR ── */}
+                  <div className="w-full">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 border border-slate-200 rounded-[24px] bg-gradient-to-r from-white to-slate-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
 
-                      {/* Box 1: Text Claims — clean green checkmarks (OMVIC compliant) */}
-                      <div className="p-4 border rounded-xl bg-white flex flex-col justify-center min-h-[80px]">
+                      {/* LEFT: Factual history claims (OMVIC compliant) */}
+                      <div className="flex flex-col gap-1 md:border-r md:pr-8 border-slate-200">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Vehicle Status</p>
                         <CarfaxSection vin={vehicle.vin ?? null} variant="headline" />
                       </div>
 
-                      {/* Box 2: Official Badge Strip + "View Report" CTA */}
-                      <div className="p-4 border rounded-xl bg-slate-50 flex items-center justify-between gap-4 min-h-[80px]">
+                      {/* CENTER: Official CARFAX badge strip (target zone) */}
+                      <div className="flex-1 flex justify-center py-4 md:py-0">
                         <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
                       </div>
 
-                      {/* Box 3: Safety Certification */}
-                      <div className="p-4 border rounded-xl bg-white flex items-center gap-3 min-h-[80px]">
-                        <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center shrink-0">
-                          <Shield className="text-purple-600 w-6 h-6" />
+                      {/* RIGHT: Safety seal + luxury CTA */}
+                      <div className="flex flex-col md:flex-row items-center gap-6 md:border-l md:pl-8 border-slate-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center shrink-0">
+                            <Shield className="text-indigo-600 w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-black uppercase tracking-tight text-slate-900">Safety Certified</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Ontario Standard</span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-sm">Safety Certified</p>
-                          <p className="text-xs text-muted-foreground">Ontario Certificate</p>
-                        </div>
+
+                        {/* Luxury "View Full Report" CTA — tactile press effect */}
+                        {carfaxReportUrl && (
+                          <a
+                            href={carfaxReportUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center px-8 py-3 font-bold text-white bg-slate-900 rounded-xl text-xs uppercase tracking-wide hover:bg-slate-800 shadow-lg active:scale-95 transition-all duration-200"
+                          >
+                            View Full Report
+                          </a>
+                        )}
                       </div>
 
                     </div>
