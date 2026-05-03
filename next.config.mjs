@@ -59,7 +59,7 @@ const nextConfig = {
     // Serve optimised images from the edge for 60 s, revalidate in background for 1 day
     minimumCacheTTL: 86400,
     remotePatterns: [
-      { protocol: 'https', hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com' },
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
       { protocol: 'https', hostname: 'cdn.planetmotors.ca' },
       { protocol: 'https', hostname: 'planetmotors.imgix.net' },
       { protocol: 'https', hostname: 'media.cpsimg.com' },
@@ -246,7 +246,7 @@ const nextConfig = {
       'blob:',
       'data:',
       'https://*.stripe.com',
-      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com',
+      'https://*.public.blob.vercel-storage.com',
       'https://cdn.planetmotors.ca',
       'https://planetmotors.imgix.net',
       'https://media.cpsimg.com',

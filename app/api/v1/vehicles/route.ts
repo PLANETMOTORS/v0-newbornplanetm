@@ -521,7 +521,7 @@ export async function POST(request: NextRequest) {
     query: searchQuery,
     filters = {},
     sort = { field: 'created_at', order: 'desc' },
-    pagination = { page: 1, limit: 20 },
+    pagination = { page: 1, limit: 20, cursor_id: undefined, cursor_created_at: undefined },
     includeAggregations: _includeAggregations = false,
   } = body
 
@@ -529,6 +529,13 @@ export async function POST(request: NextRequest) {
   const safeSortOrder = sort.order === 'asc' ? 'asc' : 'desc'
   const safeLimit = Math.min(Math.max(1, asInt(String(pagination.limit || 20), 20)), 100)
   const safePage = Math.max(1, asInt(String(pagination.page || 1), 1))
+
+  // Keyset pagination: validate cursor values if provided
+  const cursorId = pagination.cursor_id && UUID_RE.test(pagination.cursor_id)
+    ? pagination.cursor_id : null
+  const cursorCreatedAt = pagination.cursor_created_at && ISO_DATETIME_RE.test(pagination.cursor_created_at)
+    ? pagination.cursor_created_at : null
+  const useKeyset = !!(cursorId && cursorCreatedAt && safeSortField === 'created_at')
 
   // Cache key for this search
   const cacheKey = `vehicles:search:${hashKey(JSON.stringify({ searchQuery, filters, sort, pagination: { page: safePage, limit: safeLimit } }))}`
@@ -551,13 +558,21 @@ export async function POST(request: NextRequest) {
   // Apply filters
   query = applyAdvancedFilters(query, filters)
 
-  // Apply sorting
+  // Apply sorting (secondary sort on id for stable cursor ordering)
   const ascending = safeSortOrder === 'asc'
   query = query.order(safeSortField, { ascending })
+  query = query.order('id', { ascending })
 
-  // Apply pagination
-  const startIndex = (safePage - 1) * safeLimit
-  query = query.range(startIndex, startIndex + safeLimit - 1)
+  // Apply pagination: keyset (cursor) or OFFSET
+  if (useKeyset) {
+    const cmp = ascending ? 'gt' : 'lt'
+    query = query.or(
+      `created_at.${cmp}.${cursorCreatedAt},and(created_at.eq.${cursorCreatedAt},id.${cmp}.${cursorId})`,
+    ).limit(safeLimit)
+  } else {
+    const startIndex = (safePage - 1) * safeLimit
+    query = query.range(startIndex, startIndex + safeLimit - 1)
+  }
 
   // Run vehicle fetch and aggregation in parallel, with the aggregation served
   // from Redis when available to avoid the repeated full-table scan.
@@ -577,14 +592,25 @@ export async function POST(request: NextRequest) {
     ? (cachedAgg as Aggregations)
     : await computeAndCacheAggregations(supabase, aggCacheKey)
 
+  const vehicleList = (await Promise.all((vehicles ?? []).map(toPublicVehicleListItem)))
+    .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null)
+
+  // Build next cursor from the last vehicle in the result set
+  const lastVehicle = vehicleList.length === safeLimit
+    ? vehicleList[vehicleList.length - 1]
+    : null
+  const nextCursor = lastVehicle
+    ? { cursor_id: lastVehicle.id as string, cursor_created_at: lastVehicle.created_at as string }
+    : null
+
   return NextResponse.json(
     {
       success: true,
       data: {
-        vehicles: (await Promise.all((vehicles ?? []).map(toPublicVehicleListItem)))
-          .filter((vehicle): vehicle is Record<string, unknown> => vehicle !== null),
+        vehicles: vehicleList,
         total: count || 0,
         aggregations,
+        ...(useKeyset && { nextCursor, hasMore: vehicleList.length === safeLimit }),
       },
     },
     {

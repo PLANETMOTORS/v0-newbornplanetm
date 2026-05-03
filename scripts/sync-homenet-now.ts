@@ -1,18 +1,18 @@
 #!/usr/bin/env tsx
- 
+
 /**
- * Full-replacement sync: reads PlanetMotorsDealer.csv and replaces entire DB inventory.
- * Incoming file IS the inventory. Old vehicles not in file are deleted.
+ * Full-replacement sync: reads PlanetMotorsDealer.csv via streaming and
+ * replaces entire DB inventory. Uses ReadStream (never readFileSync) to
+ * stay under 256MB memory at 10k+ rows.
  */
-import { parseHomenetCSV, syncVehiclesToDatabase, getSql } from "../lib/homenet/parser"
-import { readFileSync } from "fs"
-import { resolve } from "path"
+import { createReadStream } from "node:fs"
+import { resolve } from "node:path"
+import { getSql } from "../lib/homenet/parser"
+import { streamingSyncToDatabase } from "../lib/homenet/streaming-sync"
 
 async function main() {
   const csvPath = resolve(__dirname, "..", "PlanetMotorsDealer.csv")
-  const csv = readFileSync(csvPath, "utf-8")
-  const vehicles = parseHomenetCSV(csv)
-  console.log("Parsed: " + vehicles.length + " vehicles from HomeNet file")
+  const stream = createReadStream(csvPath, { encoding: "utf-8" })
 
   const sql = getSql()
   if (!sql) {
@@ -24,8 +24,15 @@ async function main() {
   const before = await sql`SELECT COUNT(*) as total FROM vehicles`
   console.log("Before sync: " + (before as { total: string }[])[0]?.total + " vehicles in DB")
 
-  console.log("Running full-replacement sync...")
-  const result = await syncVehiclesToDatabase(sql, vehicles)
+  console.log("Running streaming full-replacement sync (500-row batches)...")
+  const result = await streamingSyncToDatabase(sql, stream, {
+    batchSize: 500,
+    onProgress: (p) => {
+      if (p.batchesCompleted % 5 === 0) {
+        console.log(`  Progress: ${p.vehiclesProcessed} vehicles, ${p.batchesCompleted} batches`)
+      }
+    },
+  })
   console.log("\n=== SYNC COMPLETE ===")
   console.log("Inserted: " + result.inserted)
   console.log("Updated:  " + result.updated)

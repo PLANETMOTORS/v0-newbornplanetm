@@ -16,9 +16,11 @@ import { formatPrice, formatKm } from '@/lib/cars/category-helpers'
 
 interface Props {
   readonly vehicle: CategoryVehicle
+  /** Mark as LCP candidate (above-fold cards). Adds priority + fetchPriority="high". */
+  readonly priority?: boolean
 }
 
-export function VehicleCard({ vehicle: v }: Props) {
+export function VehicleCard({ vehicle: v, priority = false }: Props) {
   return (
     <Link
       href={`/vehicles/${v.id}`}
@@ -34,6 +36,9 @@ export function VehicleCard({ vehicle: v }: Props) {
               fill
               className="object-cover group-hover:scale-[1.02] transition-transform"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              {...(priority
+                ? { priority: true, fetchPriority: 'high' as const }
+                : { loading: 'lazy' as const })}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
