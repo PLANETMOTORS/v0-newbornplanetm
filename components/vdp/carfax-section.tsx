@@ -141,6 +141,8 @@ export function CarfaxSection({
             <img
               src={summary.badgesImageUrl}
               alt={altText}
+              width={187}
+              height={30}
               className="w-full max-w-md h-auto"
               onError={() => setImgError(true)}
             />
