@@ -730,45 +730,28 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </div>
                   </div>
 
-                  {/* ── FERRARI-TIER: THE AUTHORITATIVE CARFAX POWER BAR ── */}
-                  <div className="w-full">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 border border-slate-200 rounded-[24px] bg-gradient-to-r from-white to-slate-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                  {/* ── ULTRA-LUXURY CARFAX POWER ROW ── */}
+                  <div className="w-full mb-10 mt-4">
+                    <div className="flex flex-col md:flex-row items-center justify-between p-8 border border-slate-200 rounded-[32px] bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all">
 
-                      {/* LEFT: Factual history claims (OMVIC compliant) */}
-                      <div className="flex flex-col gap-1 md:border-r md:pr-8 border-slate-200">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Vehicle Status</p>
-                        <CarfaxSection vin={vehicle.vin ?? null} variant="headline" />
-                      </div>
-
-                      {/* CENTER: Official CARFAX badge strip (target zone) */}
-                      <div className="flex-1 flex justify-center py-4 md:py-0">
+                      {/* THE HERO: Official CARFAX badge strip at 56px — let the authority speak */}
+                      <div className="flex-1 flex justify-start">
                         <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
                       </div>
 
-                      {/* RIGHT: Safety seal + luxury CTA */}
-                      <div className="flex flex-col md:flex-row items-center gap-6 md:border-l md:pl-8 border-slate-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center shrink-0">
-                            <Shield className="text-indigo-600 w-5 h-5" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black uppercase tracking-tight text-slate-900">Safety Certified</span>
-                            <span className="text-[10px] text-slate-500 font-medium">Ontario Standard</span>
-                          </div>
-                        </div>
-
-                        {/* Luxury "View Full Report" CTA — tactile press effect */}
-                        {carfaxReportUrl && (
+                      {/* THE ACTION: Luxury CTA — tactile press, premium shadow */}
+                      {carfaxReportUrl && (
+                        <div className="mt-6 md:mt-0">
                           <a
                             href={carfaxReportUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center px-8 py-3 font-bold text-white bg-slate-900 rounded-xl text-xs uppercase tracking-wide hover:bg-slate-800 shadow-lg active:scale-95 transition-all duration-200"
+                            className="inline-flex items-center justify-center px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black active:scale-95 transition-all shadow-xl"
                           >
                             View Full Report
                           </a>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                     </div>
                   </div>
