@@ -13,15 +13,15 @@ interface SpinViewerProps {
   className?: string
 }
 
-/** Background colors matching the Drivee studio turntable look. */
-const SPIN_BG = "#e8e8e8"
-const SPIN_BG_TOP = "#f5f5f5"    // lighter at top (wall)
-const SPIN_BG_BOTTOM = "#d8d8d8" // darker at bottom (floor)
+/** Carvana-style clean studio backdrop — pure white with subtle floor gradient. */
+const SPIN_BG = "#f7f7f7"
+const SPIN_BG_TOP = "#ffffff"    // pure white top (studio wall)
+const SPIN_BG_BOTTOM = "#ebebeb" // subtle warm gray floor
 
 /**
  * Native 360° Spin Viewer — loads WebP frames directly from Supabase Storage.
  *
- * Replaces the Drivee iframe for vehicles whose frames have been migrated.
+ * Replaces the legacy Drivee iframe — used for all vehicles with Supabase frames.
  * Performance: first paint < 1 s, full interactive < 5 s (vs 40-50 s iframe).
  *
  * Features:

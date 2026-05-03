@@ -49,10 +49,7 @@ const SpinViewer = dynamic(
   () => import("@/components/spin-viewer").then(m => ({ default: m.SpinViewer })),
   { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl animate-pulse" style={{ background: "#e8e8e8" }} /> }
 )
-const DriveeViewer = dynamic(
-  () => import("@/components/drivee-viewer").then(m => ({ default: m.DriveeViewer })),
-  { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl animate-pulse" style={{ background: "#e8e8e8" }} /> }
-)
+
 const SimilarVehicles = dynamic(
   () => import("@/components/similar-vehicles").then(m => ({ default: m.SimilarVehicles })),
   { ssr: false }
@@ -225,7 +222,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Fire once on mount
   }, [])
 
-  // ── 360° via Drivee iframe ──
+  // ── 360° via native SpinViewer (Supabase frames) ──
   const has360 = !!vehicle?.driveeMid
 
   // ── Auto-spin for 360° fallback (no Drivee) ──
@@ -240,7 +237,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
     }
   }, [])
 
-  // Start / stop auto-spin when 360 tab is active without Drivee
+  // Start / stop auto-spin when 360 tab is active without native frames
   useEffect(() => {
     const shouldSpin = imageType === "360" && !has360 && isAutoSpinning && vehicle?.images?.length > 1
     if (shouldSpin) {
@@ -425,10 +422,9 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
               <div className="min-w-0 overflow-hidden">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Viewer — native SpinViewer (Supabase) or Drivee iframe fallback */}
+                  {/* 360° Interactive Viewer — native SpinViewer (Supabase frames) */}
                   {(() => {
                     if (imageType === "360" && has360 && vehicle.driveeMid) {
-                      // Prefer native SpinViewer when frames are in Supabase Storage
                       const hasLocalFrames = FRAME_MANIFEST[vehicle.driveeMid] != null
                       if (hasLocalFrames) {
                         return (
@@ -438,13 +434,6 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                           />
                         )
                       }
-                      // Fallback to Drivee iframe for vehicles not yet migrated
-                      return (
-                        <DriveeViewer
-                          mid={vehicle.driveeMid}
-                          vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                        />
-                      )
                     }
                     if (imageType === "360" && !has360) {
                       return (
@@ -603,7 +592,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                         Interior
                       </Button>
                     )}
-                    {/* 360° always visible — uses Drivee if available, auto-spin fallback otherwise */}
+                    {/* 360° always visible — uses SpinViewer if frames exist, auto-spin fallback otherwise */}
                     <Button
                       variant={imageType === "360" ? "default" : "outline"}
                       size="sm"
