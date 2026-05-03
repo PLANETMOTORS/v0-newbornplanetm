@@ -61,12 +61,17 @@ vi.mock('@/lib/supabase/admin', () => ({
 // ─── Import after mocks are set up ────────────────────────────────────────
 const { startVehicleCheckout } = await import('@/app/actions/stripe')
 
+// UUID constants — vehicleCheckoutSchema requires z.string().uuid()
+const VEH_001 = '00000000-0000-0000-0000-000000000001'
+const VEH_MISSING = '00000000-0000-0000-0000-000000000002'
+const VEH_RESERVED = '00000000-0000-0000-0000-000000000003'
+
 /** Default lock result — a successfully locked vehicle */
 function makeLockResult(overrides: Record<string, unknown> = {}) {
   return {
     data: {
       success: true,
-      id: 'veh-001',
+      id: VEH_001,
       year: 2022,
       make: 'Toyota',
       model: 'Camry',
@@ -80,7 +85,7 @@ function makeLockResult(overrides: Record<string, unknown> = {}) {
 
 /** Default vehicle row returned by the .from('vehicles') query */
 const DEFAULT_VEHICLE_ROW = {
-  id: 'veh-001',
+  id: VEH_001,
   year: 2022,
   make: 'Toyota',
   model: 'Camry',
@@ -125,7 +130,7 @@ beforeEach(() => {
 describe("startVehicleCheckout with protectionPlanId 'certified' (new in PR)", () => {
   it('adds a line item for the certified plan with the correct name', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified',
       depositOnly: false,
@@ -145,7 +150,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified' (new in PR)", (
 
   it('charges 300000 cents ($3,000) for the certified plan', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified',
       depositOnly: false,
@@ -162,7 +167,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified' (new in PR)", (
 
   it('stores the certified protectionPlanId in session metadata', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified',
       depositOnly: false,
@@ -174,7 +179,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified' (new in PR)", (
 
   it('does not include a protection plan line item when depositOnly is true', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified',
       depositOnly: true,
@@ -195,7 +200,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified' (new in PR)", (
 describe("startVehicleCheckout with protectionPlanId 'certified-plus' (new in PR)", () => {
   it('adds a line item for the certified-plus plan with the correct name', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified-plus',
       depositOnly: false,
@@ -214,7 +219,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified-plus' (new in PR
 
   it('charges 485000 cents ($4,850) for the certified-plus plan', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified-plus',
       depositOnly: false,
@@ -231,7 +236,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified-plus' (new in PR
 
   it('stores the certified-plus protectionPlanId in session metadata', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified-plus',
       depositOnly: false,
@@ -243,7 +248,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified-plus' (new in PR
 
   it('does not add a plan line item when depositOnly is true (even with certified-plus)', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified-plus',
       depositOnly: true,
@@ -260,7 +265,7 @@ describe("startVehicleCheckout with protectionPlanId 'certified-plus' (new in PR
 describe('startVehicleCheckout with pre-existing plan IDs (regression)', () => {
   it('still processes the essential plan correctly', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'essential',
       depositOnly: false,
@@ -278,7 +283,7 @@ describe('startVehicleCheckout with pre-existing plan IDs (regression)', () => {
 
   it('still processes the smart plan correctly', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'smart',
       depositOnly: false,
@@ -296,7 +301,7 @@ describe('startVehicleCheckout with pre-existing plan IDs (regression)', () => {
 
   it('still processes the lifeproof plan correctly', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'lifeproof',
       depositOnly: false,
@@ -318,7 +323,7 @@ describe('startVehicleCheckout with pre-existing plan IDs (regression)', () => {
 describe('startVehicleCheckout with an unknown protectionPlanId', () => {
   it('creates a checkout session without a plan line item for an unknown planId', async () => {
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'nonexistent-plan',
       depositOnly: false,
@@ -337,7 +342,7 @@ describe('price equivalences between old and new plans', () => {
   it('certified and smart have the same price (300000 cents)', async () => {
     // Call with certified
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified',
       depositOnly: false,
@@ -352,7 +357,7 @@ describe('price equivalences between old and new plans', () => {
 
     // Call with smart
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'smart',
       depositOnly: false,
@@ -367,7 +372,7 @@ describe('price equivalences between old and new plans', () => {
   it('certified-plus and lifeproof have the same price (485000 cents)', async () => {
     // Call with certified-plus
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'certified-plus',
       depositOnly: false,
@@ -382,7 +387,7 @@ describe('price equivalences between old and new plans', () => {
 
     // Call with lifeproof
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       protectionPlanId: 'lifeproof',
       depositOnly: false,
@@ -403,7 +408,7 @@ describe('startVehicleCheckout — lock failure', () => {
 
     await expect(
       startVehicleCheckout({
-        vehicleId: 'veh-missing',
+        vehicleId: VEH_MISSING,
         vehicleName: '2022 Toyota Camry',
         depositOnly: true,
       })
@@ -418,7 +423,7 @@ describe('startVehicleCheckout — lock failure', () => {
 
     await expect(
       startVehicleCheckout({
-        vehicleId: 'veh-reserved',
+        vehicleId: VEH_RESERVED,
         vehicleName: '2022 Toyota Camry',
         depositOnly: true,
       })
@@ -433,7 +438,7 @@ describe('startVehicleCheckout — scalar boolean lockResult (PostgREST unwrap)'
     mockRpc.mockResolvedValue({ data: true, error: null })
 
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       depositOnly: true,
     })
@@ -447,7 +452,7 @@ describe('startVehicleCheckout — scalar boolean lockResult (PostgREST unwrap)'
 
     await expect(
       startVehicleCheckout({
-        vehicleId: 'veh-001',
+        vehicleId: VEH_001,
         vehicleName: '2022 Toyota Camry',
         depositOnly: true,
       })
@@ -459,7 +464,7 @@ describe('startVehicleCheckout — scalar boolean lockResult (PostgREST unwrap)'
 
     await expect(
       startVehicleCheckout({
-        vehicleId: 'veh-001',
+        vehicleId: VEH_001,
         vehicleName: '2022 Toyota Camry',
         depositOnly: true,
       })
@@ -470,7 +475,7 @@ describe('startVehicleCheckout — scalar boolean lockResult (PostgREST unwrap)'
     mockRpc.mockResolvedValue(makeLockResult())
 
     await startVehicleCheckout({
-      vehicleId: 'veh-001',
+      vehicleId: VEH_001,
       vehicleName: '2022 Toyota Camry',
       depositOnly: true,
     })
