@@ -1,6 +1,7 @@
 import { put, list } from "@vercel/blob"
 import crypto from "node:crypto"
 import { getSql, type SqlClient } from "@/lib/neon/sql"
+import { processVehiclePhoto, isBgRemovalEnabled, type BgRemovalResult } from "@/lib/bg-removal"
 
 // ==================== TYPES ====================
 
@@ -16,6 +17,8 @@ export interface ImagePipelineResult {
   downloaded: number
   skipped: number
   failed: number
+  bgRemoved: number
+  bgFallback: number
   vehiclesProcessed: number
   errors: { stockNumber: string; url: string; error: string }[]
 }
@@ -84,10 +87,15 @@ async function getExistingBlobs(stockNumber: string): Promise<Set<string>> {
 
 // ==================== SINGLE IMAGE DOWNLOAD + UPLOAD ====================
 
+interface DownloadResult extends BlobEntry {
+  bgRemoved: boolean
+}
+
 async function downloadAndUpload(
   sourceUrl: string,
   destPath: string,
-): Promise<BlobEntry | null> {
+  enableBgRemoval: boolean,
+): Promise<DownloadResult | null> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), IMAGE_FETCH_TIMEOUT_MS)
 
@@ -100,17 +108,45 @@ async function downloadAndUpload(
       throw new Error(`HTTP ${response.status}`)
     }
 
-    const contentType = response.headers.get("content-type") || "image/jpeg"
-    const buffer = await response.arrayBuffer()
+    const rawBuffer = Buffer.from(await response.arrayBuffer())
+    let uploadBuffer: Buffer = rawBuffer
+    let contentType = response.headers.get("content-type") || "image/jpeg"
+    let bgRemoved = false
 
-    // Upload original to Vercel Blob (public access for serving)
-    const blob = await put(destPath, Buffer.from(buffer), {
+    // Run background removal + studio compositing if enabled
+    if (enableBgRemoval) {
+      try {
+        const result: BgRemovalResult = await processVehiclePhoto(rawBuffer)
+        uploadBuffer = result.processedBuffer
+        bgRemoved = result.bgRemoved
+        contentType = "image/jpeg" // Always JPEG after compositing
+      } catch (bgError) {
+        console.warn(
+          `[ImagePipeline] BG removal failed for ${sourceUrl}, using original:`,
+          bgError instanceof Error ? bgError.message : bgError,
+        )
+        // Fallback to original — uploadBuffer remains rawBuffer
+      }
+    }
+
+    // Also store the original (raw) image for reference
+    if (bgRemoved) {
+      const origPath = destPath.replace(/\.(jpg|jpeg|png|webp)$/i, "-original.$1")
+      put(origPath, rawBuffer, {
+        access: "public",
+        contentType: response.headers.get("content-type") || "image/jpeg",
+        addRandomSuffix: false,
+      }).catch((err) => console.warn("[ImagePipeline] Failed to store original:", err))
+    }
+
+    // Upload processed (or original) to Vercel Blob
+    const blob = await put(destPath, uploadBuffer, {
       access: "public",
       contentType,
       addRandomSuffix: false,
     })
 
-    return { pathname: blob.pathname, url: blob.url }
+    return { pathname: blob.pathname, url: blob.url, bgRemoved }
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error"
     throw new Error(`Failed to download ${sourceUrl}: ${msg}`, { cause: error })
@@ -154,7 +190,7 @@ interface ImageProcessState {
   primaryBlobUrl: string | null
 }
 
-/** Process a single image URL for a vehicle — download, upload, or skip if existing. */
+/** Process a single image URL for a vehicle — download, bg-remove, upload, or skip if existing. */
 async function processSingleImage(
   sourceUrl: string,
   stockNumber: string,
@@ -163,6 +199,7 @@ async function processSingleImage(
   existingBlobs: Set<string>,
   result: ImagePipelineResult,
   state: ImageProcessState,
+  enableBgRemoval: boolean,
 ): Promise<void> {
   const dest = blobPath(stockNumber, idx, isSpin)
   result.totalImages++
@@ -175,9 +212,16 @@ async function processSingleImage(
   }
 
   try {
-    const blob = await downloadAndUpload(sourceUrl, dest)
+    // Only apply bg removal to gallery photos, not spin frames
+    const shouldRemoveBg = enableBgRemoval && !isSpin
+    const blob = await downloadAndUpload(sourceUrl, dest, shouldRemoveBg)
     if (blob) {
       result.downloaded++
+      if (blob.bgRemoved) {
+        result.bgRemoved++
+      } else if (shouldRemoveBg) {
+        result.bgFallback++
+      }
       state.blobUrls.push(blob.url)
       if (!state.primaryBlobUrl && !isSpin) state.primaryBlobUrl = blob.url
       uploadThumbnailMarker(stockNumber, idx, isSpin, blob.url).catch((err) => console.warn("[silent-catch]", err))
@@ -194,11 +238,12 @@ async function processSingleImage(
 
 /**
  * Process images for a single vehicle.
- * Downloads from CDN, uploads to Blob, skips existing.
+ * Downloads from CDN, optionally removes background, uploads to Blob, skips existing.
  */
 async function processVehicleImages(
   vehicle: ImagePipelineVehicle,
   result: ImagePipelineResult,
+  enableBgRemoval: boolean,
 ): Promise<{ blobUrls: string[]; primaryBlobUrl: string | null }> {
   const { stock_number, image_urls } = vehicle
   if (!image_urls || image_urls.length === 0) {
@@ -214,7 +259,7 @@ async function processVehicleImages(
   for (const sourceUrl of image_urls) {
     const isSpin = isSpinImage(sourceUrl)
     const idx = isSpin ? spinIndex++ : photoIndex++
-    await processSingleImage(sourceUrl, stock_number, idx, isSpin, existingBlobs, result, state)
+    await processSingleImage(sourceUrl, stock_number, idx, isSpin, existingBlobs, result, state, enableBgRemoval)
   }
 
   return { blobUrls: state.blobUrls, primaryBlobUrl: state.primaryBlobUrl }
@@ -267,7 +312,8 @@ async function updateVehicleBlobUrls(
 
 /**
  * Run the image pipeline for a list of vehicles.
- * Downloads images from HomenetIOL CDN and uploads to Vercel Blob.
+ * Downloads images from HomenetIOL CDN, optionally removes backgrounds
+ * and composites onto a studio backdrop, then uploads to Vercel Blob.
  *
  * @param vehicles - Vehicles with image URLs from the feed
  * @returns Pipeline results with counts and errors
@@ -280,6 +326,8 @@ export async function runImagePipeline(
     downloaded: 0,
     skipped: 0,
     failed: 0,
+    bgRemoved: 0,
+    bgFallback: 0,
     vehiclesProcessed: 0,
     errors: [],
   }
@@ -287,13 +335,16 @@ export async function runImagePipeline(
   if (vehicles.length === 0) return result
 
   const sql = getSql()
+  const enableBgRemoval = isBgRemovalEnabled()
 
-  console.info(`[ImagePipeline] Starting pipeline for ${vehicles.length} vehicles`)
+  console.info(
+    `[ImagePipeline] Starting pipeline for ${vehicles.length} vehicles (bg-removal: ${enableBgRemoval ? "ON" : "OFF"})`,
+  )
 
   // Process vehicles in batches (each vehicle's images processed concurrently)
   await processBatch(vehicles, BATCH_CONCURRENCY, async (vehicle) => {
     try {
-      const { blobUrls, primaryBlobUrl } = await processVehicleImages(vehicle, result)
+      const { blobUrls, primaryBlobUrl } = await processVehicleImages(vehicle, result, enableBgRemoval)
 
       // Update vehicle record with Blob URLs
       if (sql && blobUrls.length > 0) {
@@ -307,7 +358,7 @@ export async function runImagePipeline(
   })
 
   console.info(
-    `[ImagePipeline] Complete: ${result.downloaded} downloaded, ${result.skipped} skipped, ${result.failed} failed out of ${result.totalImages} total images across ${result.vehiclesProcessed} vehicles`,
+    `[ImagePipeline] Complete: ${result.downloaded} downloaded, ${result.skipped} skipped, ${result.failed} failed, ${result.bgRemoved} bg-removed, ${result.bgFallback} bg-fallback — ${result.totalImages} total images across ${result.vehiclesProcessed} vehicles`,
   )
 
   return result

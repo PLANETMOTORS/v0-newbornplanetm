@@ -127,6 +127,10 @@ const optionalServerSchema = z.object({
   ZOOM_CLIENT_ID: z.string().optional(),
   ZOOM_CLIENT_SECRET: z.string().optional(),
 
+  // Image processing / Background removal
+  REPLICATE_API_TOKEN: z.string().optional(),
+  BG_REMOVAL_ENABLED: z.string().optional(),
+
   NODE_ENV: z.enum(["development", "production", "test"]).optional(),
 })
 
@@ -251,6 +255,8 @@ function validateEnv(): Env {
     LIVE_VIDEO_TOUR_PROVIDER: process.env.LIVE_VIDEO_TOUR_PROVIDER,
     ZOOM_CLIENT_ID: process.env.ZOOM_CLIENT_ID,
     ZOOM_CLIENT_SECRET: process.env.ZOOM_CLIENT_SECRET,
+    REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN,
+    BG_REMOVAL_ENABLED: process.env.BG_REMOVAL_ENABLED,
     NODE_ENV: process.env.NODE_ENV,
     // Client
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
