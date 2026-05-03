@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     // Revalidate specific cache tags for the document type
     const tagsToRevalidate = TYPE_TO_TAGS[documentType] ?? []
     for (const tag of tagsToRevalidate) {
-      revalidateTag(tag)
+      revalidateTag(tag, 'max')
     }
     if (tagsToRevalidate.length > 0) {
       logger.info(`[Sanity Webhook] revalidateTag → [${tagsToRevalidate.join(", ")}]`)
