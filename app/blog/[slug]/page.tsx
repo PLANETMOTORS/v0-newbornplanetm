@@ -20,6 +20,9 @@ import { portableTextToHtml } from "@/lib/blog/portable-text-html"
 // Allow slugs not returned by generateStaticParams (new Sanity posts) to be served via ISR
 export const dynamicParams = true
 
+// ISR: serve cached HTML for up to 5 minutes, revalidate in background
+export const revalidate = 300
+
 // portableTextToHtml lives in `lib/blog/portable-text-html.ts` so the
 // transformation logic is fully unit-testable and Sonar S3776-clean.
 
@@ -204,7 +207,7 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
             alt={post.title}
             fill
             priority
-            quality={90}
+            quality={75}
             sizes="100vw"
             className="object-cover"
           />
@@ -258,6 +261,15 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
                     },
                   }
                 },
+                // Inject lazy loading on inline images to reduce initial payload
+                img: (tagName, attribs) => ({
+                  tagName,
+                  attribs: {
+                    ...attribs,
+                    loading: attribs.loading || 'lazy',
+                    decoding: 'async',
+                  },
+                }),
               },
               allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com'],
             }) }}
