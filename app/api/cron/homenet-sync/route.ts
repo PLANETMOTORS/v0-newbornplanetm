@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { downloadLatestCSV } from "@/lib/homenet/sftp-client"
-import { getSql, type VehicleData } from "@/lib/homenet/parser"
+import { getSql } from "@/lib/homenet/parser"
 import { streamingSyncToDatabase } from "@/lib/homenet/streaming-sync"
 import { upsertVehiclesBatch, type VehicleDocument } from "@/lib/typesense/indexer"
 import { isTypesenseConfigured } from "@/lib/typesense/client"

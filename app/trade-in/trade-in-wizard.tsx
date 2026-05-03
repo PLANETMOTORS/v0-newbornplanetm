@@ -32,7 +32,7 @@ import {
 } from "@/lib/validation"
 import { useAuth } from "@/contexts/auth-context"
 import { AuthRequiredModal } from "@/components/auth-required-modal"
-import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from "@/lib/constants/dealership"
+import { PHONE_TOLL_FREE } from "@/lib/constants/dealership"
 
 // Vehicle makes with models
 const vehicleMakes = {

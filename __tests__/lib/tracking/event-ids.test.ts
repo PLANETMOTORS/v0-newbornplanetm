@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { generateEventId } from '@/lib/tracking/event-ids'
 
 describe('generateEventId', () => {

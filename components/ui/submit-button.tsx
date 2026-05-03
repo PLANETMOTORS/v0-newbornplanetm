@@ -31,7 +31,7 @@ export function SubmitButton({
   children,
   className,
   pendingText,
-  pendingIcon,
+  pendingIcon: _pendingIcon,
   disabled,
   ...props
 }: SubmitButtonProps) {

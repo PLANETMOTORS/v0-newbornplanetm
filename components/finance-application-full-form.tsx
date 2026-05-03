@@ -28,7 +28,6 @@ import { ApplicantForm } from "@/components/finance-application/applicant-form"
 import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
 import { ReviewStep } from "@/components/finance-application/review-step"
 import { DocumentsStep } from "@/components/finance-application/documents-step"
-import { buildSubmitError } from "@/lib/finance/build-submit-error"
 import { uploadDocuments } from "@/lib/finance/upload-documents"
 import { submitFinanceApplication, type FinanceFieldErrors, type FinanceFormState } from "@/app/actions/finance-application"
 
@@ -495,6 +494,29 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   const [applicantFieldErrors, setApplicantFieldErrors] = useState<FinanceFieldErrors>({})
   const [coApplicantFieldErrors, setCoApplicantFieldErrors] = useState<FinanceFieldErrors>({})
 
+  /**
+   * Scroll to the first field with a validation error.
+   * Uses requestAnimationFrame so React has time to re-render the
+   * target step before we query the DOM.
+   */
+  const scrollToFirstError = useCallback(() => {
+    requestAnimationFrame(() => {
+      const firstInvalid = document.querySelector<HTMLElement>(
+        '[aria-invalid="true"], [role="alert"]',
+      )
+      if (firstInvalid) {
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // Focus the field so screen readers announce the error
+        if (firstInvalid.tagName === 'INPUT' || firstInvalid.tagName === 'SELECT' || firstInvalid.tagName === 'TEXTAREA') {
+          firstInvalid.focus({ preventScroll: true })
+        }
+      } else {
+        // Fallback: scroll to top where the error banner lives
+        globalThis.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    })
+  }, [])
+
   // Helper to check if a field has an error and return the error class
 
   
@@ -671,8 +693,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     
 if (errors.length > 0) {
   setValidationErrors(errors)
-  // Scroll to top to show errors
-  globalThis.scrollTo({ top: 0, behavior: 'smooth' })
+  // Scroll to the first invalid field (or top if no DOM match yet)
+  scrollToFirstError()
   return
   }
     
@@ -755,7 +777,7 @@ if (errors.length > 0) {
         if (allErrors.length > 0) setValidationErrors(allErrors)
         setSubmitError(result.message)
         trackFinanceEvent("form_error", { error_message: result.message })
-        globalThis.scrollTo({ top: 0, behavior: 'smooth' })
+        scrollToFirstError()
         return
       }
 

@@ -140,7 +140,7 @@ function AuthFormPage({
                       </div>
                       {loginError && <p className="text-sm text-destructive">{loginError}</p>}
                       {authMessage && <p className="text-sm text-green-700">{authMessage}</p>}
-                      <Button type="submit" className="w-full" disabled={isLoading}>
+                      <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isLoading} aria-busy={isLoading}>
                         {isLoading ? "Signing in..." : "Sign In"}
                       </Button>
                     </div>
@@ -212,7 +212,7 @@ function AuthFormPage({
                       </div>
                       {loginError && <p className="text-sm text-destructive">{loginError}</p>}
                       {authMessage && <p className="text-sm text-green-700">{authMessage}</p>}
-                      <Button type="submit" className="w-full" disabled={isLoading}>
+                      <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isLoading} aria-busy={isLoading}>
                         {isLoading ? "Creating Account..." : "Create Account"}
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">

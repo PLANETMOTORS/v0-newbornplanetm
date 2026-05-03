@@ -17,7 +17,7 @@ import {
   Search, SlidersHorizontal, Grid3X3, List, Heart,
   Gauge, Fuel, Shield, Zap, ChevronDown,
   X, RotateCcw, TrendingUp, CheckCircle,
-  Filter, Battery, Car, ExternalLink, Bell, Loader2, Clock
+  Filter, Battery, Car, Bell, Loader2, Clock
 } from "lucide-react"
 import { useFavorites } from "@/contexts/favorites-context"
 import { InventoryPageJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"

@@ -214,7 +214,7 @@ export function LiveChatWidget() {
               className="flex-1"
               disabled={isLoading}
             />
-            <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()} aria-label="Send message">
+            <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()} aria-label="Send message" aria-busy={isLoading} className="aria-busy:opacity-80 aria-busy:cursor-wait">
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (

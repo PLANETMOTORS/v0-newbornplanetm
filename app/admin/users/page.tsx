@@ -299,7 +299,7 @@ export default function AdminUsersPage() {
               />
             </div>
             <div className="sm:col-span-2">
-              <Button type="submit" disabled={inviting} className="w-full">
+              <Button type="submit" disabled={inviting} className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" aria-busy={inviting}>
                 {inviting ? "Adding..." : "Add User"}
               </Button>
             </div>

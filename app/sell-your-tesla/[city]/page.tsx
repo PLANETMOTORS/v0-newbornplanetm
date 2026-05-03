@@ -14,7 +14,7 @@ import { BreadcrumbJsonLd, FAQJsonLd, HowToJsonLd, LocalServiceJsonLd } from '@/
 import { generateSEOMetadata } from '@/lib/seo/metadata'
 import { SELL_TESLA_CITY_SLUGS, getCityData, getLocalFAQs } from '@/lib/constants/cities'
 import { PHONE_TOLL_FREE, PHONE_TOLL_FREE_TEL } from '@/lib/constants/dealership'
-import { Shield, Calendar, Banknote, Zap, MapPin, Phone, Battery } from 'lucide-react'
+import { Shield, Zap, MapPin, Phone, Battery } from 'lucide-react'
 
 export function generateStaticParams() {
   return SELL_TESLA_CITY_SLUGS.map((city) => ({ city }))

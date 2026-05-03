@@ -187,10 +187,11 @@ function LoginForm() {
                   </Label>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-lg"
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-lg aria-busy:opacity-80 aria-busy:cursor-wait"
                   disabled={isLoading}
+                  aria-busy={isLoading}
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>

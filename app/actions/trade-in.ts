@@ -13,7 +13,7 @@
 import { randomBytes } from 'node:crypto'
 import { headers } from 'next/headers'
 import { sendNotificationEmail } from '@/lib/email'
-import { trackLead } from '@/lib/meta-capi-helpers'
+// trackLead from '@/lib/meta-capi-helpers' — requires Request object, not available in server actions
 import { rateLimit } from '@/lib/redis'
 import { tradeInToAdfProspect } from '@/lib/adf/adapters'
 import { forwardLeadToAutoRaptor } from '@/lib/adf/forwarder'
@@ -21,7 +21,7 @@ import { logger } from '@/lib/logger'
 import { estimateTradeInValue } from '@/lib/trade-in/estimator'
 import { tradeInQuoteRequestSchema } from '@/lib/trade-in/schemas'
 import { persistTradeInQuote } from '@/lib/trade-in/repository'
-import { PHONE_LOCAL } from '@/lib/constants/dealership'
+// PHONE_LOCAL available via '@/lib/constants/dealership' if needed
 
 // ── Types ───────────────────────────────────────────────────────────────
 

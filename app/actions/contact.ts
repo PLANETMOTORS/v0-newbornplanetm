@@ -19,7 +19,7 @@ import { logger } from '@/lib/logger'
 import { createLead } from '@/lib/anna/lead-capture'
 import { inquiryToAdfProspect } from '@/lib/adf/adapters'
 import { forwardLeadToAutoRaptor } from '@/lib/adf/forwarder'
-import { PHONE_LOCAL } from '@/lib/constants/dealership'
+// PHONE_LOCAL available via '@/lib/constants/dealership' if needed for notifications
 
 // ── Types ───────────────────────────────────────────────────────────────
 
