@@ -24,12 +24,9 @@
  */
 
 import { useState } from "react"
-import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ExternalLink } from "lucide-react"
 import {
   hasAccidentFreeBadge,
   hasLowKilometerBadge,
@@ -81,7 +78,7 @@ export function CarfaxSection({
 
   const { summary, stale } = state
 
-  /* ── Headline variant — text claims for highlights row ─────────── */
+  /* ── Headline variant — clean green checkmarks, no red box ────── */
   if (variant === "headline") {
     const claims: string[] = []
     if (hasAccidentFreeBadge(summary)) claims.push("No reported accidents")
@@ -89,18 +86,15 @@ export function CarfaxSection({
     if (hasLowKilometerBadge(summary)) claims.push("Low kilometres")
     if (claims.length === 0) return null
     return (
-      <Card className={className} data-testid="carfax-headline">
-        <CardContent className="p-3 flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="border-brand-red text-brand-red text-xs">
-            CARFAX
-          </Badge>
+      <div className={className} data-testid="carfax-headline">
+        <div className="flex flex-col justify-center gap-1">
           {claims.map((c) => (
-            <span key={c} className="text-sm font-medium">
+            <p key={c} className="text-xs font-bold text-green-600">
               ✓ {c}
-            </span>
+            </p>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
@@ -116,66 +110,54 @@ export function CarfaxSection({
     ? `CARFAX Canada: ${claims.join(", ")}`
     : "CARFAX Canada Vehicle History"
 
+  /* ── Panel variant — inline badge strip + "View Report" CTA ───── */
+  const targetUrl = reportUrl ?? `https://www.carfax.ca/vehicle/${summary.vin}`
+
   return (
-    <Card className={className} data-testid="carfax-panel">
-      <CardContent className="p-4 flex flex-col gap-3">
-        {/* Combined badge SVG — responsive, rendered server-side by CARFAX.
-            This is the official BadgesImageUrl from Badging API v3.
-            Per CARFAX logo guidelines: min 15px height, clear space around. */}
+    <div className={className} data-testid="carfax-panel">
+      <div className="flex items-center justify-between gap-4 w-full">
+        {/* Official badge SVG from Badging API v3 */}
         {summary.badgesImageUrl && !imgError ? (
-          <a
-            href={reportUrl ?? `https://www.carfax.ca/vehicle/${summary.vin}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-            onClick={(e) => {
-              e.preventDefault()
-              window.open(
-                reportUrl ?? `https://www.carfax.ca/vehicle/${summary.vin}`,
-                "_blank",
-                "noopener,noreferrer",
-              )
-            }}
-          >
+          <a href={targetUrl} target="_blank" rel="noopener noreferrer">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={summary.badgesImageUrl}
               alt={altText}
-              width={187}
-              height={30}
-              className="w-full max-w-md h-auto"
+              width="187"
+              height="30"
+              className="h-[25px] w-auto shrink-0"
               onError={() => setImgError(true)}
             />
           </a>
         ) : (
-          /* Fallback: CARFAX badge + text claims when SVG fails */
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="border-brand-red text-brand-red text-base px-3 py-1">
-              CARFAX
-            </Badge>
+          /* Fallback: text claims when SVG fails */
+          <div className="flex flex-col gap-0.5">
             {claims.map((c) => (
-              <span key={c} className="text-sm font-medium">
+              <span key={c} className="text-xs font-bold text-green-600">
                 ✓ {c}
               </span>
             ))}
           </div>
         )}
 
-        {/* View Report CTA — tokenized deep link from CARFAX */}
+        {/* Compact "View Report" CTA — high contrast, touch-friendly */}
         {reportUrl && (
-          <Button variant="outline" size="sm" className="w-fit border-brand-red text-brand-red hover:bg-red-50" asChild>
-            <Link href={reportUrl} target="_blank" rel="noopener noreferrer">
-              View CARFAX Report <ExternalLink className="w-4 h-4 ml-1.5" />
-            </Link>
-          </Button>
+          <a
+            href={reportUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wide transition-colors"
+          >
+            View Report
+          </a>
         )}
+      </div>
 
-        {stale && (
-          <p className="text-xs text-muted-foreground">
-            Showing the most recent CARFAX data — refresh in progress.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      {stale && (
+        <p className="text-[10px] text-muted-foreground mt-1">
+          Refreshing CARFAX data…
+        </p>
+      )}
+    </div>
   )
 }

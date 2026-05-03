@@ -725,29 +725,34 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </div>
                   </div>
 
-                  {/* Highlights */}
+                  {/* SENIOR UI DESIGN: 3-Column Highlights Dashboard */}
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
-                    <div className="flex flex-wrap gap-3">
-                      {/* Per-VIN Carfax claims — only renders factual claims
-                          for badges Carfax actually issued for THIS VIN, not
-                          a hardcoded "No accidents" headline. OMVIC compliance. */}
-                      <CarfaxSection vin={vehicle.vin ?? null} variant="headline" className="flex-1 min-w-[200px]" />
-                      <Card className="flex-1 min-w-[140px]">
-                        <CardContent className="p-3 flex items-center gap-2">
-                          <Shield className="w-5 h-5 text-purple-500" />
-                          <div>
-                            <p className="font-semibold text-sm">Safety certified</p>
-                            <p className="text-xs text-muted-foreground">Ontario Safety Certificate</p>
-                          </div>
-                        </CardContent>
-                      </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+
+                      {/* Box 1: Text Claims — clean green checkmarks (OMVIC compliant) */}
+                      <div className="p-4 border rounded-xl bg-white flex flex-col justify-center min-h-[80px]">
+                        <CarfaxSection vin={vehicle.vin ?? null} variant="headline" />
+                      </div>
+
+                      {/* Box 2: Official Badge Strip + "View Report" CTA */}
+                      <div className="p-4 border rounded-xl bg-slate-50 flex items-center justify-between gap-4 min-h-[80px]">
+                        <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
+                      </div>
+
+                      {/* Box 3: Safety Certification */}
+                      <div className="p-4 border rounded-xl bg-white flex items-center gap-3 min-h-[80px]">
+                        <div className="w-10 h-10 bg-purple-50 rounded-full flex items-center justify-center shrink-0">
+                          <Shield className="text-purple-600 w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm">Safety Certified</p>
+                          <p className="text-xs text-muted-foreground">Ontario Certificate</p>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
-
-                  {/* CARFAX Badge Panel — badge SVG strip + "View CARFAX Report" CTA.
-                      Moved here from Inspect tab for maximum visibility (industry standard). */}
-                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
 
                   {/* Delivery Options */}
                   <div>
