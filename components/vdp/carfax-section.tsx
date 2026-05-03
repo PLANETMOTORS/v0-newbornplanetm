@@ -24,8 +24,6 @@
  */
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   hasAccidentFreeBadge,
@@ -61,19 +59,8 @@ export function CarfaxSection({
   }
 
   if (state.status === "no-report") {
-    if (variant === "headline") return null
-    return (
-      <Card className={className} data-testid="carfax-no-report">
-        <CardContent className="p-4 flex items-center justify-between">
-          <Badge variant="outline" className="border-brand-red text-brand-red text-base px-3 py-1">
-            CARFAX
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            History report pending
-          </span>
-        </CardContent>
-      </Card>
-    )
+    /* No CARFAX data yet — render nothing (clean, no messy placeholder) */
+    return null
   }
 
   const { summary, stale } = state
