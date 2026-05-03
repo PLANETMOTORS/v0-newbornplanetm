@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
 // Analytics — only render after hydration; gated by cookie consent internally
@@ -104,26 +105,48 @@ const VercelSpeedInsights = dynamic(
 const isVercelDeploy = !!process.env.NEXT_PUBLIC_VERCEL_URL
 
 export function ClientLayoutWidgets() {
+  // Defer analytics/pixel scripts until the main thread is idle.
+  // This eliminates ~60-100ms of TBT caused by evaluating pixel SDKs
+  // during initial hydration. UI-critical widgets load immediately.
+  const [analyticsReady, setAnalyticsReady] = useState(false)
+
+  useEffect(() => {
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(() => setAnalyticsReady(true), { timeout: 3000 })
+      return () => cancelIdleCallback(id)
+    }
+    // Fallback for Safari (no requestIdleCallback): defer 1.5s
+    const timer = setTimeout(() => setAnalyticsReady(true), 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <>
+      {/* UI-critical widgets — load immediately */}
       <CompareBar />
       <LiveChatWidget />
       <Toaster richColors position="top-right" />
       <CookieConsentBanner />
       <UTMTracker />
-      <AttributionTracker />
-      <GoogleAnalytics />
-      <GoogleTagManager />
-      <GoogleTagManagerNoScript />
-      <TikTokPixel />
-      <MicrosoftClarity />
-      <BingUET />
-      <SnapchatPixel />
-      <MetaPixel />
-      <PixelRouteTracker />
-      <RouteChangeTracker />
-      {isVercelDeploy && <VercelAnalytics />}
-      {isVercelDeploy && <VercelSpeedInsights />}
+
+      {/* Analytics/pixels — deferred until idle */}
+      {analyticsReady && (
+        <>
+          <AttributionTracker />
+          <GoogleAnalytics />
+          <GoogleTagManager />
+          <GoogleTagManagerNoScript />
+          <TikTokPixel />
+          <MicrosoftClarity />
+          <BingUET />
+          <SnapchatPixel />
+          <MetaPixel />
+          <PixelRouteTracker />
+          <RouteChangeTracker />
+          {isVercelDeploy && <VercelAnalytics />}
+          {isVercelDeploy && <VercelSpeedInsights />}
+        </>
+      )}
     </>
   )
 }

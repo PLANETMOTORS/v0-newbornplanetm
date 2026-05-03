@@ -1,4 +1,5 @@
-// Planet Motors CMS - Data Fetching v19
+// Planet Motors CMS - Data Fetching v20
+import { cache } from "react"
 import { sanityClient } from "./client"
 import { RATE_FLOOR } from "@/lib/rates"
 import {
@@ -146,7 +147,14 @@ export async function getBlogSlugs(): Promise<{ slug: string }[]> {
   }
 }
 
-export async function getBlogPost(slug: string): Promise<BlogPost | null> {
+/**
+ * Fetch a single blog post by slug.
+ *
+ * Wrapped in React `cache()` so that `generateMetadata` and the page
+ * component share a single Sanity round-trip per request instead of
+ * making two separate network calls for the same slug.
+ */
+export const getBlogPost = cache(async (slug: string): Promise<BlogPost | null> => {
   try {
     return await sanityClient.fetch(BLOG_POST_QUERY, { slug }, {
       next: { tags: [CACHE_TAGS.blog], revalidate: 300 }
@@ -155,7 +163,7 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
     console.error("Failed to fetch blog post:", error)
     return null
   }
-}
+})
 
 export async function getFaqs(): Promise<FaqEntry[]> {
   try {

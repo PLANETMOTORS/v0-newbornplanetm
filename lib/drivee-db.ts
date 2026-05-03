@@ -70,6 +70,15 @@ async function loadMappings(): Promise<Map<string, DriveeMapping>> {
 }
 
 /**
+ * Pre-warm the Drivee mappings cache. Fire-and-forget safe.
+ * Call this early (e.g. in parallel with another Supabase query)
+ * so subsequent `getDriveeMidFromDb` calls resolve from memory.
+ */
+export function preloadDriveeMappings(): Promise<void> {
+  return loadMappings().then(() => undefined)
+}
+
+/**
  * Look up the Drivee media ID for a given VIN.
  * Reads from the database (with in-memory cache), falls back to static map.
  */

@@ -325,9 +325,8 @@ export default function AccountPage() {
       setAppsLoading(false)
     }
 
-    await fetchPriceAlerts()
-    await fetchFinanceDrafts()
-    await fetchFinanceApps()
+    // Fetch all account data in parallel — ~2-3x faster than sequential
+    await Promise.all([fetchPriceAlerts(), fetchFinanceDrafts(), fetchFinanceApps()])
   }, [user?.email])
 
   useEffect(() => {

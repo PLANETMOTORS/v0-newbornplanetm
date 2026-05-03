@@ -21,6 +21,10 @@ import { DEALERSHIP_LOCATION } from "@/lib/constants/dealership"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 import VDPClient from "./vdp-client"
 
+// ISR: serve cached HTML for up to 60 seconds, revalidate in background.
+// Eliminates cold SSR latency for repeat visitors while keeping data fresh.
+export const revalidate = 60
+
 const SITE_URL = getPublicSiteUrl()
 
 // ── Helper: infer schema.org DriveWheelConfiguration ──

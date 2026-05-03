@@ -9,7 +9,7 @@
  */
 
 import { createStaticClient } from "@/lib/supabase/static"
-import { getDriveeMidFromDb } from "@/lib/drivee-db"
+import { getDriveeMidFromDb, preloadDriveeMappings } from "@/lib/drivee-db"
 import { calculateAllInPrice, safeNum, type AllInPriceBreakdown } from "@/lib/pricing/format"
 import { cache } from "react"
 
@@ -89,6 +89,11 @@ export const fetchVehicleForSSR = cache(async (
       lookupColumn = "stock_number"
     }
 
+    // Fire Drivee cache preload in parallel with the vehicle query.
+    // This saves ~100-300ms when the Drivee cache is cold because
+    // both Supabase round-trips happen concurrently instead of sequentially.
+    const driveeCacheWarm = preloadDriveeMappings()
+
     const { data: row, error } = await supabase
       .from("vehicles")
       .select(VEHICLE_DETAIL_FIELDS)
@@ -106,6 +111,8 @@ export const fetchVehicleForSSR = cache(async (
     const msrpInDollars = typeof v.msrp === "number" ? v.msrp / 100 : null
     const vin = typeof v.vin === "string" ? v.vin : ""
 
+    // Ensure Drivee cache is ready (usually already resolved by now)
+    await driveeCacheWarm
     const driveeMid = await getDriveeMidFromDb(vin)
     const pricing = calculateAllInPrice(priceInDollars)
 
