@@ -60,12 +60,12 @@ run_env_audit() {
 
   UNVALIDATED=$(comm -23 <(echo "$USED") <(echo "$DECLARED") \
     | grep -v '^CI$' | grep -v '^NEXT_RUNTIME$' | grep -v '^VERCEL_URL$' \
-    | grep -v '^NEXT_PUBLIC_VERCEL_URL$' | grep -v '^ANALYZE$')
+    | grep -v '^NEXT_PUBLIC_VERCEL_URL$' | grep -v '^ANALYZE$' || true)
 
   COUNT=$(echo "$UNVALIDATED" | grep -c '[A-Z]' || true)
   if [ "$COUNT" -gt 0 ]; then
     warn "${COUNT} env vars used in source but missing from lib/env.ts validation:"
-    echo "$UNVALIDATED" | while read -r v; do [ -n "$v" ] && REPORT+="      → $v\n" && echo -e "      → $v"; done
+    while read -r v; do [ -n "$v" ] && REPORT+="      → $v\n" && echo -e "      → $v"; done <<< "$UNVALIDATED"
   else
     pass "All env vars are validated in lib/env.ts"
   fi
@@ -131,7 +131,7 @@ run_dep_audit() {
     pass "No known vulnerabilities"
   else
     SUMMARY=$(echo "$AUDIT_OUT" | tail -2)
-    warn "Vulnerabilities found: ${SUMMARY}"
+    fail "Vulnerabilities found: ${SUMMARY}"
   fi
 }
 
