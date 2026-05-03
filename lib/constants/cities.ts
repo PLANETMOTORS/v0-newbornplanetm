@@ -245,7 +245,7 @@ export function getLocalFAQs(city: CityData, type: "sell-car" | "sell-tesla") {
   return [
     {
       question: `How do I sell my ${vehicleType} in ${city.name}?`,
-      answer: `Selling your ${vehicleType} in ${city.name} is easy with Planet Motors. Simply enter your vehicle details online for an instant valuation, schedule a ${isLocal ? "visit to our Richmond Hill location or a" : ""} free pickup, and receive same-day payment. We're OMVIC licensed since 2005.`,
+      answer: `Selling your ${vehicleType} in ${city.name} is easy with Planet Motors. Simply enter your vehicle details online for an instant valuation, schedule ${isLocal ? "a visit to our Richmond Hill location or a" : "a"} free pickup, and receive same-day payment. We're OMVIC licensed since 2005.`,
     },
     {
       question: `Do you pick up cars in ${city.name} for free?`,

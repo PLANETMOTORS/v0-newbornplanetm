@@ -60,6 +60,10 @@ export function buildPagesSitemap(baseUrl: string, currentDate: string): Sitemap
     { path: '/clutch-guide-canada', priority: 0.9, changeFrequency: 'weekly' },
     { path: '/electric-vehicles', priority: 0.95, changeFrequency: 'daily' },
     { path: '/tesla', priority: 0.9, changeFrequency: 'daily' },
+    { path: '/sell-your-car', priority: 0.9, changeFrequency: 'weekly' },
+    { path: '/sell-your-tesla', priority: 0.9, changeFrequency: 'weekly' },
+    { path: '/we-buy-cars', priority: 0.9, changeFrequency: 'weekly' },
+    { path: '/free-pickup', priority: 0.85, changeFrequency: 'weekly' },
   ]
 
   const legalPages = [
