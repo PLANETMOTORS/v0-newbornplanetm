@@ -18,6 +18,27 @@ import {
 
 export const maxDuration = 300 // 5 minutes — bg removal can be slow
 
+/** Spin frame URL patterns (match HomenetIOL 360° spin URLs) */
+const SPIN_URL_PATTERN = /\/Spin\//i
+
+/** Validate URL is from a known safe CDN host */
+function isSafeImageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== "https:") return false
+    // Allow known CDN/blob hosts
+    const safeHosts = [
+      "homenetiol.com",
+      "vercel.app",
+      "blob.vercel-storage.com",
+      "public.blob.vercel-storage.com",
+    ]
+    return safeHosts.some((h) => parsed.hostname.endsWith(h))
+  } catch {
+    return false
+  }
+}
+
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -54,15 +75,28 @@ export async function POST(
     return NextResponse.json({ error: "Vehicle has no images" }, { status: 400 })
   }
 
-  // Process each image
+  // Process each image (skip spin frames — they have canvas backdrop already)
   const results: {
     url: string
     newUrl: string | null
     bgRemoved: boolean
+    skipped?: boolean
     error?: string
   }[] = []
 
-  for (const url of imageUrls) {
+  for (const [idx, url] of imageUrls.entries()) {
+    // Skip 360° spin frames
+    if (SPIN_URL_PATTERN.test(url)) {
+      results.push({ url, newUrl: url, bgRemoved: false, skipped: true })
+      continue
+    }
+
+    // Validate URL before fetching (SSRF protection)
+    if (!isSafeImageUrl(url)) {
+      results.push({ url, newUrl: url, bgRemoved: false, error: "URL not from allowed host" })
+      continue
+    }
+
     try {
       // Download original
       const res = await fetch(url)
@@ -72,16 +106,25 @@ export async function POST(
       }
       const buffer = Buffer.from(await res.arrayBuffer())
 
-      // Process
+      // Store original backup before processing
+      const origPath = `vehicles/${vehicle.stock_number}/photo-${idx}-original.jpg`
+      await put(origPath, buffer, {
+        access: "public",
+        contentType: "image/jpeg",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+      })
+
+      // Process (bg removal + studio composite)
       const { processedBuffer, bgRemoved } = await processVehiclePhoto(buffer)
 
-      // Re-upload
-      const idx = imageUrls.indexOf(url)
+      // Upload processed version
       const blobPath = `vehicles/${vehicle.stock_number}/photo-${idx}.jpg`
       const blob = await put(blobPath, processedBuffer, {
         access: "public",
         contentType: "image/jpeg",
         addRandomSuffix: false,
+        allowOverwrite: true,
       })
 
       results.push({ url, newUrl: blob.url, bgRemoved })
@@ -97,7 +140,7 @@ export async function POST(
 
   // Update vehicle with new URLs
   const newUrls = results.map((r) => r.newUrl || r.url)
-  await adminClient
+  const { error: updateError } = await adminClient
     .from("vehicles")
     .update({
       image_urls: newUrls,
@@ -106,8 +149,16 @@ export async function POST(
     })
     .eq("id", id)
 
+  if (updateError) {
+    return NextResponse.json(
+      { error: "Images processed but DB update failed", details: updateError.message, results },
+      { status: 500 },
+    )
+  }
+
   const removed = results.filter((r) => r.bgRemoved).length
   const failed = results.filter((r) => r.error).length
+  const skipped = results.filter((r) => r.skipped).length
 
   return NextResponse.json({
     success: true,
@@ -116,6 +167,7 @@ export async function POST(
     totalImages: imageUrls.length,
     bgRemoved: removed,
     failed,
+    skipped,
     results,
   })
 }

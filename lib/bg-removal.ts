@@ -88,7 +88,9 @@ export async function removeBackground(imageBuffer: Buffer): Promise<Buffer | nu
   const replicate = new Replicate({ auth: token })
 
   try {
-    const base64 = `data:image/jpeg;base64,${imageBuffer.toString("base64")}`
+    // Normalize input to JPEG via sharp to avoid MIME mismatch issues
+    const jpegBuffer = await sharp(imageBuffer).jpeg({ quality: 95 }).toBuffer()
+    const base64 = `data:image/jpeg;base64,${jpegBuffer.toString("base64")}`
 
     const output = await Promise.race([
       replicate.run(REPLICATE_MODEL as `${string}/${string}:${string}`, {
@@ -99,23 +101,33 @@ export async function removeBackground(imageBuffer: Buffer): Promise<Buffer | nu
       ),
     ])
 
-    // rembg returns a URL to the result image
+    // Extract the result URL from various output formats
+    let resultUrl: string | null = null
+
     if (typeof output === "string") {
-      const res = await fetch(output)
-      if (!res.ok) throw new Error(`Failed to fetch result: HTTP ${res.status}`)
-      return Buffer.from(await res.arrayBuffer())
+      resultUrl = output
+    } else if (output && typeof output === "object") {
+      // Replicate v1.x FileOutput — call .url() if it's a function, else read .url property
+      const obj = output as Record<string, unknown>
+      if (typeof obj.url === "function") {
+        resultUrl = (obj.url as () => string)()
+      } else if (typeof obj.url === "string") {
+        resultUrl = obj.url
+      } else if (typeof (output as { toString?: () => string }).toString === "function") {
+        // FileOutput also has toString() returning the URL
+        const str = String(output)
+        if (str.startsWith("http")) resultUrl = str
+      }
     }
 
-    // Some model versions return a ReadableStream or FileOutput
-    if (output && typeof output === "object" && "url" in (output as Record<string, unknown>)) {
-      const url = (output as { url: string }).url
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`Failed to fetch result: HTTP ${res.status}`)
-      return Buffer.from(await res.arrayBuffer())
+    if (!resultUrl) {
+      console.warn("[BgRemoval] Unexpected output format:", typeof output)
+      return null
     }
 
-    console.warn("[BgRemoval] Unexpected output format:", typeof output)
-    return null
+    const res = await fetch(resultUrl)
+    if (!res.ok) throw new Error(`Failed to fetch result: HTTP ${res.status}`)
+    return Buffer.from(await res.arrayBuffer())
   } catch (error) {
     console.error("[BgRemoval] Failed:", error instanceof Error ? error.message : error)
     return null

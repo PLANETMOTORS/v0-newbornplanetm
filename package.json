@@ -68,7 +68,6 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.105.1",
     "@tanstack/react-virtual": "^3.13.24",
-    "@types/sharp": "^0.32.0",
     "@upstash/redis": "^1.35.0",
     "@vercel/analytics": "1.6.1",
     "@vercel/blob": "^2.3.3",
