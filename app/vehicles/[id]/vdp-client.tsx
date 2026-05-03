@@ -42,8 +42,13 @@ import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/con
 import { CarfaxSection } from "@/components/vdp/carfax-section"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
+import { FRAME_MANIFEST } from "@/lib/drivee-frames"
 
 // ── Lazy-load heavy below-fold components ──
+const SpinViewer = dynamic(
+  () => import("@/components/spin-viewer").then(m => ({ default: m.SpinViewer })),
+  { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl animate-pulse" style={{ background: "#e8e8e8" }} /> }
+)
 const DriveeViewer = dynamic(
   () => import("@/components/drivee-viewer").then(m => ({ default: m.DriveeViewer })),
   { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl animate-pulse" style={{ background: "#e8e8e8" }} /> }
@@ -420,9 +425,20 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
               <div className="min-w-0 overflow-hidden">
                 {/* Photos Tab */}
                 <TabsContent value="photos" className="mt-0 space-y-4">
-                  {/* 360° Interactive Viewer — Drivee iframe (if available) */}
+                  {/* 360° Interactive Viewer — native SpinViewer (Supabase) or Drivee iframe fallback */}
                   {(() => {
                     if (imageType === "360" && has360 && vehicle.driveeMid) {
+                      // Prefer native SpinViewer when frames are in Supabase Storage
+                      const hasLocalFrames = FRAME_MANIFEST[vehicle.driveeMid] != null
+                      if (hasLocalFrames) {
+                        return (
+                          <SpinViewer
+                            mid={vehicle.driveeMid}
+                            vehicleName={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                          />
+                        )
+                      }
+                      // Fallback to Drivee iframe for vehicles not yet migrated
                       return (
                         <DriveeViewer
                           mid={vehicle.driveeMid}
