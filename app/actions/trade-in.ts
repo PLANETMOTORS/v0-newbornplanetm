@@ -138,39 +138,44 @@ function fireSideEffects(
   quoteId: string,
   estimate: ReturnType<typeof estimateTradeInValue>,
 ): void {
-  if (body.customerEmail) {
-    void sendNotificationEmail({
-      type: 'trade_in_quote',
-      customerName: body.customerName ?? 'Customer',
-      customerEmail: body.customerEmail,
-      customerPhone: body.customerPhone,
-      vehicleInfo: `${body.year} ${body.make} ${body.model}`,
-      quoteId,
-      tradeInValue: estimate.averageEstimate,
-    }).catch((cause) =>
-      logger.error('[trade-in] notification email failed', { quoteId, cause }),
+  try {
+    if (body.customerEmail) {
+      void sendNotificationEmail({
+        type: 'trade_in_quote',
+        customerName: body.customerName ?? 'Customer',
+        customerEmail: body.customerEmail,
+        customerPhone: body.customerPhone,
+        vehicleInfo: `${body.year} ${body.make} ${body.model}`,
+        quoteId,
+        tradeInValue: estimate.averageEstimate,
+      }).catch((cause) =>
+        logger.error('[trade-in] notification email failed', { quoteId, cause }),
+      )
+    }
+
+    void forwardLeadToAutoRaptor(
+      tradeInToAdfProspect({
+        quoteId,
+        customerName: body.customerName,
+        customerEmail: body.customerEmail,
+        customerPhone: body.customerPhone,
+        vehicleYear: body.year,
+        vehicleMake: body.make,
+        vehicleModel: body.model,
+        mileage: body.mileage,
+        condition: body.condition,
+        offerAmount: estimate.averageEstimate,
+        offerLow: estimate.lowEstimate,
+        offerHigh: estimate.highEstimate,
+      }),
+    ).catch((cause) =>
+      logger.error('[trade-in] ADF forward failed', { quoteId, cause }),
     )
+
+    // Note: trackLead requires a Request object. For server actions,
+    // Meta CAPI tracking is handled by the client-side pixel instead.
+  } catch (cause) {
+    // Never let a side-effect crash the main success response
+    logger.error('[trade-in] side-effect threw synchronously', { quoteId, cause })
   }
-
-  void forwardLeadToAutoRaptor(
-    tradeInToAdfProspect({
-      quoteId,
-      customerName: body.customerName,
-      customerEmail: body.customerEmail,
-      customerPhone: body.customerPhone,
-      vehicleYear: body.year,
-      vehicleMake: body.make,
-      vehicleModel: body.model,
-      mileage: body.mileage,
-      condition: body.condition,
-      offerAmount: estimate.averageEstimate,
-      offerLow: estimate.lowEstimate,
-      offerHigh: estimate.highEstimate,
-    }),
-  ).catch((cause) =>
-    logger.error('[trade-in] ADF forward failed', { quoteId, cause }),
-  )
-
-  // Note: trackLead requires a Request object. For server actions,
-  // Meta CAPI tracking is handled by the client-side pixel instead.
 }
