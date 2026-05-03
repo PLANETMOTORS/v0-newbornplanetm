@@ -730,23 +730,23 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </div>
                   </div>
 
-                  {/* ── FERRARI SLIM POWER BAR — 80px High-Density Trust Bar ── */}
+                  {/* ── FERRARI SLIM POWER BAR — Floating 80px Trust Bar ── */}
                   <div className="w-full max-w-[850px] mx-auto mb-10 mt-4 px-4 md:px-0">
-                    <div className="flex flex-col md:flex-row items-center justify-between h-auto md:h-[80px] px-8 border border-slate-100 rounded-[20px] bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="flex flex-col md:flex-row items-center justify-between h-auto md:h-[80px] px-8 py-6 md:py-0 border border-slate-100 rounded-[20px] bg-white shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-500">
 
-                      {/* HERO: Official CARFAX Medium badge (36px) */}
-                      <div className="flex items-center py-5 md:py-0">
+                      {/* HERO: Official CARFAX Medium badge (36px forced) */}
+                      <div className="flex items-center">
                         <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
                       </div>
 
-                      {/* ACTION: Sleek Slate-900 CTA — centered in the 80px bar */}
+                      {/* ACTION: Branded CTA — full-width on mobile, compact on desktop */}
                       {carfaxReportUrl && (
-                        <div className="pb-5 md:pb-0 w-full md:w-auto">
+                        <div className="mt-6 md:mt-0 w-full md:w-auto">
                           <a
                             href={carfaxReportUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center px-8 py-3.5 bg-[#0f172a] text-white rounded-xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-black active:scale-95 transition-all shadow-md w-full md:w-auto"
+                            className="flex items-center justify-center px-10 py-4 bg-[#0f172a] text-white rounded-xl font-black text-xs md:text-sm uppercase tracking-[0.2em] hover:bg-black active:scale-95 transition-all shadow-lg w-full md:w-auto"
                           >
                             VIEW FULL REPORT
                           </a>
