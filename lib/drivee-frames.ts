@@ -5,11 +5,12 @@
  * to our own Supabase Storage bucket (`vehicle-360`).
  *
  * URL pattern (public, no auth required):
- *   {SUPABASE_URL}/storage/v1/object/public/vehicle-360/{MID}/nobg/{NN}.webp
+ *   {SUPABASE_URL}/storage/v1/object/public/vehicle-360/{MID}/{NN}.webp
  *
  * The "nobg" subfolder contains background-removed transparent WebP frames
- * (processed via rembg AI). Original frames are preserved at {MID}/{NN}.webp.
- * Both frameUrl() and scripts/migrate-360-to-supabase.ts use the nobg/ path.
+ * (processed via rembg AI). Original frames are at {MID}/{NN}.webp.
+ * frameUrl() uses original frames (clean studio shots); frameUrlNoBg() uses
+ * background-removed variants (may have AI artefacts on some vehicles).
  *
  * A static manifest records the exact frame count per MID so we no longer
  * need 50 parallel HEAD requests to discover frames at runtime — the API
@@ -143,8 +144,14 @@ export function interiorUrl(mid: string): string | null {
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/${filename}`
 }
 
-/** Build the public Supabase Storage URL for a single walk-around frame (background-removed). */
+/** Build the public Supabase Storage URL for a single walk-around frame (original studio). */
 export function frameUrl(mid: string, frameNumber: number): string {
+  const padded = String(frameNumber).padStart(2, "0")
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/${padded}.webp`
+}
+
+/** Build the public Supabase Storage URL for a background-removed frame. */
+export function frameUrlNoBg(mid: string, frameNumber: number): string {
   const padded = String(frameNumber).padStart(2, "0")
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/nobg/${padded}.webp`
 }

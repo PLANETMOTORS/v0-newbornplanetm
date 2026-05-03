@@ -13,8 +13,8 @@ interface SpinViewerProps {
   className?: string
 }
 
-/** Neutral gray matching the background-removed WebP frame backdrop. */
-const SPIN_BG = "#e8e8e8"
+/** Light gray matching the Drivee studio turntable backdrop. */
+const SPIN_BG = "#f0f0f0"
 
 /**
  * Native 360° Spin Viewer — loads WebP frames directly from Supabase Storage.
