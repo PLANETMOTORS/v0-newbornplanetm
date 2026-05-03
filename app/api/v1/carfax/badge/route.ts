@@ -69,7 +69,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         "Access-Control-Allow-Origin": "*",
       },
     })
-  } catch (_err) {
+  } catch (err) {
+    console.error("[carfax/badge] upstream fetch failed:", err)
     return NextResponse.json(
       { error: "Failed to fetch badge from upstream" },
       { status: 502 },

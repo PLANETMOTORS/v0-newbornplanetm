@@ -31,6 +31,15 @@ interface CarfaxSectionProps {
   className?: string
 }
 
+/** Build badge claims from a Carfax summary. */
+function buildClaims(summary: Parameters<typeof hasAccidentFreeBadge>[0], labels: { accident: string; owner: string; km: string }) {
+  const result: string[] = []
+  if (hasAccidentFreeBadge(summary)) result.push(labels.accident)
+  if (hasOneOwnerBadge(summary)) result.push(labels.owner)
+  if (hasLowKilometerBadge(summary)) result.push(labels.km)
+  return result
+}
+
 export function CarfaxSection({
   vin,
   variant = "panel",
@@ -40,38 +49,25 @@ export function CarfaxSection({
   const [imgError, setImgError] = useState(false)
 
   if (state.status === "loading") {
-    if (variant === "panel") {
-      /* Panel loading: slim skeleton inside the Power Bar shape */
-      return (
-        <div className="w-full max-w-[850px] mx-auto mb-10 mt-4 px-4 md:px-0" data-testid="carfax-loading">
-          <Skeleton className="h-[80px] w-full rounded-[20px]" />
-        </div>
-      )
-    }
-    return (
+    return variant === "panel" ? (
+      <div className="w-full max-w-[850px] mx-auto mb-10 mt-4 px-4 md:px-0" data-testid="carfax-loading">
+        <Skeleton className="h-[80px] w-full rounded-[20px]" />
+      </div>
+    ) : (
       <div className={className} data-testid="carfax-loading">
         <Skeleton className="h-12 w-full rounded-md" />
       </div>
     )
   }
 
-  if (state.status === "disabled" || state.status === "error") return null
-  if (state.status === "no-report") return null
+  if (state.status === "disabled" || state.status === "error" || state.status === "no-report") return null
 
   const { summary, stale } = state
-
-  // Build claims list used by both variants
-  const claims: string[] = []
-  if (hasAccidentFreeBadge(summary)) claims.push("No Accidents")
-  if (hasOneOwnerBadge(summary)) claims.push("One Owner")
-  if (hasLowKilometerBadge(summary)) claims.push("Low KM")
+  const claims = buildClaims(summary, { accident: "No Accidents", owner: "One Owner", km: "Low KM" })
 
   /* ── Headline variant ───────────────────────────────────────────── */
   if (variant === "headline") {
-    const headlineClaims: string[] = []
-    if (hasAccidentFreeBadge(summary)) headlineClaims.push("No reported accidents")
-    if (hasOneOwnerBadge(summary)) headlineClaims.push("One owner")
-    if (hasLowKilometerBadge(summary)) headlineClaims.push("Low kilometres")
+    const headlineClaims = buildClaims(summary, { accident: "No reported accidents", owner: "One owner", km: "Low kilometres" })
     if (headlineClaims.length === 0) return null
     return (
       <div className={className} data-testid="carfax-headline">

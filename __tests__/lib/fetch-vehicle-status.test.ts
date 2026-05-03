@@ -13,6 +13,7 @@ vi.mock('@/lib/supabase/static', () => ({
 
 vi.mock('@/lib/drivee-db', () => ({
   getDriveeMidFromDb: vi.fn().mockResolvedValue(null),
+  preloadDriveeMappings: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/pricing/format', () => ({

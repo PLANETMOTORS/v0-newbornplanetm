@@ -905,7 +905,7 @@ const toggleFavorite = (vehicleData: typeof accumulatedVehicles[0]) => {
           <div aria-live="polite" className={`py-8 ${viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}`}>
             {sortedVehicles.map((vehicle, vehicleIndex) => {
               const imageLoadingProps = vehicleIndex < 3
-                ? { priority: true } as const
+                ? { priority: true, fetchPriority: 'high' as const } as const
                 : { loading: "lazy" } as const
               return (
               <div
