@@ -165,10 +165,12 @@ export async function submitFinanceApplication(
       if (sectionKey === 'primaryApplicant' || sectionKey === 'coApplicant' ||
           sectionKey === 'vehicleInfo' || sectionKey === 'financingTerms') {
         const se = (fieldErrors[sectionKey] ??= {})
-        se[fieldKey] = se[fieldKey] ? [...se[fieldKey]!, issue.message] : [issue.message]
+        const existing = se[fieldKey]
+        se[fieldKey] = existing ? [...existing, issue.message] : [issue.message]
       } else {
         const re = (fieldErrors.root ??= {})
-        re[fieldKey] = re[fieldKey] ? [...re[fieldKey]!, issue.message] : [issue.message]
+        const existing = re[fieldKey]
+        re[fieldKey] = existing ? [...existing, issue.message] : [issue.message]
       }
     }
 
