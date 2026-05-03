@@ -187,17 +187,9 @@
     overflow-x: hidden;
   }
   
-  /* Prevent horizontal overflow from any element */
-  main, section, article, aside, footer {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-  
-  /* Header and nav need overflow visible for dropdowns */
-  header, nav {
-    max-width: 100vw;
-    overflow: visible;
-  }
+  /* Overflow-x for semantic elements is handled in stability-fixes.css
+     using overflow-x: clip (preferred over hidden — doesn't create a
+     new scroll container that can break position: sticky children). */
   
   /* Touch target sizes for mobile - only for primary interactive elements */
   .touch-target {

@@ -1,24 +1,27 @@
- 
 'use client'
 
-import { useState } from 'react'
+import { useActionState, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { SubmitButton } from '@/components/ui/submit-button'
 import { ArrowRight, Car } from 'lucide-react'
-import { PHONE_LOCAL } from "@/lib/constants/dealership"
+import { PHONE_LOCAL } from '@/lib/constants/dealership'
+import { submitTradeInQuote, type TradeInFormState } from '@/app/actions/trade-in'
 
 const currentYear = new Date().getFullYear()
 const earliestYear = 1980
 const years = Array.from({ length: currentYear - earliestYear + 1 }, (_, i) => currentYear - i)
 
 const popularMakes = [
-  'Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW', 'Mercedes-Benz', 
+  'Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW', 'Mercedes-Benz',
   'Audi', 'Lexus', 'Nissan', 'Hyundai', 'Kia', 'Mazda', 'Subaru',
-  'Volkswagen', 'Jeep', 'Ram', 'GMC', 'Tesla', 'Other'
+  'Volkswagen', 'Jeep', 'Ram', 'GMC', 'Tesla', 'Other',
 ]
+
+const initialState: TradeInFormState = { status: 'idle' }
 
 export function SellYourCarForm() {
   const [step, setStep] = useState(1)
@@ -39,8 +42,15 @@ export function SellYourCarForm() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  // React 19: useActionState replaces manual isSubmitting + error useState
+  const [state, formAction] = useActionState(
+    async (prev: TradeInFormState, fd: FormData) => {
+      const result = await submitTradeInQuote(prev, fd)
+      if (result.status === 'success') setStep(3)
+      return result
+    },
+    initialState,
+  )
 
   const canContinue =
     Boolean(formData.year) &&
@@ -51,42 +61,7 @@ export function SellYourCarForm() {
 
   const handleStepOneSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (canContinue) {
-      setStep(2)
-    }
-  }
-
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setError('')
-    
-    try {
-      const response = await fetch('/api/trade-in/quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          year: formData.year,
-          make: formData.make,
-          model: formData.model,
-          trim: formData.trim,
-          mileage: formData.mileage,
-          condition: formData.condition,
-          customerName: formData.name,
-          customerEmail: formData.email,
-          customerPhone: formData.phone,
-          comments: formData.comments,
-        }),
-      })
-      
-      if (!response.ok) throw new Error('Failed to submit')
-      
-      setStep(3)
-    } catch {
-      setError(`Failed to submit. Please try again or call us at ${PHONE_LOCAL}.`)
-    } finally {
-      setIsSubmitting(false)
-    }
+    if (canContinue) setStep(2)
   }
 
   return (
@@ -208,11 +183,20 @@ export function SellYourCarForm() {
         )}
 
         {step === 2 && (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={formAction} className="space-y-4">
+            {/* Hidden fields carry step-1 data into the server action */}
+            <input type="hidden" name="year" value={formData.year} />
+            <input type="hidden" name="make" value={formData.make} />
+            <input type="hidden" name="model" value={formData.model} />
+            <input type="hidden" name="trim" value={formData.trim} />
+            <input type="hidden" name="mileage" value={formData.mileage} />
+            <input type="hidden" name="condition" value={formData.condition} />
+
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
                 id="name"
+                name="name"
                 placeholder="Your name"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
@@ -224,6 +208,7 @@ export function SellYourCarForm() {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="your@email.com"
                   value={formData.email}
@@ -235,6 +220,7 @@ export function SellYourCarForm() {
                 <Label htmlFor="phone">Phone</Label>
                 <Input
                   id="phone"
+                  name="phone"
                   type="tel"
                   placeholder={PHONE_LOCAL}
                   value={formData.phone}
@@ -247,20 +233,25 @@ export function SellYourCarForm() {
               <Label htmlFor="comments">Additional Comments (Optional)</Label>
               <Textarea
                 id="comments"
+                name="comments"
                 placeholder="Any other details about your vehicle..."
                 value={formData.comments}
                 onChange={(e) => handleChange('comments', e.target.value)}
                 rows={3}
               />
             </div>
-            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            {state.status === 'error' && (
+              <p role="alert" className="text-sm text-destructive">
+                {state.message || `Failed to submit. Please try again or call us at ${PHONE_LOCAL}.`}
+              </p>
+            )}
             <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={() => setStep(1)}>
                 Back
               </Button>
-              <Button type="submit" className="flex-1" size="lg" disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Get My Quote'} {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}
-              </Button>
+              <SubmitButton className="flex-1" size="lg" pendingText="Submitting...">
+                Get My Quote <ArrowRight className="ml-2 h-4 w-4" />
+              </SubmitButton>
             </div>
           </form>
         )}

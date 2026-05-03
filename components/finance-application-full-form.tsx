@@ -1,7 +1,7 @@
  
 "use client"
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { startVehicleCheckout } from "@/app/actions/stripe"
@@ -28,8 +28,8 @@ import { ApplicantForm } from "@/components/finance-application/applicant-form"
 import { VehicleFinancingForm } from "@/components/finance-application/vehicle-financing-form"
 import { ReviewStep } from "@/components/finance-application/review-step"
 import { DocumentsStep } from "@/components/finance-application/documents-step"
-import { buildSubmitError } from "@/lib/finance/build-submit-error"
 import { uploadDocuments } from "@/lib/finance/upload-documents"
+import { submitFinanceApplication, type FinanceFieldErrors, type FinanceFormState } from "@/app/actions/finance-application"
 
 // Types, sub-components, and emptyApplicant imported from @/components/finance-application/
 
@@ -108,7 +108,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   }, [vehicleId])
   // handleFormStart is passed to child components via props/callbacks
   const [currentStep, setCurrentStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   // Idempotency key — generated once per form mount, prevents duplicate submissions
@@ -489,9 +489,34 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   const financing = calculateFinancing()
   
-  // Validation state
+  // Validation state — field-level errors from z.flatten().fieldErrors
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  
+  const [applicantFieldErrors, setApplicantFieldErrors] = useState<FinanceFieldErrors>({})
+  const [coApplicantFieldErrors, setCoApplicantFieldErrors] = useState<FinanceFieldErrors>({})
+
+  /**
+   * Scroll to the first field with a validation error.
+   * Uses requestAnimationFrame so React has time to re-render the
+   * target step before we query the DOM.
+   */
+  const scrollToFirstError = useCallback(() => {
+    requestAnimationFrame(() => {
+      const firstInvalid = document.querySelector<HTMLElement>(
+        '[aria-invalid="true"], [role="alert"]',
+      )
+      if (firstInvalid) {
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // Focus the field so screen readers announce the error
+        if (firstInvalid.tagName === 'INPUT' || firstInvalid.tagName === 'SELECT' || firstInvalid.tagName === 'TEXTAREA') {
+          firstInvalid.focus({ preventScroll: true })
+        }
+      } else {
+        // Fallback: scroll to top where the error banner lives
+        globalThis.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    })
+  }, [])
+
   // Helper to check if a field has an error and return the error class
 
   
@@ -654,6 +679,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 // Handle step navigation with validation
   const handleNextStep = () => {
     setSubmitError(null)
+    setApplicantFieldErrors({})
+    setCoApplicantFieldErrors({})
   let errors: string[] = []
   
   if (currentStep === 1) {
@@ -666,8 +693,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
     
 if (errors.length > 0) {
   setValidationErrors(errors)
-  // Scroll to top to show errors
-  globalThis.scrollTo({ top: 0, behavior: 'smooth' })
+  // Scroll to the first invalid field (or top if no DOM match yet)
+  scrollToFirstError()
   return
   }
     
@@ -705,60 +732,71 @@ if (errors.length > 0) {
     }
   }
 
-  // buildSubmitError and uploadDocuments are imported from @/lib/finance/
-  const handleSubmit = async () => {
-    setIsSubmitting(true)
+  // Server Action submission — z.flatten().fieldErrors for precise error mapping
+  const handleSubmit = () => {
+    startTransition(async () => {
     setSubmitError(null)
+    setApplicantFieldErrors({})
+    setCoApplicantFieldErrors({})
     try {
       trackFinanceEvent("form_submit", {
         has_co_applicant: includeCoApplicant,
         has_trade_in: tradeIn.hasTradeIn,
       })
-      const response = await fetch("/api/v1/financing/applications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKey.current,
-        },
-        body: JSON.stringify({
-          primaryApplicant,
-          coApplicant: includeCoApplicant ? coApplicant : null,
-          coApplicantRelation: includeCoApplicant ? coApplicantRelation : null,
-          vehicleInfo,
-          tradeIn: tradeIn.hasTradeIn ? tradeIn : null,
-          financingTerms,
-          additionalNotes,
-          vehicleId,
-          utm: utmParams.current,
-        })
-      })
-      
-      const result = await response.json()
 
-      if (!response.ok) {
-        throw new Error(buildSubmitError(response.status, result))
+      const result: FinanceFormState = await submitFinanceApplication({
+        primaryApplicant,
+        coApplicant: includeCoApplicant ? coApplicant : null,
+        coApplicantRelation: includeCoApplicant ? coApplicantRelation : null,
+        vehicleInfo,
+        tradeIn: tradeIn.hasTradeIn ? tradeIn : null,
+        financingTerms,
+        additionalNotes,
+        vehicleId,
+        utm: utmParams.current,
+        idempotencyKey: idempotencyKey.current,
+      })
+
+      if (result.status === 'error') {
+        // Map z.flatten().fieldErrors to the correct step/form
+        if (result.fieldErrors?.primaryApplicant) {
+          setApplicantFieldErrors(result.fieldErrors.primaryApplicant)
+          setCurrentStep(1) // Jump back to the step with errors
+        }
+        if (result.fieldErrors?.coApplicant) {
+          setCoApplicantFieldErrors(result.fieldErrors.coApplicant)
+          if (!result.fieldErrors.primaryApplicant) setCurrentStep(2)
+        }
+        // Convert any remaining errors to string[] for the generic banner
+        const allErrors: string[] = []
+        for (const section of Object.values(result.fieldErrors ?? {})) {
+          for (const msgs of Object.values(section ?? {})) {
+            if (msgs) allErrors.push(...msgs)
+          }
+        }
+        if (allErrors.length > 0) setValidationErrors(allErrors)
+        setSubmitError(result.message)
+        trackFinanceEvent("form_error", { error_message: result.message })
+        scrollToFirstError()
+        return
       }
 
-      const applicationId =
-        result.data?.application?.id ||
-        result.data?.applicationId ||
-        result.data?.id
-  
-  // Upload documents to private Blob storage
-  if (applicationId && documents.length > 0) {
-    await uploadDocuments(applicationId, documents)
-  }
-  
+      // Success — upload documents
+      if (result.status === 'success' && result.applicationId && documents.length > 0) {
+        await uploadDocuments(result.applicationId, documents)
+      }
+
       cleanupAfterSubmit()
       setIsSubmitted(true)
-  } catch (error) {
+    } catch (error) {
       console.error("Submit error:", error)
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       trackFinanceEvent("form_error", { error_message: errMsg })
-  } finally {
-    setIsSubmitting(false)
-  }
+    } finally {
+      // isPending auto-resets when transition completes
+    }
+    })
   }
   
   // Render success state — mandatory $250 deposit via Stripe Embedded Checkout
@@ -898,6 +936,7 @@ if (errors.length > 0) {
   data={primaryApplicant}
   onChange={setPrimaryApplicant}
   isPrimary
+  fieldErrors={applicantFieldErrors}
   validationErrors={validationErrors}
   />
           )}
@@ -941,6 +980,7 @@ if (errors.length > 0) {
   data={coApplicant}
   onChange={setCoApplicant}
   isPrimary={false}
+  fieldErrors={coApplicantFieldErrors}
   validationErrors={validationErrors}
   />
                 </>
@@ -981,7 +1021,7 @@ if (errors.length > 0) {
               documents={documents}
               setDocuments={setDocuments}
               onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
+              isSubmitting={isPending}
             />
           )}
         </CardContent>
@@ -1025,8 +1065,8 @@ if (errors.length > 0) {
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : (
-          <Button data-testid="finance-btn-submit" aria-busy={isSubmitting} onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? (
+          <Button data-testid="finance-btn-submit" aria-busy={isPending} className="aria-busy:opacity-80 aria-busy:cursor-wait" onClick={handleSubmit} disabled={isPending}>
+            {isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Submitting...

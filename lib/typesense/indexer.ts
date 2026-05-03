@@ -67,11 +67,15 @@ export async function upsertVehicle(doc: VehicleDocument): Promise<boolean> {
 }
 
 /**
- * Upsert vehicles in batches. Returns count of successful imports.
+ * Upsert vehicles in batches using the Typesense Bulk Import API.
+ * Each batch is sent as a single JSONL payload — 10k vehicles in ~10
+ * round-trips instead of 10k individual API calls.
+ *
+ * Default batch size is 1000 (Typesense recommended max for upsert).
  */
 export async function upsertVehiclesBatch(
   docs: VehicleDocument[],
-  batchSize = 250
+  batchSize = 1000
 ): Promise<{ success: number; errors: number }> {
   const client = getAdminClient()
   if (!client) return { success: 0, errors: 0 }

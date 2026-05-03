@@ -339,10 +339,11 @@ function SignUpForm() {
                       </div>
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 text-lg"
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-lg aria-busy:opacity-80 aria-busy:cursor-wait"
                       disabled={isLoading}
+                      aria-busy={isLoading}
                     >
                       {isLoading ? "Creating account..." : "Create Account"}
                     </Button>

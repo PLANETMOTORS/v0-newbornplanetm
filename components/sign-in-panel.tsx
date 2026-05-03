@@ -222,8 +222,9 @@ export function SignInPanel({ isOpen, onClose }: Readonly<SignInPanelProps>) {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 font-semibold"
+                  className="w-full h-11 font-semibold aria-busy:opacity-80 aria-busy:cursor-wait"
                   disabled={isLoading}
+                  aria-busy={isLoading}
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>

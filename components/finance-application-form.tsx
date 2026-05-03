@@ -603,7 +603,7 @@ export function FinanceApplicationForm() {
         </div>
       )}
 
-      <Button type="submit" className="w-full" size="lg" disabled={isSubmitDisabled}>
+      <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" size="lg" disabled={isSubmitDisabled} aria-busy={isLoading || stage === "capturing"}>
         {isLoading || stage === "capturing" ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />

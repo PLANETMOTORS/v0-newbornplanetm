@@ -1,50 +1,44 @@
-"use client"
+'use client'
 
-import { useState, useCallback } from "react"
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react"
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
+import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import {
+  subscribeNewsletter,
+  initialState,
+  type NewsletterFormState,
+} from '@/app/actions/newsletter'
 
-type SubmitState = "idle" | "loading" | "success" | "error"
+// ── Inline submit button (footer-specific styling) ──────────────────────
+
+function NewsletterSubmitButton() {
+  const { pending } = useFormStatus()
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      aria-busy={pending}
+      className="px-4 py-2.5 bg-[#1e3a8a] hover:bg-[#1e40af] text-white text-sm font-semibold rounded-r-lg transition-colors disabled:opacity-50 aria-busy:cursor-wait flex items-center gap-1.5"
+    >
+      {pending ? (
+        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+      ) : (
+        'Subscribe'
+      )}
+    </button>
+  )
+}
+
+// ── Main component ──────────────────────────────────────────────────────
 
 export function FooterNewsletter() {
-  const [email, setEmail] = useState("")
-  const [state, setState] = useState<SubmitState>("idle")
-  const [errorMsg, setErrorMsg] = useState("")
-
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
-      const trimmed = email.trim()
-      if (!trimmed) return
-
-      setState("loading")
-      setErrorMsg("")
-
-      try {
-        const res = await fetch("/api/v1/newsletter", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: trimmed }),
-        })
-
-        const data = await res.json()
-
-        if (!res.ok) {
-          setState("error")
-          setErrorMsg(data.error ?? "Something went wrong")
-          return
-        }
-
-        setState("success")
-        setEmail("")
-      } catch {
-        setState("error")
-        setErrorMsg("Network error. Please try again.")
-      }
-    },
-    [email],
+  const [state, formAction] = useActionState<NewsletterFormState, FormData>(
+    subscribeNewsletter,
+    initialState,
   )
 
-  if (state === "success") {
+  if (state.status === 'success') {
     return (
       <div>
         <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-2.5">
@@ -52,7 +46,7 @@ export function FooterNewsletter() {
         </p>
         <div className="flex items-center gap-2 text-green-400 text-sm">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>You&apos;re subscribed!</span>
+          <span>{state.message}</span>
         </div>
       </div>
     )
@@ -63,35 +57,20 @@ export function FooterNewsletter() {
       <p className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-2.5">
         Get deals in your inbox
       </p>
-      <form className="flex max-w-xs" onSubmit={handleSubmit}>
+      <form className="flex max-w-xs" action={formAction}>
         <input
           type="email"
+          name="email"
           required
           placeholder="your@email.com"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value)
-            if (state === "error") setState("idle")
-          }}
-          disabled={state === "loading"}
           className="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 border-r-0 rounded-l-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-[#1e3a8a] transition-colors disabled:opacity-50"
         />
-        <button
-          type="submit"
-          disabled={state === "loading"}
-          className="px-4 py-2.5 bg-[#1e3a8a] hover:bg-[#1e40af] text-white text-sm font-semibold rounded-r-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
-        >
-          {state === "loading" ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            "Subscribe"
-          )}
-        </button>
+        <NewsletterSubmitButton />
       </form>
-      {state === "error" && (
-        <div className="flex items-center gap-1.5 mt-2 text-red-400 text-xs">
+      {state.status === 'error' && (
+        <div className="flex items-center gap-1.5 mt-2 text-red-400 text-xs" role="alert">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-          <span>{errorMsg}</span>
+          <span>{state.message}</span>
         </div>
       )}
     </div>

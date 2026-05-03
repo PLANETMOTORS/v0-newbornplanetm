@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -12,27 +12,26 @@ import { PlanetMotorsLogo } from "@/components/planet-motors-logo"
 
 export default function AdminForgotPasswordPage() {
   const [email, setEmail] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [error, setError] = useState("")
   const [sent, setSent] = useState(false)
 
-  const handleReset = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleReset = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
-    setIsSubmitting(true)
 
-    try {
-      const supabase = createClient()
-      const redirectTo = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/admin/reset-password")}`
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+    startTransition(async () => {
+      try {
+        const supabase = createClient()
+        const redirectTo = `${globalThis.location.origin}/auth/callback?redirectTo=${encodeURIComponent("/admin/reset-password")}`
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
 
-      if (resetError) throw resetError
-      setSent(true)
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Unable to send reset email")
-    } finally {
-      setIsSubmitting(false)
-    }
+        if (resetError) throw resetError
+        setSent(true)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Unable to send reset email")
+      }
+    })
   }
 
   return (
@@ -101,10 +100,11 @@ export default function AdminForgotPasswordPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={isSubmitting}
+                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white aria-busy:opacity-80 aria-busy:cursor-wait"
+                  disabled={isPending}
+                  aria-busy={isPending}
                 >
-                  {isSubmitting ? (
+                  {isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Sending...

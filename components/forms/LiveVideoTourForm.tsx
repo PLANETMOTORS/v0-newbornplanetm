@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,7 +21,7 @@ interface LiveVideoTourFormProps {
 }
 
 export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: Readonly<LiveVideoTourFormProps>) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const nameInputRef = useRef<HTMLInputElement | null>(null)
   const emailInputRef = useRef<HTMLInputElement | null>(null)
@@ -66,43 +66,42 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: Readonl
       return
     }
 
-    setIsSubmitting(true)
     setError(null)
 
-    try {
-      // Combine date and time into ISO string
-      const preferredTime = new Date(
-        `${formData.selectedDate}T${formData.selectedTime}:00`
-      ).toISOString()
+    startTransition(async () => {
+      try {
+        // Combine date and time into ISO string
+        const preferredTime = new Date(
+          `${formData.selectedDate}T${formData.selectedTime}:00`
+        ).toISOString()
 
-      const response = await fetch("/api/live-video-tour/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicleId,
-          vehicleName,
-          customerName,
-          customerEmail,
-          customerPhone,
-          preferredTime,
-          provider: formData.provider,
-          notes: formData.notes,
-        }),
-      })
+        const response = await fetch("/api/live-video-tour/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vehicleId,
+            vehicleName,
+            customerName,
+            customerEmail,
+            customerPhone,
+            preferredTime,
+            provider: formData.provider,
+            notes: formData.notes,
+          }),
+        })
 
-      const data: LiveVideoTourResponse = await response.json()
+        const data: LiveVideoTourResponse = await response.json()
 
-      if (data.ok) {
-        onSuccess(data)
-      } else {
-        setError(data.error || "Failed to schedule. Please try again.")
+        if (data.ok) {
+          onSuccess(data)
+        } else {
+          setError(data.error || "Failed to schedule. Please try again.")
+        }
+      } catch (err) {
+        console.error("Failed to schedule video tour:", err)
+        setError("Connection error. Please try again.")
       }
-    } catch (err) {
-      console.error("Failed to schedule video tour:", err)
-      setError("Connection error. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
+    })
   }
 
   return (
@@ -264,10 +263,11 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: Readonl
       <div className="pt-2 space-y-3">
         <Button
           type="submit"
-          className="w-full h-12 text-base font-semibold"
-          disabled={isSubmitting}
+          className="w-full h-12 text-base font-semibold aria-busy:opacity-80 aria-busy:cursor-wait"
+          disabled={isPending}
+          aria-busy={isPending}
         >
-          {isSubmitting ? "Scheduling..." : "Schedule Video Tour"}
+          {isPending ? "Scheduling..." : "Schedule Video Tour"}
         </Button>
         {!isFormValid && (
           <p className="text-xs text-center text-muted-foreground">

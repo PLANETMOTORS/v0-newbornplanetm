@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { User, MapPin, Home, Briefcase, DollarSign } from "lucide-react"
 import type { ApplicantData } from "./types"
+import type { FinanceFieldErrors } from "@/app/actions/finance-application"
 import { PostalCodeInput } from "./postal-code-input"
 
 interface ApplicantFormProps {
@@ -14,6 +15,9 @@ interface ApplicantFormProps {
   data: ApplicantData
   onChange: (data: ApplicantData) => void
   isPrimary: boolean
+  /** Field-level errors keyed by field name (from z.flatten().fieldErrors) */
+  fieldErrors?: FinanceFieldErrors
+  /** @deprecated Use fieldErrors instead — kept for backward compat */
   validationErrors?: string[]
 }
 
@@ -29,51 +33,51 @@ function formatPhoneDigits(digits: string): string {
 }
 
 export
-function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, validationErrors = [] }: Readonly<ApplicantFormProps>) {
+function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrimary, fieldErrors = {}, validationErrors = [] }: Readonly<ApplicantFormProps>) {
   const updateField = (field: keyof ApplicantData, value: string | boolean | { day: string; month: string; year: string }) => {
     onChange({ ...data, [field]: value })
   }
-  
-  // Helper to check if a field has an error
-  const hasFieldError = (fieldName: string): boolean => {
-    return validationErrors.some(err => 
-      err.toLowerCase().includes(fieldName.toLowerCase())
-    )
-  }
-  
-  // Get error class for inputs
-  const getInputErrorClass = (fieldName: string): string => {
-    return hasFieldError(fieldName) ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
-  }
-  
-  // Get error class for labels
-  const getLabelClass = (fieldName: string): string => {
-    return hasFieldError(fieldName) ? "text-destructive font-semibold" : ""
+
+  // ── Field-level error helpers (z.flatten().fieldErrors keyed) ──────
+  // Checks fieldErrors first (new pattern), falls back to legacy string[] match
+  const hasFieldError = (fieldKey: string): boolean => {
+    if (fieldErrors[fieldKey]?.length) return true
+    // Legacy fallback: match by substring in string[] validationErrors
+    return validationErrors.some(err => err.toLowerCase().includes(fieldKey.toLowerCase()))
   }
 
-  // Get aria-invalid for inputs
-  const getAriaInvalid = (fieldName: string): boolean | undefined => {
-    return hasFieldError(fieldName) ? true : undefined
+  const getInputErrorClass = (fieldKey: string): string => {
+    return hasFieldError(fieldKey) ? "border-destructive ring-1 ring-destructive bg-destructive/5" : ""
   }
 
-  // Get aria-describedby for inputs (links to error message element)
-  const getAriaDescribedBy = (fieldName: string): string | undefined => {
-    return hasFieldError(fieldName) ? `error-${fieldName.toLowerCase().replaceAll(/\s+/g, "-")}` : undefined
+  const getLabelClass = (fieldKey: string): string => {
+    return hasFieldError(fieldKey) ? "text-destructive font-semibold" : ""
   }
 
-  // S6478 — render inline (no nested component) so React doesn't see a new
-  // component identity on every parent render. Returns the same JSX shape
-  // as the previous <FieldError /> JSX.
-  const renderFieldError = (fieldName: string) => {
-    if (!hasFieldError(fieldName)) return null
-    const errorMsg = validationErrors.find(err => err.toLowerCase().includes(fieldName.toLowerCase()))
+  const getAriaInvalid = (fieldKey: string): boolean | undefined => {
+    return hasFieldError(fieldKey) ? true : undefined
+  }
+
+  const getAriaDescribedBy = (fieldKey: string): string | undefined => {
+    return hasFieldError(fieldKey) ? `error-${fieldKey}` : undefined
+  }
+
+  // Render error from z.flatten().fieldErrors or legacy string match
+  const renderFieldError = (fieldKey: string) => {
+    const zodErrors = fieldErrors[fieldKey]
+    if (zodErrors?.length) {
+      return (
+        <p id={`error-${fieldKey}`} role="alert" className="text-xs text-destructive mt-1">
+          {zodErrors[0]}
+        </p>
+      )
+    }
+    // Legacy fallback
+    const legacyErr = validationErrors.find(err => err.toLowerCase().includes(fieldKey.toLowerCase()))
+    if (!legacyErr) return null
     return (
-      <p
-        id={`error-${fieldName.toLowerCase().replaceAll(/\s+/g, "-")}`}
-        role="alert"
-        className="text-xs text-destructive mt-1"
-      >
-        {errorMsg}
+      <p id={`error-${fieldKey}`} role="alert" className="text-xs text-destructive mt-1">
+        {legacyErr}
       </p>
     )
   }
@@ -106,18 +110,18 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label htmlFor="firstName" className={getLabelClass("First Name")}>First Name *</Label>
-            <Input id="firstName" data-testid="finance-step-1-first-name" value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required aria-invalid={getAriaInvalid("First Name")} aria-describedby={getAriaDescribedBy("First Name")} className={getInputErrorClass("First Name")} />
-            {renderFieldError("First Name" )}
+            <Label htmlFor="firstName" className={getLabelClass("firstName")}>First Name *</Label>
+            <Input id="firstName" data-testid="finance-step-1-first-name" value={data.firstName} onChange={(e) => updateField("firstName", e.target.value)} required aria-invalid={getAriaInvalid("firstName")} aria-describedby={getAriaDescribedBy("firstName")} className={getInputErrorClass("firstName")} />
+            {renderFieldError("firstName")}
           </div>
           <div>
             <Label htmlFor="middleName">Middle Name</Label>
-            <Input id="middleName" data-testid="finance-step-1-middle-name" aria-invalid={getAriaInvalid("Middle Name")} aria-describedby={getAriaDescribedBy("Middle Name")} value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
+            <Input id="middleName" data-testid="finance-step-1-middle-name" value={data.middleName} onChange={(e) => updateField("middleName", e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="lastName" className={getLabelClass("Last Name")}>Last Name *</Label>
-            <Input id="lastName" data-testid="finance-step-1-last-name" value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required aria-invalid={getAriaInvalid("Last Name")} aria-describedby={getAriaDescribedBy("Last Name")} className={getInputErrorClass("Last Name")} />
-            {renderFieldError("Last Name" )}
+            <Label htmlFor="lastName" className={getLabelClass("lastName")}>Last Name *</Label>
+            <Input id="lastName" data-testid="finance-step-1-last-name" value={data.lastName} onChange={(e) => updateField("lastName", e.target.value)} required aria-invalid={getAriaInvalid("lastName")} aria-describedby={getAriaDescribedBy("lastName")} className={getInputErrorClass("lastName")} />
+            {renderFieldError("lastName")}
           </div>
           <div>
             <Label>Suffix</Label>
@@ -132,10 +136,10 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label className={getLabelClass("Date of Birth")}>Date of Birth *</Label>
+            <Label className={getLabelClass("dateOfBirth")}>Date of Birth *</Label>
             <div className="grid grid-cols-3 gap-2">
               <Select value={data.dateOfBirth.day} onValueChange={(v) => updateField("dateOfBirth", { ...data.dateOfBirth, day: v })}>
-                <SelectTrigger className={getInputErrorClass("Date of Birth")}><SelectValue placeholder="Day" /></SelectTrigger>
+                <SelectTrigger className={getInputErrorClass("dateOfBirth")}><SelectValue placeholder="Day" /></SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 31 }, (_, i) => (
                     <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
@@ -162,9 +166,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </div>
           </div>
           <div>
-            <Label className={getLabelClass("Gender")}>Gender *</Label>
+            <Label className={getLabelClass("gender")}>Gender *</Label>
             <Select value={data.gender} onValueChange={(v) => updateField("gender", v)}>
-              <SelectTrigger className={getInputErrorClass("Gender")}><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("gender")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
@@ -174,9 +178,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label className={getLabelClass("Marital Status")}>Marital Status *</Label>
+            <Label className={getLabelClass("maritalStatus")}>Marital Status *</Label>
             <Select value={data.maritalStatus} onValueChange={(v) => updateField("maritalStatus", v)}>
-              <SelectTrigger className={getInputErrorClass("Marital Status")}><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("maritalStatus")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="single">Single</SelectItem>
                 <SelectItem value="married">Married</SelectItem>
@@ -188,7 +192,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label className={getLabelClass("Phone")}>Phone * <span className="text-xs text-primary font-semibold">(3-digit area + 7-digit number)</span></Label>
+            <Label className={getLabelClass("phone")}>Phone * <span className="text-xs text-primary font-semibold">(3-digit area + 7-digit number)</span></Label>
             <Input 
               type="tel" 
               value={data.phone} 
@@ -197,7 +201,7 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
                 updateField("phone", formatPhoneDigits(digits))
               }} 
               placeholder="(416) 555-0100" 
-              className={getInputErrorClass("Phone")}
+              className={getInputErrorClass("phone")}
             />
           </div>
           <div>
@@ -213,13 +217,14 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             />
           </div>
           <div>
-            <Label htmlFor="email" className={getLabelClass("Email")}>Email *</Label>
-            <Input id="email" data-testid="finance-step-1-email" aria-invalid={getAriaInvalid("Email")} aria-describedby={getAriaDescribedBy("Email")} type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("Email")} />
+            <Label htmlFor="email" className={getLabelClass("email")}>Email *</Label>
+            <Input id="email" data-testid="finance-step-1-email" aria-invalid={getAriaInvalid("email")} aria-describedby={getAriaDescribedBy("email")} type="email" value={data.email} onChange={(e) => updateField("email", e.target.value)} className={getInputErrorClass("email")} />
+            {renderFieldError("email")}
           </div>
           <div>
-            <Label className={getLabelClass("Credit Rating")}>Credit Rating *</Label>
+            <Label className={getLabelClass("creditRating")}>Credit Rating *</Label>
             <Select value={data.creditRating} onValueChange={(v) => updateField("creditRating", v)}>
-              <SelectTrigger className={getInputErrorClass("Credit Rating")}><SelectValue placeholder="Select rating" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("creditRating")}><SelectValue placeholder="Select rating" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="excellent">Excellent [750+]</SelectItem>
                 <SelectItem value="good">Good [700+]</SelectItem>
@@ -257,9 +262,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             }}
           />
 <div>
-  <Label className={getLabelClass("Address Type")}>Address Type *</Label>
+  <Label className={getLabelClass("addressType")}>Address Type *</Label>
   <Select value={data.addressType} onValueChange={(v) => updateField("addressType", v)}>
-  <SelectTrigger className={getInputErrorClass("Address Type")}><SelectValue placeholder="Select" /></SelectTrigger>
+  <SelectTrigger className={getInputErrorClass("addressType")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="house">House</SelectItem>
                 <SelectItem value="apartment">Apartment</SelectItem>
@@ -274,8 +279,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             <Input value={data.suiteNumber} onChange={(e) => updateField("suiteNumber", e.target.value)} />
           </div>
 <div>
-  <Label className={getLabelClass("Street Number")}>Street Number *</Label>
-  <Input value={data.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} className={getInputErrorClass("Street Number")} />
+  <Label className={getLabelClass("streetNumber")}>Street Number *</Label>
+  <Input value={data.streetNumber} onChange={(e) => updateField("streetNumber", e.target.value)} className={getInputErrorClass("streetNumber")} />
   </div>
           <div className="md:col-span-2">
             <Label>Street Name *</Label>
@@ -353,9 +358,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label className={getLabelClass("Home Status")}>Home Status *</Label>
+            <Label className={getLabelClass("homeStatus")}>Home Status *</Label>
             <Select value={data.homeStatus} onValueChange={(v) => updateField("homeStatus", v)}>
-              <SelectTrigger className={getInputErrorClass("Home Status")}><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("homeStatus")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="own">Own</SelectItem>
                 <SelectItem value="rent">Rent</SelectItem>
@@ -381,8 +386,8 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </>
           )}
           <div>
-            <Label className={getLabelClass("Monthly Payment")}>Monthly Payment *</Label>
-            <Input type="number" value={data.monthlyPayment} onChange={(e) => updateField("monthlyPayment", e.target.value)} placeholder="$0.00" className={getInputErrorClass("Monthly Payment")} />
+            <Label className={getLabelClass("monthlyPayment")}>Monthly Payment *</Label>
+            <Input type="number" value={data.monthlyPayment} onChange={(e) => updateField("monthlyPayment", e.target.value)} placeholder="$0.00" className={getInputErrorClass("monthlyPayment")} />
           </div>
         </div>
       </section>
@@ -397,9 +402,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label className={getLabelClass("Employment Type")}>Employment Type *</Label>
+            <Label className={getLabelClass("employmentCategory")}>Employment Type *</Label>
             <Select value={data.employmentCategory} onValueChange={(v) => updateField("employmentCategory", v)}>
-              <SelectTrigger className={getInputErrorClass("Employment Type")}><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("employmentCategory")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="full_time">Full-Time</SelectItem>
                 <SelectItem value="part_time">Part-Time</SelectItem>
@@ -412,9 +417,9 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label className={getLabelClass("Employment Status")}>Status *</Label>
+            <Label className={getLabelClass("employmentStatus")}>Status *</Label>
             <Select value={data.employmentStatus} onValueChange={(v) => updateField("employmentStatus", v)}>
-              <SelectTrigger className={getInputErrorClass("Employment Status")}><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("employmentStatus")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="employed">Employed</SelectItem>
                 <SelectItem value="probation">On Probation</SelectItem>
@@ -425,12 +430,12 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
             </Select>
           </div>
           <div>
-            <Label className={getLabelClass("Employer Name")}>Employer Name *</Label>
-            <Input value={data.employerName} onChange={(e) => updateField("employerName", e.target.value)} className={getInputErrorClass("Employer Name")} />
+            <Label className={getLabelClass("employerName")}>Employer Name *</Label>
+            <Input value={data.employerName} onChange={(e) => updateField("employerName", e.target.value)} className={getInputErrorClass("employerName")} />
           </div>
           <div>
-            <Label className={getLabelClass("Occupation")}>Occupation *</Label>
-            <Input value={data.occupation} onChange={(e) => updateField("occupation", e.target.value)} className={getInputErrorClass("Occupation")} />
+            <Label className={getLabelClass("occupation")}>Occupation *</Label>
+            <Input value={data.occupation} onChange={(e) => updateField("occupation", e.target.value)} className={getInputErrorClass("occupation")} />
           </div>
 
 <div>
@@ -505,13 +510,13 @@ function ApplicantForm({ title, description, data, onChange, isPrimary: _isPrima
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label className={getLabelClass("Gross Income")}>Gross Income *</Label>
-            <Input type="number" value={data.grossIncome} onChange={(e) => updateField("grossIncome", e.target.value)} placeholder="$0.00" className={getInputErrorClass("Gross Income")} />
+            <Label className={getLabelClass("grossIncome")}>Gross Income *</Label>
+            <Input type="number" value={data.grossIncome} onChange={(e) => updateField("grossIncome", e.target.value)} placeholder="$0.00" className={getInputErrorClass("grossIncome")} />
           </div>
           <div>
-            <Label className={getLabelClass("Income Frequency")}>Income Frequency *</Label>
+            <Label className={getLabelClass("incomeFrequency")}>Income Frequency *</Label>
             <Select value={data.incomeFrequency} onValueChange={(v) => updateField("incomeFrequency", v)}>
-              <SelectTrigger className={getInputErrorClass("Income Frequency")}><SelectValue placeholder="Select" /></SelectTrigger>
+              <SelectTrigger className={getInputErrorClass("incomeFrequency")}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="weekly">Weekly</SelectItem>
                 <SelectItem value="bi-weekly">Bi-Weekly</SelectItem>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { Loader2, Mail } from "lucide-react"
 
@@ -12,32 +12,31 @@ import { Label } from "@/components/ui/label"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
 
-  const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
+  const onSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
 
-    try {
-      setIsSubmitting(true)
-      const supabase = createClient()
-      const redirectTo = `${globalThis.location.origin}/auth/login`
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
+    startTransition(async () => {
+      try {
+        const supabase = createClient()
+        const redirectTo = `${globalThis.location.origin}/auth/login`
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
 
-      if (resetError) {
-        setError(resetError.message)
-        return
+        if (resetError) {
+          setError(resetError.message)
+          return
+        }
+
+        setSent(true)
+      } catch (unknownError) {
+        const message = unknownError instanceof Error ? unknownError.message : "Unable to send reset email"
+        setError(message)
       }
-
-      setSent(true)
-    } catch (unknownError) {
-      const message = unknownError instanceof Error ? unknownError.message : "Unable to send reset email"
-      setError(message)
-    } finally {
-      setIsSubmitting(false)
-    }
+    })
   }
 
   return (
@@ -79,8 +78,8 @@ export default function ForgotPasswordPage() {
 
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isPending} aria-busy={isPending}>
+                {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Sending...

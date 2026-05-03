@@ -24,7 +24,7 @@
  *   />
  */
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -79,7 +79,7 @@ export function LeadCaptureForm({
     phone: "",
   })
   const [errors, setErrors] = useState<Partial<FormState>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState("")
 
@@ -145,9 +145,9 @@ export function LeadCaptureForm({
       return
     }
 
-    setIsSubmitting(true)
     setSubmitError("")
 
+    startTransition(async () => {
     try {
       // ── Server call ────────────────────────────────────────────────────
       // Reuses /api/contact which:
@@ -202,8 +202,9 @@ export function LeadCaptureForm({
       logger.error(`[lead-capture-form] Submit failed (${formName}):`, err)
       setSubmitError("Something went wrong. Please try again or call us directly.")
     } finally {
-      setIsSubmitting(false)
+      // isPending auto-resets when transition completes
     }
+    })
   }
 
   // ── Success state ────────────────────────────────────────────────────────
@@ -332,11 +333,11 @@ export function LeadCaptureForm({
 
       <Button
         type="submit"
-        className="w-full"
-        disabled={!isFormValid() || isSubmitting}
-        aria-busy={isSubmitting}
+        className="w-full aria-busy:opacity-80 aria-busy:cursor-wait"
+        disabled={!isFormValid() || isPending}
+        aria-busy={isPending}
       >
-        {isSubmitting ? (
+        {isPending ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
             Sending...

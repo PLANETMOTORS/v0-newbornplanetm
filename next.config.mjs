@@ -59,7 +59,7 @@ const nextConfig = {
     // Serve optimised images from the edge for 60 s, revalidate in background for 1 day
     minimumCacheTTL: 86400,
     remotePatterns: [
-      { protocol: 'https', hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com' },
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
       { protocol: 'https', hostname: 'cdn.planetmotors.ca' },
       { protocol: 'https', hostname: 'planetmotors.imgix.net' },
       { protocol: 'https', hostname: 'media.cpsimg.com' },
@@ -187,16 +187,6 @@ const nextConfig = {
     return [...internalRedirects, ...carPagesRedirects, ...blogSeoRedirects]
   },
 
-  // Rewrite /sitemap.xml to the API route handler (works locally + Vercel)
-  async rewrites() {
-    return [
-      {
-        source: '/sitemap.xml',
-        destination: '/api/sitemap',
-      },
-    ]
-  },
-
   // OWASP security headers — split CSP: strict for main site, permissive for /studio
   async headers() {
     // Shared security headers (all routes)
@@ -231,6 +221,7 @@ const nextConfig = {
       'https://stapecdn.com',             // Stape server-side tagging CDN
       'https://googleads.g.doubleclick.net',  // Google Ads conversion scripts
       'https://www.googleadservices.com',     // Google Ads services
+      'https://capig.planetmotors.ca',       // Server-side GTM tagging
     ]
 
     const styleSrc = [
@@ -245,7 +236,7 @@ const nextConfig = {
       'blob:',
       'data:',
       'https://*.stripe.com',
-      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com',
+      'https://*.public.blob.vercel-storage.com',
       'https://cdn.planetmotors.ca',
       'https://planetmotors.imgix.net',
       'https://media.cpsimg.com',
@@ -256,6 +247,7 @@ const nextConfig = {
       'https://photos.homenetiol.com',
       'https://ldervbcvkoawwknsemuz.supabase.co',
       'https://images.unsplash.com',
+      'https://cdn.carfax.ca',               // CARFAX Badging API badge SVGs
 
       'https://www.google.com',              // Remarketing pixel
       'https://www.google.ca',               // Remarketing pixel (CA localized)
@@ -290,6 +282,7 @@ const nextConfig = {
       'https://googleads.g.doubleclick.net',       // Google Ads data
       'https://www.merchant-center-analytics.goog', // Google Merchant Center
       'https://pagead2.googlesyndication.com',     // Google Ads CCM collect
+      'https://cdn.carfax.ca',                       // CARFAX badge SVGs
     ]
 
     const mainSiteCSP = [

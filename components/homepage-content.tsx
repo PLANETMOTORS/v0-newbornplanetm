@@ -207,7 +207,7 @@ export function HomepageContent({ siteSettings, homepageData, showcaseVehicles }
               </div>
 
               {/* Floating Badge — dynamic from RATE_FLOOR */}
-              <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg z-10">
+              <div className="absolute top-4 right-4 bg-[#dc2626] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg z-10 pointer-events-none">
                 From {RATE_FLOOR}% APR
               </div>
             </div>

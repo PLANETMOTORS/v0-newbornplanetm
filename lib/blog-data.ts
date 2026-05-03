@@ -69,20 +69,7 @@ export const blogPosts: Record<string, BlogPostEntry> = {
 
 export type BlogPost = typeof blogPosts[keyof typeof blogPosts]
 
-/** Lightweight blog post metadata for listing pages — excludes heavy `content`
- *  and `relatedPosts` fields so the client bundle stays small (~5 KB vs ~84 KB). */
-export type BlogPostMeta = {
-  slug: string
-  title: string
-  excerpt: string
-  date: string
-  readTime: string
-  category: string
-  image: string
-  author: string
-}
-
-export const blogPostsMeta: BlogPostMeta[] = Object.entries(blogPosts)
-  .map(([slug, { title, excerpt, date, readTime, category, image, author }]) => ({
-    slug, title, excerpt, date, readTime, category, image, author,
-  }))
+// BlogPostMeta and blogPostsMeta live in a standalone module so client
+// components can import metadata without pulling in the large content strings.
+export type { BlogPostMeta } from "./blog-posts-meta"
+export { blogPostsMeta } from "./blog-posts-meta"

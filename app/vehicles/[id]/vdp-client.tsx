@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
-  ChevronLeft, ChevronRight, Heart, Share2, Fuel, Gauge,
+  ChevronLeft, ChevronRight, Heart, Share2, Fuel,
   Settings, Shield, CheckCircle, Car,
   FileText, Zap, DollarSign, CreditCard,
   Phone, Star, TrendingUp, Users,
@@ -39,7 +39,7 @@ import { trackProductView, trackPhoneClick } from "@/components/analytics/google
 import { safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
-import { CarfaxSection, CarfaxInlineLink } from "@/components/vdp/carfax-section"
+import { CarfaxSection } from "@/components/vdp/carfax-section"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 
@@ -143,6 +143,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
 
   const { exteriorImgs, interiorImgs } = buildVdpImages(serverVehicle)
   const vehicle = buildMergedVehicle(serverVehicle, exteriorImgs, interiorImgs)
+
+  /* CARFAX Power Bar is now self-contained inside CarfaxSection (panel variant) */
 
   const vehicleId = vehicle.id
   const isAvailable = vehicle.status === "available"
@@ -437,8 +439,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   <section
                     aria-label="Auto-spinning vehicle photos"
                     data-testid="vdp-auto-spin"
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
-                    style={{ backgroundColor: "#111" }}
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group bg-neutral-900"
                     onMouseEnter={() => setIsAutoSpinning(false)}
                     onMouseLeave={() => setIsAutoSpinning(true)}
                   >
@@ -501,8 +502,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   <section
                     data-testid="vdp-image-gallery"
                     aria-label="Vehicle image gallery — use arrow buttons to navigate"
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
-                    style={{ backgroundColor: "#e8e8e8" }}
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group bg-neutral-200"
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
                     {currentImages.length > 0 && currentImages[activeIndex] && (
@@ -518,6 +518,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                           fill
                           className="object-contain [clip-path:inset(0_0_8%_0)]"
                           priority
+                          fetchPriority="high"
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = "none"
@@ -726,31 +727,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </div>
                   </div>
 
-                  {/* Highlights */}
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
-                    <div className="flex flex-wrap gap-3">
-                      {/* Per-VIN Carfax claims — only renders factual claims
-                          for badges Carfax actually issued for THIS VIN, not
-                          a hardcoded "No accidents" headline. OMVIC compliance. */}
-                      <CarfaxSection vin={vehicle.vin ?? null} variant="headline" className="flex-1 min-w-[200px]" />
-                      <Card className="flex-1 min-w-[140px]">
-                        <CardContent className="p-3 flex items-center gap-2">
-                          <Gauge className="w-5 h-5 text-muted-foreground" />
-                          <p className="font-semibold text-sm tabular-nums">{vehicle.mileage.toLocaleString()} km</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="flex-1 min-w-[140px]">
-                        <CardContent className="p-3 flex items-center gap-2">
-                          <Shield className="w-5 h-5 text-purple-500" />
-                          <div>
-                            <p className="font-semibold text-sm">Safety certified</p>
-                            <p className="text-xs text-muted-foreground">Ontario Safety Certificate</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
+                  {/* ── CARFAX POWER BAR — self-contained, returns null when nothing to show ── */}
+                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
 
                   {/* Delivery Options */}
                   <div>
@@ -1199,9 +1177,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </DialogContent>
                   </Dialog>
 
-                  {/* CARFAX panel — driven by /api/v1/carfax/[vin]; renders
-                      real badges + a tokenized VhrReportUrl. */}
-                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
+
 
 
                   {/* EV Battery Health - Show for EVs/PHEVs */}
@@ -1788,9 +1764,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     />
                   </div>
 
-                  {/* CARFAX inline link — same per-VIN tokenized URL as the
-                      panel above; no copy-paste deep link to carfax.ca. */}
-                  <CarfaxInlineLink vin={vehicle.vin ?? null} />
+
 
                   {/* Delivery Calculator */}
                   <div className="mt-4 pt-4 border-t">
