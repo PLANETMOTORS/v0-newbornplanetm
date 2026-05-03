@@ -13,8 +13,10 @@ interface SpinViewerProps {
   className?: string
 }
 
-/** Light gray matching the Drivee studio turntable backdrop. */
-const SPIN_BG = "#f0f0f0"
+/** Background colors matching the Drivee studio turntable look. */
+const SPIN_BG = "#e8e8e8"
+const SPIN_BG_TOP = "#f5f5f5"    // lighter at top (wall)
+const SPIN_BG_BOTTOM = "#d8d8d8" // darker at bottom (floor)
 
 /**
  * Native 360° Spin Viewer — loads WebP frames directly from Supabase Storage.
@@ -89,7 +91,13 @@ export function SpinViewer({ mid, vehicleName, className = "" }: Readonly<SpinVi
       canvas.style.height = `${rect.height}px`
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    // Paint a subtle gradient background (hides nobg transparency artifacts)
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height)
+    grad.addColorStop(0, SPIN_BG_TOP)
+    grad.addColorStop(0.55, SPIN_BG)
+    grad.addColorStop(1, SPIN_BG_BOTTOM)
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     // Fit image centered (contain)
     const scale = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight)

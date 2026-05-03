@@ -5,12 +5,13 @@
  * to our own Supabase Storage bucket (`vehicle-360`).
  *
  * URL pattern (public, no auth required):
- *   {SUPABASE_URL}/storage/v1/object/public/vehicle-360/{MID}/{NN}.webp
+ *   {SUPABASE_URL}/storage/v1/object/public/vehicle-360/{MID}/nobg/{NN}.webp
  *
  * The "nobg" subfolder contains background-removed transparent WebP frames
- * (processed via rembg AI). Original frames are at {MID}/{NN}.webp.
- * frameUrl() uses original frames (clean studio shots); frameUrlNoBg() uses
- * background-removed variants (may have AI artefacts on some vehicles).
+ * (processed via rembg AI). Most vehicles ONLY have nobg frames; a few
+ * also have originals at {MID}/{NN}.webp.
+ * frameUrl() defaults to nobg (universal); frameUrlOriginal() uses originals
+ * (only available for ~30% of vehicles).
  *
  * A static manifest records the exact frame count per MID so we no longer
  * need 50 parallel HEAD requests to discover frames at runtime — the API
@@ -144,16 +145,16 @@ export function interiorUrl(mid: string): string | null {
   return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/${filename}`
 }
 
-/** Build the public Supabase Storage URL for a single walk-around frame (original studio). */
+/** Build the public Supabase Storage URL for a single walk-around frame (nobg — universal). */
 export function frameUrl(mid: string, frameNumber: number): string {
   const padded = String(frameNumber).padStart(2, "0")
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/${padded}.webp`
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/nobg/${padded}.webp`
 }
 
-/** Build the public Supabase Storage URL for a background-removed frame. */
-export function frameUrlNoBg(mid: string, frameNumber: number): string {
+/** Build the URL for an original studio frame (only ~30% of vehicles have these). */
+export function frameUrlOriginal(mid: string, frameNumber: number): string {
   const padded = String(frameNumber).padStart(2, "0")
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/nobg/${padded}.webp`
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${mid}/${padded}.webp`
 }
 
 /**

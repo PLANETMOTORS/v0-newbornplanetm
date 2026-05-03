@@ -10,11 +10,11 @@ import {
 describe("frameUrl", () => {
   it("zero-pads frame numbers to 2 digits", () => {
     const url = frameUrl("761707513348", 1)
-    expect(url).toContain("/761707513348/01.webp")
+    expect(url).toContain("/761707513348/nobg/01.webp")
   })
 
   it("uses the provided number when already 2+ digits", () => {
-    expect(frameUrl("123", 42)).toContain("/123/42.webp")
+    expect(frameUrl("123", 42)).toContain("/123/nobg/42.webp")
   })
 
   it("targets the public Supabase Storage path", () => {
