@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { blogPostsMeta } from "@/lib/blog-data"
+import { blogPostsMeta } from "@/lib/blog-posts-meta"
 
 const POSTS_PER_PAGE = 9
 
