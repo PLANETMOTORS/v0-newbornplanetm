@@ -728,11 +728,16 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   {/* Highlights */}
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-3">HIGHLIGHTS</h3>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-4 items-center">
                       {/* Per-VIN Carfax claims — only renders factual claims
                           for badges Carfax actually issued for THIS VIN, not
                           a hardcoded "No accidents" headline. OMVIC compliance. */}
                       <CarfaxSection vin={vehicle.vin ?? null} variant="headline" className="flex-1 min-w-[200px]" />
+
+                      {/* THE TARGET SPOT: Visual badge strip + "View CARFAX Report" CTA
+                          inline with highlights (industry standard placement). */}
+                      <CarfaxSection vin={vehicle.vin ?? null} variant="panel" className="flex items-center gap-2 border-l pl-4" />
+
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
                           <Shield className="w-5 h-5 text-purple-500" />
@@ -744,10 +749,6 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       </Card>
                     </div>
                   </div>
-
-                  {/* CARFAX Badge Panel — badge SVG strip + "View CARFAX Report" CTA.
-                      Moved here from Inspect tab for maximum visibility (industry standard). */}
-                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
 
                   {/* Delivery Options */}
                   <div>
