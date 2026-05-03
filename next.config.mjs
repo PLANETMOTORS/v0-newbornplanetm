@@ -247,6 +247,7 @@ const nextConfig = {
       'https://photos.homenetiol.com',
       'https://ldervbcvkoawwknsemuz.supabase.co',
       'https://images.unsplash.com',
+      'https://cdn.carfax.ca',               // CARFAX Badging API badge SVGs
 
       'https://www.google.com',              // Remarketing pixel
       'https://www.google.ca',               // Remarketing pixel (CA localized)

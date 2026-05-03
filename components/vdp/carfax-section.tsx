@@ -1,14 +1,16 @@
 "use client"
 
 /**
- * VDP Carfax section — driven by real per-VIN data from the Badging API.
+ * VDP Carfax section — driven by real per-VIN data from the Badging API v3.
  *
  * Variants
  * --------
  *  - "headline" — small claims strip for the highlights row, only renders
  *    factual per-VIN claims (AccidentFree → "No reported accidents", etc.).
- *  - "panel"    — full card with badge images + tokenized "View report" CTA.
- *  - <CarfaxInlineLink/> — compact link-only variant.
+ *  - "panel"    — Option A (clean badge strip): combined responsive SVG
+ *    from `BadgesImageUrl` + branded "View Report" CTA. This is the
+ *    CARFAX-recommended display method used by AutoTrader.ca, Clutch,
+ *    Canada Drives and other Tier-1 Canadian dealers.
  *
  * Why this exists
  * ---------------
@@ -21,15 +23,14 @@
  * file contains ZERO data-fetching logic.
  */
 
+import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExternalLink } from "lucide-react"
 import {
-  badgeAccessibleLabel,
   hasAccidentFreeBadge,
   hasLowKilometerBadge,
   hasOneOwnerBadge,
@@ -42,15 +43,13 @@ interface CarfaxSectionProps {
   className?: string
 }
 
-const COMPACT_LINK_BUTTON_CLASSES = "text-primary p-0 h-auto"
-const PANEL_LINK_BUTTON_CLASSES = "text-primary"
-
 export function CarfaxSection({
   vin,
   variant = "panel",
   className,
 }: Readonly<CarfaxSectionProps>) {
   const state = useCarfaxSummary(vin)
+  const [imgError, setImgError] = useState(false)
 
   if (state.status === "loading") {
     return (
@@ -82,6 +81,7 @@ export function CarfaxSection({
 
   const { summary, stale } = state
 
+  /* ── Headline variant — text claims for highlights row ─────────── */
   if (variant === "headline") {
     const claims: string[] = []
     if (hasAccidentFreeBadge(summary)) claims.push("No reported accidents")
@@ -104,60 +104,76 @@ export function CarfaxSection({
     )
   }
 
+  /* ── Panel variant — Option A: clean badge strip (industry standard) */
+  const reportUrl = summary.vhrReportUrl
+
+  // Build accessible alt text from actual badge claims
+  const claims: string[] = []
+  if (hasAccidentFreeBadge(summary)) claims.push("No Accidents")
+  if (hasOneOwnerBadge(summary)) claims.push("One Owner")
+  if (hasLowKilometerBadge(summary)) claims.push("Low KM")
+  const altText = claims.length > 0
+    ? `CARFAX Canada: ${claims.join(", ")}`
+    : "CARFAX Canada Vehicle History"
+
   return (
     <Card className={className} data-testid="carfax-panel">
       <CardContent className="p-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <Badge variant="outline" className="border-brand-red text-brand-red text-base px-3 py-1">
-            CARFAX
-          </Badge>
-          {summary.vhrReportUrl && (
-            <Button variant="link" className={PANEL_LINK_BUTTON_CLASSES} asChild>
-              <Link href={summary.vhrReportUrl} target="_blank" rel="noopener noreferrer">
-                View report <ExternalLink className="w-4 h-4 ml-1" />
-              </Link>
-            </Button>
-          )}
-        </div>
-
-        {summary.badges.length > 0 && (
+        {/* Combined badge SVG — responsive, rendered server-side by CARFAX.
+            This is the official BadgesImageUrl from Badging API v3.
+            Per CARFAX logo guidelines: min 15px height, clear space around. */}
+        {summary.badgesImageUrl && !imgError ? (
+          <a
+            href={reportUrl ?? `https://www.carfax.ca/vehicle/${summary.vin}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+            onClick={(e) => {
+              e.preventDefault()
+              window.open(
+                reportUrl ?? `https://www.carfax.ca/vehicle/${summary.vin}`,
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={summary.badgesImageUrl}
+              alt={altText}
+              className="w-full max-w-md h-auto"
+              onError={() => setImgError(true)}
+            />
+          </a>
+        ) : (
+          /* Fallback: CARFAX badge + text claims when SVG fails */
           <div className="flex flex-wrap items-center gap-2">
-            {summary.badges.map((b) => (
-              <Image
-                key={b.name}
-                src={b.imageUrl}
-                alt={badgeAccessibleLabel(b.name)}
-                width={120}
-                height={36}
-                className="h-9 w-auto"
-                unoptimized
-              />
+            <Badge variant="outline" className="border-brand-red text-brand-red text-base px-3 py-1">
+              CARFAX
+            </Badge>
+            {claims.map((c) => (
+              <span key={c} className="text-sm font-medium">
+                ✓ {c}
+              </span>
             ))}
           </div>
         )}
 
+        {/* View Report CTA — tokenized deep link from CARFAX */}
+        {reportUrl && (
+          <Button variant="outline" size="sm" className="w-fit border-brand-red text-brand-red hover:bg-red-50" asChild>
+            <Link href={reportUrl} target="_blank" rel="noopener noreferrer">
+              View CARFAX Report <ExternalLink className="w-4 h-4 ml-1.5" />
+            </Link>
+          </Button>
+        )}
+
         {stale && (
           <p className="text-xs text-muted-foreground">
-            Showing the most recent Carfax data — refresh in progress.
+            Showing the most recent CARFAX data — refresh in progress.
           </p>
         )}
       </CardContent>
     </Card>
-  )
-}
-
-export function CarfaxInlineLink({ vin }: Readonly<{ vin: string | null }>) {
-  const state = useCarfaxSummary(vin)
-  if (state.status !== "ready" || !state.summary.vhrReportUrl) return null
-
-  return (
-    <div className="flex items-center justify-between mt-4 pt-4 border-t">
-      <Badge variant="outline" className="border-red-500 text-red-600">CARFAX</Badge>
-      <Button variant="link" className={COMPACT_LINK_BUTTON_CLASSES} asChild>
-        <Link href={state.summary.vhrReportUrl} target="_blank" rel="noopener noreferrer">
-          View report <ExternalLink className="w-3 h-3 ml-1" />
-        </Link>
-      </Button>
-    </div>
   )
 }
