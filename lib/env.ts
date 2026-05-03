@@ -25,11 +25,11 @@ const optionalServerSchema = z.object({
   SUPABASE_READ_REPLICA_URL: z.string().url().optional(),
   SUPABASE_READ_REPLICA_ANON_KEY: z.string().optional(),
 
-  // Database (Neon / Postgres direct)
-  DATABASE_URL: z.string().optional(),
-  NEON_DATABASE_URL: z.string().optional(),
-  NEON_POSTGRES_URL: z.string().optional(),
-  POSTGRES_URL: z.string().optional(),
+  // Database (Neon / Postgres direct) — connection strings are URL-shaped
+  DATABASE_URL: z.string().url().optional(),
+  NEON_DATABASE_URL: z.string().url().optional(),
+  NEON_POSTGRES_URL: z.string().url().optional(),
+  POSTGRES_URL: z.string().url().optional(),
 
   // Stripe
   STRIPE_SECRET_KEY: z.string().optional(),
@@ -61,7 +61,7 @@ const optionalServerSchema = z.object({
   AUTORAPTOR_DEALER_ID: z.string().optional(),
   AUTORAPTOR_DEALER_NAME: z.string().optional(),
   AUTORAPTOR_ELEAD_EMAIL: z.string().optional(),
-  AUTORAPTOR_ELEAD_URL: z.string().optional(),
+  AUTORAPTOR_ELEAD_URL: z.string().url().optional(),
   AUTORAPTOR_LEAD_EMAIL: z.string().optional(),
 
   // ADF (Automotive Data Format) lead delivery
@@ -95,13 +95,13 @@ const optionalServerSchema = z.object({
     .optional(),
   HOMENET_API_KEY: z.string().optional(),
   HOMENET_SFTP_HOST: z.string().optional(),
-  HOMENET_SFTP_PORT: z.string().optional(),
+  HOMENET_SFTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),
   HOMENET_SFTP_USERNAME: z.string().optional(),
   HOMENET_SFTP_PASSWORD: z.string().optional(),
   HOMENET_SFTP_USER: z.string().optional(),
   HOMENET_SFTP_PASS: z.string().optional(),
   HOMENET_EXPORT_FTP_HOST: z.string().optional(),
-  HOMENET_EXPORT_FTP_PORT: z.string().optional(),
+  HOMENET_EXPORT_FTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),
   HOMENET_EXPORT_FTP_USER: z.string().optional(),
   HOMENET_EXPORT_FTP_PASS: z.string().optional(),
 
@@ -112,7 +112,7 @@ const optionalServerSchema = z.object({
   // Internal API / Cron / CRM
   INTERNAL_API_SECRET: z.string().optional(),
   CRON_SECRET: z.string().optional(),
-  CRM_WEBHOOK_SECRET: z.string().optional(),
+  CRM_WEBHOOK_SECRET: z.string().min(32, "CRM_WEBHOOK_SECRET must be at least 32 characters").optional(),
 
   // Meta Conversions API (server-side)
   META_CAPI_ACCESS_TOKEN: z.string().optional(),
@@ -150,9 +150,9 @@ const clientSchema = z.object({
   // Sentry (client DSN)
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   // Server-side GTM / analytics
-  NEXT_PUBLIC_SGTM_URL: z.string().optional(),
+  NEXT_PUBLIC_SGTM_URL: z.string().url().optional(),
   // Image delivery
-  NEXT_PUBLIC_IMAGE_BASE_URL: z.string().optional(),
+  NEXT_PUBLIC_IMAGE_BASE_URL: z.string().url().optional(),
   NEXT_PUBLIC_IMGIX_DOMAIN: z.string().optional(),
   // Dev-only Supabase redirect
   NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL: z.string().optional(),

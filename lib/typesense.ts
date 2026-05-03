@@ -56,7 +56,7 @@ export interface SearchResponse {
 }
 
 /** Raw Typesense hit shape before transformation. */
-interface TypesenseHit { document: Record<string, unknown> | object }
+interface _TypesenseHit { document: Record<string, unknown> | object }
 /** Raw Typesense facet shape. */
 interface TypesenseFacetCount { field_name: string; counts: Array<{ value: string; count: number }> }
 
