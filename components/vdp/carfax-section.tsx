@@ -110,48 +110,34 @@ export function CarfaxSection({
     ? `CARFAX Canada: ${claims.join(", ")}`
     : "CARFAX Canada Vehicle History"
 
-  /* ── Panel variant — inline badge strip + "View Report" CTA ───── */
+  /* ── Panel variant — badge strip only (CTA lives in the Power Bar) ─ */
   const targetUrl = reportUrl ?? `https://www.carfax.ca/vehicle/${summary.vin}`
 
   return (
     <div className={className} data-testid="carfax-panel">
-      <div className="flex items-center justify-between gap-4 w-full">
-        {/* Official badge SVG from Badging API v3 */}
-        {summary.badgesImageUrl && !imgError ? (
-          <a href={targetUrl} target="_blank" rel="noopener noreferrer">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={summary.badgesImageUrl}
-              alt={altText}
-              width="187"
-              height="30"
-              className="h-[25px] w-auto shrink-0"
-              onError={() => setImgError(true)}
-            />
-          </a>
-        ) : (
-          /* Fallback: text claims when SVG fails */
-          <div className="flex flex-col gap-0.5">
-            {claims.map((c) => (
-              <span key={c} className="text-xs font-bold text-green-600">
-                ✓ {c}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Compact "View Report" CTA — high contrast, touch-friendly */}
-        {reportUrl && (
-          <a
-            href={reportUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wide transition-colors"
-          >
-            View Report
-          </a>
-        )}
-      </div>
+      {/* Official badge SVG from Badging API v3 */}
+      {summary.badgesImageUrl && !imgError ? (
+        <a href={targetUrl} target="_blank" rel="noopener noreferrer" className="block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={summary.badgesImageUrl}
+            alt={altText}
+            width="350"
+            height="56"
+            className="h-[56px] w-auto drop-shadow-sm"
+            onError={() => setImgError(true)}
+          />
+        </a>
+      ) : (
+        /* Fallback: text claims when SVG fails */
+        <div className="flex flex-col gap-0.5">
+          {claims.map((c) => (
+            <span key={c} className="text-xs font-bold text-green-600">
+              ✓ {c}
+            </span>
+          ))}
+        </div>
+      )}
 
       {stale && (
         <p className="text-[10px] text-muted-foreground mt-1">
