@@ -105,7 +105,7 @@ export function CarfaxSection({
             <a href={targetUrl} target="_blank" rel="noopener noreferrer" className="block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={proxyBadgeUrl(summary.badgesImageUrl!)}
+                src={proxyBadgeUrl(summary.badgesImageUrl ?? "")}
                 alt={altText}
                 width="280"
                 height="36"
