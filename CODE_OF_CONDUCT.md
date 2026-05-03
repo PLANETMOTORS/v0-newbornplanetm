@@ -38,4 +38,5 @@ Maintain a One-Click Vitals Dashboard template as part of the team's operational
 
 
 Citations:
-"Check the Sentry logs to ensure no sensitive data... is accidentally being logged in plain text." [2]
+- "Check the Sentry logs to ensure no sensitive data is accidentally being logged in plain text." [2]
+- [2] Sentry Documentation, "Scrubbing Sensitive Data." https://docs.sentry.io/platforms/javascript/data-management/sensitive-data/
