@@ -76,7 +76,7 @@ function withTimeout<T>(promise: Promise<T>, fallback: T, ms: number): Promise<T
  * doesn't block the entire layout render — the page loads instantly
  * and the client-side fetcher picks up the images normally.
  */
-export default async function InventoryLayout({ children }: { children: React.ReactNode }) {
+export default async function InventoryLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let preloadUrls: string[] = []
 
   try {
