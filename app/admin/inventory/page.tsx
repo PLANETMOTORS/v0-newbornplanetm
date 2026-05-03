@@ -6,7 +6,7 @@ import {
   Plus, Search, MoreVertical, Edit, Trash2, Eye,
   Download, Upload, ChevronLeft, ChevronRight, CheckCircle,
   Clock, AlertCircle, Car, RefreshCw, Loader2, X,
-  Scan, ImagePlus, ExternalLink, Camera, RotateCcw
+  Scan, ImagePlus, ExternalLink, Camera, RotateCcw, Sparkles
 } from "lucide-react"
 import VehiclePhotoManager from "@/components/admin/vehicle-photo-manager"
 import { Button } from "@/components/ui/button"
@@ -206,6 +206,9 @@ export default function AdminInventoryPage() {
 
   // Photo manager state
   const [photoManagerVehicle, setPhotoManagerVehicle] = useState<VehicleRow | null>(null)
+
+  // Background removal state
+  const [bgRemovingId, setBgRemovingId] = useState<string | null>(null)
 
   // Sync state
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
@@ -432,6 +435,27 @@ export default function AdminInventoryPage() {
       }
     } catch (err) {
       console.error("[inventory] Status change failed:", err)
+    }
+  }
+
+  const handleRemoveBg = async (vehicleId: string) => {
+    setBgRemovingId(vehicleId)
+    try {
+      const res = await fetch(`/api/v1/admin/vehicles/${vehicleId}/remove-bg`, {
+        method: "POST",
+      })
+      const data = await res.json()
+      if (res.ok) {
+        alert(`✅ Background removed: ${data.bgRemoved}/${data.totalImages} photos processed${data.skipped ? `, ${data.skipped} spin frames skipped` : ""}`)
+        fetchVehicles()
+      } else {
+        alert(`❌ ${data.error || "Background removal failed"}`)
+      }
+    } catch (err) {
+      console.error("[inventory] Bg removal failed:", err)
+      alert("❌ Network error during background removal")
+    } finally {
+      setBgRemovingId(null)
     }
   }
 
@@ -842,6 +866,17 @@ export default function AdminInventoryPage() {
                                 {vehicle.image_urls?.length ? (
                                   <span className="ml-auto text-xs text-gray-400">{vehicle.image_urls.length}</span>
                                 ) : null}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleRemoveBg(vehicle.id)}
+                                disabled={bgRemovingId === vehicle.id}
+                              >
+                                {bgRemovingId === vehicle.id ? (
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                  <Sparkles className="w-4 h-4 mr-2" />
+                                )}
+                                {bgRemovingId === vehicle.id ? "Processing…" : "Remove Backgrounds"}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <VehicleStatusMenu
