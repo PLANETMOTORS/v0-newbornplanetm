@@ -6,14 +6,14 @@ Execute the following fixes to clean the 'any' types and legacy bottlenecks:
 1. Zod Security Filter: Implement Zod schemas for reservation.ts, stripe.ts, and upload-license.ts. Every entry point to our database must be strictly filtered. No raw data hits the DB.
 2. Kill 'any' Types: Focus on finance-application.ts and typesense.ts. We are scaling to 10,000+ vehicles; we cannot have 'unknown' data shapes. Everything must be strictly typed.
 3. React 19 Purity: Refactor the remaining 10 isSubmitting instances and the 5 customer-facing fetch calls. Move them to Server Actions and useFormStatus. Delete the boilerplate.
-4. GitHub Placement: Save DEVELOPER_CODE_OF_CONDUCT.md and VERCEL_FEATURES.md in the Root Directory of the GitHub repository. Update the README.md with a 'Technical Standards' section linking to both. They must be visible on the main landing page.
+4. GitHub Placement: Save CODE_OF_CONDUCT.md and VERCEL_FEATURES.md in the Root Directory of the GitHub repository. Update the README.md with a 'Technical Standards' section linking to both. They must be visible on the main landing page.
 5. Clean Bill of Health: Once you have a 0 Error / 0 Warning / 0 'any' build, merge fix/seo-audit-p0-p1 into main.
 This is the Law of the Land for our $225K asset. Confirm when the merge is live."
 
 
 
 The $225K "Ferrari" Developer Code of Conduct
-To be saved as DEVELOPER_CODE_OF_CONDUCT.md in the root.
+To be saved as CODE_OF_CONDUCT.md in the root.
 * Type Safety: any is strictly forbidden. 10,000 vehicles require explicit interfaces to prevent runtime crashes.
 * Data Integrity: All incoming data must pass through Zod schemas before database entry.
 * React 19 Native: Use useActionState and useFormStatus. Legacy useState for loading is deprecated.
