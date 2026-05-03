@@ -5,7 +5,7 @@ import { ADMIN_EMAILS } from "@/lib/admin"
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
-    
+
     // Verify admin access
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
@@ -22,27 +22,10 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
     )
 
-    // Build query
+    // Build query — fetch ALL fields from finance_applications_v2
     let query = serviceClient
       .from("finance_applications_v2")
-      .select(`
-        id,
-        application_number,
-        status,
-        agreement_type,
-        created_at,
-        submitted_at,
-        requested_amount,
-        down_payment,
-        loan_term_months,
-        payment_frequency,
-        estimated_payment,
-        has_trade_in,
-        trade_in_value,
-        vehicle_id,
-        additional_notes,
-        internal_notes
-      `)
+      .select("*")
       .order("created_at", { ascending: false })
 
     if (status && status !== "all") {
@@ -59,26 +42,59 @@ export async function GET(request: NextRequest) {
     // Fetch related data for each application
     const enrichedApplications = await Promise.all(
       (applications || []).map(async (app) => {
-        // Get primary applicant
-        const { data: applicants } = await serviceClient
+        // Get ALL applicants (primary + co-applicants) with full details
+        const { data: allApplicants } = await serviceClient
           .from("finance_applicants")
-          .select("first_name, last_name, email, phone, credit_rating")
+          .select("*")
           .eq("application_id", app.id)
-          .eq("applicant_type", "primary")
-          .single()
+          .order("applicant_type", { ascending: true })
+
+        const primaryApplicant = allApplicants?.find(a => a.applicant_type === "primary") || null
+        const coApplicants = allApplicants?.filter(a => a.applicant_type !== "primary") || []
+
+        // For each applicant, fetch addresses, employment, income, housing
+        const applicantIds = (allApplicants || []).map(a => a.id)
+
+        const [addressesRes, employmentRes, incomeRes, housingRes] = await Promise.all([
+          applicantIds.length > 0
+            ? serviceClient.from("applicant_addresses").select("*").in("applicant_id", applicantIds)
+            : Promise.resolve({ data: [] }),
+          applicantIds.length > 0
+            ? serviceClient.from("applicant_employment").select("*").in("applicant_id", applicantIds)
+            : Promise.resolve({ data: [] }),
+          applicantIds.length > 0
+            ? serviceClient.from("applicant_income").select("*").in("applicant_id", applicantIds)
+            : Promise.resolve({ data: [] }),
+          applicantIds.length > 0
+            ? serviceClient.from("applicant_housing").select("*").in("applicant_id", applicantIds)
+            : Promise.resolve({ data: [] }),
+        ])
 
         // Get documents
         const { data: documents } = await serviceClient
           .from("finance_documents")
-          .select("id, document_type, document_name, file_url, is_verified, uploaded_at")
+          .select("*")
           .eq("application_id", app.id)
+
+        // Get trade-in details
+        const { data: tradeIns } = await serviceClient
+          .from("finance_trade_ins")
+          .select("*")
+          .eq("application_id", app.id)
+
+        // Get status history
+        const { data: history } = await serviceClient
+          .from("finance_application_history")
+          .select("*")
+          .eq("application_id", app.id)
+          .order("changed_at", { ascending: false })
 
         // Get vehicle info if exists
         let vehicle = null
         if (app.vehicle_id) {
           const { data: vehicleData } = await serviceClient
             .from("vehicles")
-            .select("year, make, model, price")
+            .select("id, year, make, model, trim, price, mileage, vin, stock_number, primary_photo_url")
             .eq("id", app.vehicle_id)
             .single()
           vehicle = vehicleData
@@ -86,8 +102,15 @@ export async function GET(request: NextRequest) {
 
         return {
           ...app,
-          primary_applicant: applicants,
+          primary_applicant: primaryApplicant,
+          co_applicants: coApplicants,
+          addresses: addressesRes.data || [],
+          employment: employmentRes.data || [],
+          income: incomeRes.data || [],
+          housing: housingRes.data || [],
           documents: documents || [],
+          trade_ins: tradeIns || [],
+          history: history || [],
           vehicle
         }
       })
@@ -113,6 +136,45 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error("Error in admin finance API:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+// PATCH — save internal notes for an application
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, internal_notes } = body
+
+    if (!id) {
+      return NextResponse.json({ error: "Application ID required" }, { status: 400 })
+    }
+
+    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
+    )
+
+    const { error: updateError } = await serviceClient
+      .from("finance_applications_v2")
+      .update({ internal_notes, updated_at: new Date().toISOString() })
+      .eq("id", id)
+
+    if (updateError) {
+      console.error("Error saving notes:", updateError)
+      return NextResponse.json({ error: "Failed to save notes" }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error saving notes:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

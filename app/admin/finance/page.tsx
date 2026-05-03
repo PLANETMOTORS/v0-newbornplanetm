@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
-import { 
-  DollarSign, Search, Filter, Download, Eye, CheckCircle, 
+import {
+  DollarSign, Search, Filter, Download, Eye, CheckCircle,
   XCircle, Clock, FileText, User, Car, Phone, Mail,
-  RefreshCw,
-  CreditCard
+  RefreshCw, CreditCard, MapPin, Briefcase, Home, History,
+  Users, ArrowRightLeft, Save, AlertCircle
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,112 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+interface Applicant {
+  id: string
+  applicant_type: string
+  is_active: boolean
+  relation_to_primary: string | null
+  salutation: string | null
+  first_name: string
+  middle_name: string | null
+  last_name: string
+  suffix: string | null
+  sin_encrypted: string | null
+  date_of_birth: string | null
+  gender: string | null
+  marital_status: string | null
+  phone: string | null
+  mobile_phone: string | null
+  email: string | null
+  no_email: boolean
+  language_preference: string
+  credit_rating: string | null
+  credit_score: number | null
+}
+
+interface Address {
+  id: string
+  applicant_id: string
+  address_type: string
+  address_line: string | null
+  suite_number: string | null
+  street_number: string | null
+  street_name: string | null
+  street_type: string | null
+  street_direction: string | null
+  city: string | null
+  province: string | null
+  postal_code: string | null
+  country: string | null
+  duration_years: number
+  duration_months: number
+}
+
+interface Employment {
+  id: string
+  applicant_id: string
+  employment_type: string
+  employment_status: string | null
+  employer_name: string | null
+  occupation: string | null
+  job_title: string | null
+  employer_city: string | null
+  employer_province: string | null
+  employer_phone: string | null
+  duration_years: number
+  duration_months: number
+}
+
+interface Income {
+  id: string
+  applicant_id: string
+  gross_income: number
+  income_frequency: string
+  other_income_type: string | null
+  other_income_amount: number | null
+  other_income_frequency: string | null
+  annual_total: number | null
+}
+
+interface Housing {
+  id: string
+  applicant_id: string
+  home_status: string | null
+  market_value: number | null
+  mortgage_amount: number | null
+  mortgage_holder: string | null
+  monthly_payment: number | null
+  outstanding_mortgage: number | null
+}
+
+interface TradeIn {
+  id: string
+  vin: string | null
+  year: number | null
+  make: string | null
+  model: string | null
+  trim: string | null
+  color: string | null
+  mileage: number | null
+  condition: string | null
+  estimated_value: number | null
+  offered_value: number | null
+  has_lien: boolean
+  lien_holder: string | null
+  lien_amount: number | null
+  net_trade_value: number | null
+}
+
+interface StatusHistory {
+  id: string
+  from_status: string | null
+  to_status: string
+  changed_by: string | null
+  notes: string | null
+  changed_at: string
+}
+
 interface FinanceApplication {
   id: string
   application_number: string
@@ -26,34 +132,84 @@ interface FinanceApplication {
   agreement_type: string
   created_at: string
   submitted_at: string | null
+  updated_at: string | null
+  decision_at: string | null
   requested_amount: number
   down_payment: number
+  max_down_payment: number | null
   loan_term_months: number
   payment_frequency: string
+  interest_rate: number | null
+  admin_fee: number | null
+  sales_tax_rate: number | null
   estimated_payment: number
+  total_amount_financed: number | null
+  total_interest: number | null
+  total_to_repay: number | null
   has_trade_in: boolean
   trade_in_value: number | null
+  trade_in_lien_amount: number | null
+  additional_notes: string | null
+  internal_notes: string | null
   vehicle: {
+    id: string
     year: number
     make: string
     model: string
+    trim: string | null
     price: number
+    mileage: number | null
+    vin: string | null
+    stock_number: string | null
+    primary_photo_url: string | null
   } | null
-  primary_applicant: {
-    first_name: string
-    last_name: string
-    email: string
-    phone: string
-    credit_rating: string
-  } | null
+  primary_applicant: Applicant | null
+  co_applicants: Applicant[]
+  addresses: Address[]
+  employment: Employment[]
+  income: Income[]
+  housing: Housing[]
   documents: {
     id: string
     document_type: string
     document_name: string
     file_url: string
+    file_size: number | null
+    file_type: string | null
     is_verified: boolean
+    verified_at: string | null
+    verification_notes: string | null
     uploaded_at: string
   }[]
+  trade_ins: TradeIn[]
+  history: StatusHistory[]
+}
+
+/** Format currency */
+function fmtCurrency(val: number | null | undefined): string {
+  if (val == null) return "—"
+  return `$${Number(val).toLocaleString("en-CA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+}
+
+/** Format an address object into a single line */
+function fmtAddress(a: Address): string {
+  const parts: string[] = []
+  if (a.suite_number) parts.push(`#${a.suite_number}`)
+  if (a.street_number) parts.push(a.street_number)
+  if (a.street_name) parts.push(a.street_name)
+  if (a.street_type) parts.push(a.street_type)
+  if (a.street_direction) parts.push(a.street_direction)
+  const line1 = parts.join(" ")
+  const line2 = [a.city, a.province, a.postal_code].filter(Boolean).join(", ")
+  return [line1, line2].filter(Boolean).join(", ") || "No address provided"
+}
+
+/** Duration string */
+function fmtDuration(years: number, months: number): string {
+  const parts: string[] = []
+  if (years) parts.push(`${years} yr${years > 1 ? "s" : ""}`)
+  if (months) parts.push(`${months} mo`)
+  return parts.join(" ") || "—"
 }
 
 const statusColors: Record<string, string> = {
@@ -92,6 +248,8 @@ export default function AdminFinancePage() {
   const [selectedApp, setSelectedApp] = useState<FinanceApplication | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const [internalNotes, setInternalNotes] = useState("")
+  const [savingNotes, setSavingNotes] = useState(false)
 
   // Stats
   const [stats, setStats] = useState({
@@ -102,12 +260,7 @@ export default function AdminFinancePage() {
     totalValue: 0
   })
 
-  useEffect(() => {
-    fetchApplications()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter])
-
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     setLoading(true)
     try {
       const statusQuery = statusFilter === "all" ? "" : `?status=${statusFilter}`
@@ -116,26 +269,29 @@ export default function AdminFinancePage() {
       if (res.ok) {
         const data = await res.json()
         setApplications(data.applications || [])
-        setStats(data.stats || stats)
+        setStats(data.stats || { total: 0, pending: 0, approved: 0, funded: 0, totalValue: 0 })
       }
     } catch (error) {
       console.error("Error fetching applications:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter])
+
+  useEffect(() => { fetchApplications() }, [fetchApplications])
+
+  // Sync internal notes when app is selected
+  useEffect(() => {
+    setInternalNotes(selectedApp?.internal_notes || "")
+  }, [selectedApp?.id, selectedApp?.internal_notes])
 
   const handleApplicationDeleted = (appId: string) => {
     setApplications((prev) => {
       const removed = prev.find((a) => a.id === appId)
       const next = prev.filter((a) => a.id !== appId)
-      // Recompute the stat panel from the new list so the operator sees
-      // the count + total value drop without a refetch round-trip.
       setStats({
         total: next.length,
-        pending: next.filter((a) =>
-          ["submitted", "under_review"].includes(a.status),
-        ).length,
+        pending: next.filter((a) => ["submitted", "under_review"].includes(a.status)).length,
         approved: next.filter((a) => a.status === "approved").length,
         funded: next.filter((a) => a.status === "funded").length,
         totalValue: removed
@@ -169,6 +325,61 @@ export default function AdminFinancePage() {
     } finally {
       setUpdating(false)
     }
+  }
+
+  const saveInternalNotes = async () => {
+    if (!selectedApp) return
+    setSavingNotes(true)
+    try {
+      const res = await fetch("/api/v1/admin/finance/applications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedApp.id, internal_notes: internalNotes })
+      })
+      if (res.ok) {
+        setSelectedApp({ ...selectedApp, internal_notes: internalNotes })
+      }
+    } catch (error) {
+      console.error("Error saving notes:", error)
+    } finally {
+      setSavingNotes(false)
+    }
+  }
+
+  const exportCsv = () => {
+    if (filteredApplications.length === 0) return
+    const headers = [
+      "Application #", "Status", "Type", "Applicant Name", "Email", "Phone",
+      "Vehicle", "Amount", "Down Payment", "Term", "Payment", "Frequency",
+      "Trade-In", "Trade Value", "Date"
+    ]
+    const rows = filteredApplications.map(app => [
+      app.application_number,
+      app.status,
+      app.agreement_type,
+      app.primary_applicant ? `${app.primary_applicant.first_name} ${app.primary_applicant.last_name}` : "",
+      app.primary_applicant?.email || "",
+      app.primary_applicant?.phone || "",
+      app.vehicle ? `${app.vehicle.year} ${app.vehicle.make} ${app.vehicle.model}` : "Pre-approval",
+      app.requested_amount?.toString() || "",
+      app.down_payment?.toString() || "",
+      `${app.loan_term_months} months`,
+      app.estimated_payment?.toString() || "",
+      app.payment_frequency || "",
+      app.has_trade_in ? "Yes" : "No",
+      app.trade_in_value?.toString() || "",
+      app.submitted_at || app.created_at
+    ])
+    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = globalThis.URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `finance-applications-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    globalThis.URL.revokeObjectURL(url)
+    a.remove()
   }
 
   const downloadDocument = async (pathname: string, fileName: string) => {
@@ -214,7 +425,7 @@ export default function AdminFinancePage() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button>
+          <Button onClick={exportCsv} disabled={filteredApplications.length === 0}>
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
@@ -441,104 +652,367 @@ export default function AdminFinancePage() {
 
       {/* Application Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               Application {selectedApp?.application_number}
               <Badge className={statusColors[selectedApp?.status || "draft"]}>
                 {selectedApp?.status?.replaceAll("_", " ")}
               </Badge>
+              <Badge variant="outline" className="capitalize">{selectedApp?.agreement_type}</Badge>
             </DialogTitle>
             <DialogDescription>
               Submitted on {selectedApp?.submitted_at ? new Date(selectedApp.submitted_at).toLocaleString() : "Draft"}
+              {selectedApp?.decision_at && ` • Decision: ${new Date(selectedApp.decision_at).toLocaleString()}`}
             </DialogDescription>
           </DialogHeader>
 
           {selectedApp && (
-            <Tabs defaultValue="details" className="mt-4">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="documents">Documents ({selectedApp.documents?.length || 0})</TabsTrigger>
-                <TabsTrigger value="vehicle">Vehicle</TabsTrigger>
+            <Tabs defaultValue="applicant" className="mt-4">
+              <TabsList className="flex w-full overflow-x-auto">
+                <TabsTrigger value="applicant">Applicant</TabsTrigger>
+                <TabsTrigger value="finances">Finances</TabsTrigger>
+                <TabsTrigger value="vehicle">Vehicle & Trade-In</TabsTrigger>
+                <TabsTrigger value="documents">Docs ({selectedApp.documents?.length || 0})</TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="actions">Actions</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="details" className="space-y-4 mt-4">
-                {/* Applicant Info */}
+              {/* ── APPLICANT TAB ── */}
+              <TabsContent value="applicant" className="space-y-4 mt-4">
+                {/* Primary Applicant Personal Info */}
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      Primary Applicant
+                      <User className="w-5 h-5" /> Primary Applicant
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-2 gap-4">
+                  <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div>
-                      <Label className="text-gray-500">Name</Label>
+                      <Label className="text-gray-500">Full Name</Label>
                       <p className="font-medium">
-                        {selectedApp.primary_applicant?.first_name} {selectedApp.primary_applicant?.last_name}
+                        {[selectedApp.primary_applicant?.salutation, selectedApp.primary_applicant?.first_name, selectedApp.primary_applicant?.middle_name, selectedApp.primary_applicant?.last_name, selectedApp.primary_applicant?.suffix].filter(Boolean).join(" ") || "—"}
                       </p>
                     </div>
                     <div>
+                      <Label className="text-gray-500">Date of Birth</Label>
+                      <p className="font-medium">{selectedApp.primary_applicant?.date_of_birth ? new Date(selectedApp.primary_applicant.date_of_birth).toLocaleDateString() : "—"}</p>
+                    </div>
+                    <div>
                       <Label className="text-gray-500">Credit Rating</Label>
-                      <p className="font-medium capitalize">{selectedApp.primary_applicant?.credit_rating || "Unknown"}</p>
+                      <p className="font-medium capitalize">{selectedApp.primary_applicant?.credit_rating || "Unknown"}{selectedApp.primary_applicant?.credit_score ? ` (${selectedApp.primary_applicant.credit_score})` : ""}</p>
                     </div>
                     <div>
                       <Label className="text-gray-500">Email</Label>
                       <p className="font-medium flex items-center gap-1">
                         <Mail className="w-4 h-4 text-gray-400" />
-                        {selectedApp.primary_applicant?.email}
+                        {selectedApp.primary_applicant?.email || "—"}
                       </p>
                     </div>
                     <div>
                       <Label className="text-gray-500">Phone</Label>
                       <p className="font-medium flex items-center gap-1">
                         <Phone className="w-4 h-4 text-gray-400" />
-                        {selectedApp.primary_applicant?.phone}
+                        {selectedApp.primary_applicant?.phone || "—"}
                       </p>
+                    </div>
+                    {selectedApp.primary_applicant?.mobile_phone && (
+                      <div>
+                        <Label className="text-gray-500">Mobile</Label>
+                        <p className="font-medium">{selectedApp.primary_applicant.mobile_phone}</p>
+                      </div>
+                    )}
+                    <div>
+                      <Label className="text-gray-500">Marital Status</Label>
+                      <p className="font-medium capitalize">{selectedApp.primary_applicant?.marital_status?.replaceAll("_", " ") || "—"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-gray-500">Language</Label>
+                      <p className="font-medium">{selectedApp.primary_applicant?.language_preference === "fr" ? "French" : "English"}</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Financing Terms */}
+                {/* Address */}
+                {(() => {
+                  const primaryAddresses = selectedApp.addresses.filter(a => a.applicant_id === selectedApp.primary_applicant?.id)
+                  if (primaryAddresses.length === 0) return null
+                  return (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <MapPin className="w-5 h-5" /> Address
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {primaryAddresses.map(addr => (
+                          <div key={addr.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Badge variant="outline" className="capitalize shrink-0">{addr.address_type}</Badge>
+                            <div>
+                              <p className="font-medium">{fmtAddress(addr)}</p>
+                              <p className="text-sm text-gray-500">Duration: {fmtDuration(addr.duration_years, addr.duration_months)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )
+                })()}
+
+                {/* Employment */}
+                {(() => {
+                  const primaryEmployment = selectedApp.employment.filter(e => e.applicant_id === selectedApp.primary_applicant?.id)
+                  if (primaryEmployment.length === 0) return null
+                  return (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Briefcase className="w-5 h-5" /> Employment
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {primaryEmployment.map(emp => (
+                          <div key={emp.id} className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <Label className="text-gray-500">Status</Label>
+                              <p className="font-medium capitalize">{emp.employment_status?.replaceAll("_", " ") || emp.employment_type || "—"}</p>
+                            </div>
+                            <div>
+                              <Label className="text-gray-500">Employer</Label>
+                              <p className="font-medium">{emp.employer_name || "—"}</p>
+                            </div>
+                            <div>
+                              <Label className="text-gray-500">Title / Occupation</Label>
+                              <p className="font-medium">{emp.job_title || emp.occupation || "—"}</p>
+                            </div>
+                            <div>
+                              <Label className="text-gray-500">Duration</Label>
+                              <p className="font-medium">{fmtDuration(emp.duration_years, emp.duration_months)}</p>
+                            </div>
+                            {emp.employer_phone && (
+                              <div>
+                                <Label className="text-gray-500">Employer Phone</Label>
+                                <p className="font-medium">{emp.employer_phone}</p>
+                              </div>
+                            )}
+                            {(emp.employer_city || emp.employer_province) && (
+                              <div>
+                                <Label className="text-gray-500">Location</Label>
+                                <p className="font-medium">{[emp.employer_city, emp.employer_province].filter(Boolean).join(", ")}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )
+                })()}
+
+                {/* Income */}
+                {(() => {
+                  const primaryIncome = selectedApp.income.filter(i => i.applicant_id === selectedApp.primary_applicant?.id)
+                  if (primaryIncome.length === 0) return null
+                  return (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <DollarSign className="w-5 h-5" /> Income
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {primaryIncome.map(inc => (
+                          <div key={inc.id} className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <Label className="text-gray-500">Gross Income</Label>
+                              <p className="font-medium">{fmtCurrency(inc.gross_income)} / {inc.income_frequency}</p>
+                            </div>
+                            {inc.annual_total != null && (
+                              <div>
+                                <Label className="text-gray-500">Annual Total</Label>
+                                <p className="font-medium text-green-600">{fmtCurrency(inc.annual_total)}</p>
+                              </div>
+                            )}
+                            {inc.other_income_amount != null && (
+                              <div>
+                                <Label className="text-gray-500">Other Income</Label>
+                                <p className="font-medium">{fmtCurrency(inc.other_income_amount)} / {inc.other_income_frequency} ({inc.other_income_type})</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )
+                })()}
+
+                {/* Housing */}
+                {(() => {
+                  const primaryHousing = selectedApp.housing.filter(h => h.applicant_id === selectedApp.primary_applicant?.id)
+                  if (primaryHousing.length === 0) return null
+                  return (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Home className="w-5 h-5" /> Housing
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {primaryHousing.map(h => (
+                          <div key={h.id} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div><Label className="text-gray-500">Status</Label><p className="font-medium capitalize">{h.home_status?.replaceAll("_", " ") || "—"}</p></div>
+                            {h.monthly_payment != null && <div><Label className="text-gray-500">Monthly Payment</Label><p className="font-medium">{fmtCurrency(h.monthly_payment)}</p></div>}
+                            {h.market_value != null && <div><Label className="text-gray-500">Market Value</Label><p className="font-medium">{fmtCurrency(h.market_value)}</p></div>}
+                            {h.mortgage_holder && <div><Label className="text-gray-500">Mortgage Holder</Label><p className="font-medium">{h.mortgage_holder}</p></div>}
+                            {h.outstanding_mortgage != null && <div><Label className="text-gray-500">Outstanding Mortgage</Label><p className="font-medium">{fmtCurrency(h.outstanding_mortgage)}</p></div>}
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )
+                })()}
+
+                {/* Co-Applicants */}
+                {selectedApp.co_applicants.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Users className="w-5 h-5" /> Co-Applicant{selectedApp.co_applicants.length > 1 ? "s" : ""}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {selectedApp.co_applicants.map(co => (
+                        <div key={co.id} className="p-3 bg-gray-50 rounded-lg space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="capitalize">{co.applicant_type.replaceAll("_", " ")}</Badge>
+                            {co.relation_to_primary && <span className="text-sm text-gray-500">({co.relation_to_primary})</span>}
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div><Label className="text-gray-500">Name</Label><p className="font-medium">{co.first_name} {co.last_name}</p></div>
+                            <div><Label className="text-gray-500">Email</Label><p className="font-medium">{co.email || "—"}</p></div>
+                            <div><Label className="text-gray-500">Phone</Label><p className="font-medium">{co.phone || "—"}</p></div>
+                            {co.date_of_birth && <div><Label className="text-gray-500">DOB</Label><p className="font-medium">{new Date(co.date_of_birth).toLocaleDateString()}</p></div>}
+                            <div><Label className="text-gray-500">Credit</Label><p className="font-medium capitalize">{co.credit_rating || "Unknown"}</p></div>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Additional Notes from applicant */}
+                {selectedApp.additional_notes && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" /> Applicant Notes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm whitespace-pre-wrap">{selectedApp.additional_notes}</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* ── FINANCES TAB ── */}
+              <TabsContent value="finances" className="space-y-4 mt-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <DollarSign className="w-5 h-5" />
-                      Financing Terms
+                      <DollarSign className="w-5 h-5" /> Financing Terms
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label className="text-gray-500">Amount Financed</Label>
-                      <p className="font-medium text-lg">${selectedApp.requested_amount?.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <Label className="text-gray-500">Down Payment</Label>
-                      <p className="font-medium text-lg">${selectedApp.down_payment?.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <Label className="text-gray-500">Term</Label>
-                      <p className="font-medium text-lg">{selectedApp.loan_term_months} months</p>
-                    </div>
-                    <div>
-                      <Label className="text-gray-500">Payment Frequency</Label>
-                      <p className="font-medium capitalize">{selectedApp.payment_frequency?.replaceAll("_", "-")}</p>
-                    </div>
-                    <div>
-                      <Label className="text-gray-500">Estimated Payment</Label>
-                      <p className="font-medium text-lg text-primary">${selectedApp.estimated_payment?.toLocaleString()}</p>
-                    </div>
-                    {selectedApp.has_trade_in && (
-                      <div>
-                        <Label className="text-gray-500">Trade-In Value</Label>
-                        <p className="font-medium text-lg text-green-600">${selectedApp.trade_in_value?.toLocaleString()}</p>
+                  <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div><Label className="text-gray-500">Requested Amount</Label><p className="font-medium text-lg">{fmtCurrency(selectedApp.requested_amount)}</p></div>
+                    <div><Label className="text-gray-500">Down Payment</Label><p className="font-medium text-lg">{fmtCurrency(selectedApp.down_payment)}</p></div>
+                    <div><Label className="text-gray-500">Term</Label><p className="font-medium text-lg">{selectedApp.loan_term_months} months</p></div>
+                    <div><Label className="text-gray-500">Payment Frequency</Label><p className="font-medium capitalize">{selectedApp.payment_frequency?.replaceAll("_", "-")}</p></div>
+                    <div><Label className="text-gray-500">Estimated Payment</Label><p className="font-medium text-lg text-primary">{fmtCurrency(selectedApp.estimated_payment)}</p></div>
+                    {selectedApp.interest_rate != null && <div><Label className="text-gray-500">Interest Rate</Label><p className="font-medium">{selectedApp.interest_rate}%</p></div>}
+                    {selectedApp.admin_fee != null && <div><Label className="text-gray-500">Admin Fee</Label><p className="font-medium">{fmtCurrency(selectedApp.admin_fee)}</p></div>}
+                    {selectedApp.sales_tax_rate != null && <div><Label className="text-gray-500">Sales Tax Rate</Label><p className="font-medium">{selectedApp.sales_tax_rate}%</p></div>}
+                    {selectedApp.total_amount_financed != null && <div><Label className="text-gray-500">Total Financed</Label><p className="font-medium text-lg font-bold">{fmtCurrency(selectedApp.total_amount_financed)}</p></div>}
+                    {selectedApp.total_interest != null && <div><Label className="text-gray-500">Total Interest</Label><p className="font-medium">{fmtCurrency(selectedApp.total_interest)}</p></div>}
+                    {selectedApp.total_to_repay != null && <div><Label className="text-gray-500">Total to Repay</Label><p className="font-medium text-lg font-bold text-red-600">{fmtCurrency(selectedApp.total_to_repay)}</p></div>}
+                  </CardContent>
+                </Card>
+
+                {selectedApp.has_trade_in && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <ArrowRightLeft className="w-5 h-5" /> Trade-In Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      <div><Label className="text-gray-500">Trade-In Value</Label><p className="font-medium text-green-600">{fmtCurrency(selectedApp.trade_in_value)}</p></div>
+                      {selectedApp.trade_in_lien_amount != null && selectedApp.trade_in_lien_amount > 0 && (
+                        <div><Label className="text-gray-500">Lien Amount</Label><p className="font-medium text-red-600">{fmtCurrency(selectedApp.trade_in_lien_amount)}</p></div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* ── VEHICLE & TRADE-IN TAB ── */}
+              <TabsContent value="vehicle" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Car className="w-5 h-5" /> Vehicle
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedApp.vehicle ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div><Label className="text-gray-500">Vehicle</Label><p className="font-medium text-lg">{selectedApp.vehicle.year} {selectedApp.vehicle.make} {selectedApp.vehicle.model}{selectedApp.vehicle.trim ? ` ${selectedApp.vehicle.trim}` : ""}</p></div>
+                        <div><Label className="text-gray-500">Price</Label><p className="font-medium text-lg">{fmtCurrency(selectedApp.vehicle.price)}</p></div>
+                        {selectedApp.vehicle.mileage != null && <div><Label className="text-gray-500">Mileage</Label><p className="font-medium">{selectedApp.vehicle.mileage.toLocaleString()} km</p></div>}
+                        {selectedApp.vehicle.vin && <div><Label className="text-gray-500">VIN</Label><p className="font-mono text-sm">{selectedApp.vehicle.vin}</p></div>}
+                        {selectedApp.vehicle.stock_number && <div><Label className="text-gray-500">Stock #</Label><p className="font-mono text-sm">{selectedApp.vehicle.stock_number}</p></div>}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Car className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                        <p className="text-gray-500">Pre-approval — no vehicle selected</p>
                       </div>
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Trade-In Details */}
+                {selectedApp.trade_ins.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <ArrowRightLeft className="w-5 h-5" /> Trade-In Vehicle{selectedApp.trade_ins.length > 1 ? "s" : ""}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {selectedApp.trade_ins.map(ti => (
+                        <div key={ti.id} className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div><Label className="text-gray-500">Vehicle</Label><p className="font-medium">{[ti.year, ti.make, ti.model, ti.trim].filter(Boolean).join(" ") || "—"}</p></div>
+                          {ti.vin && <div><Label className="text-gray-500">VIN</Label><p className="font-mono text-sm">{ti.vin}</p></div>}
+                          {ti.mileage != null && <div><Label className="text-gray-500">Mileage</Label><p className="font-medium">{ti.mileage.toLocaleString()} km</p></div>}
+                          {ti.condition && <div><Label className="text-gray-500">Condition</Label><p className="font-medium capitalize">{ti.condition}</p></div>}
+                          {ti.color && <div><Label className="text-gray-500">Color</Label><p className="font-medium capitalize">{ti.color}</p></div>}
+                          <div><Label className="text-gray-500">Estimated Value</Label><p className="font-medium text-green-600">{fmtCurrency(ti.estimated_value)}</p></div>
+                          {ti.offered_value != null && <div><Label className="text-gray-500">Offered Value</Label><p className="font-medium">{fmtCurrency(ti.offered_value)}</p></div>}
+                          {ti.has_lien && (
+                            <>
+                              <div><Label className="text-gray-500">Lien Holder</Label><p className="font-medium">{ti.lien_holder || "—"}</p></div>
+                              <div><Label className="text-gray-500">Lien Amount</Label><p className="font-medium text-red-600">{fmtCurrency(ti.lien_amount)}</p></div>
+                            </>
+                          )}
+                          {ti.net_trade_value != null && <div><Label className="text-gray-500">Net Trade Value</Label><p className="font-medium font-bold">{fmtCurrency(ti.net_trade_value)}</p></div>}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
+              {/* ── DOCUMENTS TAB ── */}
               <TabsContent value="documents" className="mt-4">
                 <Card>
                   <CardContent className="p-4">
@@ -550,38 +1024,28 @@ export default function AdminFinancePage() {
                     ) : (
                       <div className="space-y-3">
                         {selectedApp.documents?.map((doc) => (
-                          <div
-                            key={doc.id}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                          >
+                          <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                 <FileText className="w-5 h-5 text-blue-600" />
                               </div>
                               <div>
                                 <p className="font-medium">{doc.document_name}</p>
-                                <p className="text-sm text-gray-500 capitalize">
-                                  {doc.document_type.replaceAll("_", " ")}
-                                </p>
+                                <p className="text-sm text-gray-500 capitalize">{doc.document_type.replaceAll("_", " ")}</p>
+                                {doc.file_size && <p className="text-xs text-gray-400">{(doc.file_size / 1024).toFixed(0)} KB</p>}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
                               {doc.is_verified ? (
                                 <Badge variant="outline" className="text-green-600 border-green-300">
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Verified
+                                  <CheckCircle className="w-3 h-3 mr-1" /> Verified
                                 </Badge>
                               ) : (
                                 <Badge variant="outline" className="text-yellow-600 border-yellow-300">
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  Pending
+                                  <Clock className="w-3 h-3 mr-1" /> Pending
                                 </Badge>
                               )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => downloadDocument(doc.file_url, doc.document_name)}
-                              >
+                              <Button variant="outline" size="sm" onClick={() => downloadDocument(doc.file_url, doc.document_name)}>
                                 <Download className="w-4 h-4" />
                               </Button>
                             </div>
@@ -593,94 +1057,80 @@ export default function AdminFinancePage() {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="vehicle" className="mt-4">
+              {/* ── HISTORY TAB ── */}
+              <TabsContent value="history" className="mt-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Car className="w-5 h-5" />
-                      Vehicle Information
+                      <History className="w-5 h-5" /> Status History
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {selectedApp.vehicle ? (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-gray-500">Vehicle</Label>
-                          <p className="font-medium text-lg">
-                            {selectedApp.vehicle.year} {selectedApp.vehicle.make} {selectedApp.vehicle.model}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-500">Price</Label>
-                          <p className="font-medium text-lg">${selectedApp.vehicle.price?.toLocaleString()}</p>
-                        </div>
-                      </div>
+                    {selectedApp.history.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No status changes recorded</p>
                     ) : (
-                      <div className="text-center py-8">
-                        <Car className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                        <p className="text-gray-500">Pre-approval application - no vehicle selected</p>
+                      <div className="space-y-3">
+                        {selectedApp.history.map(h => (
+                          <div key={h.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 shrink-0" />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {h.from_status && <Badge className={statusColors[h.from_status]}>{h.from_status.replaceAll("_", " ")}</Badge>}
+                                {h.from_status && <span className="text-gray-400">→</span>}
+                                <Badge className={statusColors[h.to_status]}>{h.to_status.replaceAll("_", " ")}</Badge>
+                              </div>
+                              {h.notes && <p className="text-sm text-gray-600 mt-1">{h.notes}</p>}
+                              <p className="text-xs text-gray-400 mt-1">{new Date(h.changed_at).toLocaleString()}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </CardContent>
                 </Card>
               </TabsContent>
 
+              {/* ── ACTIONS TAB ── */}
               <TabsContent value="actions" className="mt-4 space-y-4">
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg">Update Status</CardTitle>
-                    <CardDescription>Change the application status and add notes</CardDescription>
+                    <CardDescription>Change the application status</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent>
                     <div className="grid grid-cols-2 gap-4">
-                      <Button
-                        variant="outline"
-                        className="h-20 flex flex-col items-center justify-center gap-1"
-                        onClick={() => updateStatus(selectedApp.id, "under_review")}
-                        disabled={updating || selectedApp.status === "under_review"}
-                      >
-                        <Eye className="w-6 h-6 text-yellow-600" />
-                        <span>Mark Under Review</span>
+                      <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-1" onClick={() => updateStatus(selectedApp.id, "under_review")} disabled={updating || selectedApp.status === "under_review"}>
+                        <Eye className="w-6 h-6 text-yellow-600" /><span>Mark Under Review</span>
                       </Button>
-                      <Button
-                        variant="outline"
-                        className="h-20 flex flex-col items-center justify-center gap-1"
-                        onClick={() => updateStatus(selectedApp.id, "approved")}
-                        disabled={updating || selectedApp.status === "approved"}
-                      >
-                        <CheckCircle className="w-6 h-6 text-green-600" />
-                        <span>Approve</span>
+                      <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-1" onClick={() => updateStatus(selectedApp.id, "approved")} disabled={updating || selectedApp.status === "approved"}>
+                        <CheckCircle className="w-6 h-6 text-green-600" /><span>Approve</span>
                       </Button>
-                      <Button
-                        variant="outline"
-                        className="h-20 flex flex-col items-center justify-center gap-1"
-                        onClick={() => updateStatus(selectedApp.id, "funded")}
-                        disabled={updating || selectedApp.status === "funded"}
-                      >
-                        <DollarSign className="w-6 h-6 text-purple-600" />
-                        <span>Mark Funded</span>
+                      <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-1" onClick={() => updateStatus(selectedApp.id, "funded")} disabled={updating || selectedApp.status === "funded"}>
+                        <DollarSign className="w-6 h-6 text-purple-600" /><span>Mark Funded</span>
                       </Button>
-                      <Button
-                        variant="outline"
-                        className="h-20 flex flex-col items-center justify-center gap-1 text-red-600 hover:bg-red-50"
-                        onClick={() => updateStatus(selectedApp.id, "declined")}
-                        disabled={updating || selectedApp.status === "declined"}
-                      >
-                        <XCircle className="w-6 h-6" />
-                        <span>Decline</span>
+                      <Button variant="outline" className="h-20 flex flex-col items-center justify-center gap-1 text-red-600 hover:bg-red-50" onClick={() => updateStatus(selectedApp.id, "declined")} disabled={updating || selectedApp.status === "declined"}>
+                        <XCircle className="w-6 h-6" /><span>Decline</span>
                       </Button>
                     </div>
+                  </CardContent>
+                </Card>
 
-                    <div className="pt-4 border-t">
-                      <Label>Internal Notes</Label>
-                      <Textarea
-                        placeholder="Add internal notes about this application..."
-                        className="mt-2"
-                      />
-                      <Button className="mt-2" disabled={updating}>
-                        Save Notes
-                      </Button>
-                    </div>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Internal Notes</CardTitle>
+                    <CardDescription>Private notes visible only to admin staff</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Textarea
+                      placeholder="Add internal notes about this application..."
+                      value={internalNotes}
+                      onChange={(e) => setInternalNotes(e.target.value)}
+                      rows={4}
+                    />
+                    <Button onClick={saveInternalNotes} disabled={savingNotes}>
+                      <Save className="w-4 h-4 mr-2" />
+                      {savingNotes ? "Saving..." : "Save Notes"}
+                    </Button>
                   </CardContent>
                 </Card>
 
@@ -691,14 +1141,12 @@ export default function AdminFinancePage() {
                   <CardContent className="flex gap-2">
                     <Button variant="outline" asChild>
                       <a href={`mailto:${selectedApp.primary_applicant?.email}`}>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Send Email
+                        <Mail className="w-4 h-4 mr-2" /> Send Email
                       </a>
                     </Button>
                     <Button variant="outline" asChild>
                       <a href={`tel:${selectedApp.primary_applicant?.phone}`}>
-                        <Phone className="w-4 h-4 mr-2" />
-                        Call
+                        <Phone className="w-4 h-4 mr-2" /> Call
                       </a>
                     </Button>
                   </CardContent>
