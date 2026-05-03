@@ -124,7 +124,12 @@ export function CarfaxSection({
             alt={altText}
             width="400"
             height="65"
-            className="h-[65px] w-auto drop-shadow-sm contrast-125"
+            style={{
+              height: "65px",
+              width: "auto",
+              minWidth: "220px",
+            }}
+            className="drop-shadow-md brightness-105"
             onError={() => setImgError(true)}
           />
         </a>
