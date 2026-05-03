@@ -122,9 +122,9 @@ export function CarfaxSection({
           <img
             src={summary.badgesImageUrl}
             alt={altText}
-            width="350"
-            height="56"
-            className="h-[56px] w-auto drop-shadow-sm"
+            width="400"
+            height="65"
+            className="h-[65px] w-auto drop-shadow-sm contrast-125"
             onError={() => setImgError(true)}
           />
         </a>
