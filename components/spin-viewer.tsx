@@ -13,10 +13,13 @@ interface SpinViewerProps {
   className?: string
 }
 
-/** Carvana-style clean studio backdrop — pure white with subtle floor gradient. */
-const SPIN_BG = "#f7f7f7"
-const SPIN_BG_TOP = "#ffffff"    // pure white top (studio wall)
-const SPIN_BG_BOTTOM = "#ebebeb" // subtle warm gray floor
+/**
+ * Carvana-style studio backdrop — warm gray cyc wall fading to darker floor.
+ * Sampled from Carvana.com 360° viewer (2026-05-03).
+ */
+const SPIN_BG = "#dcdcdc"
+const SPIN_BG_TOP = "#e6e6e6"    // warm light gray (studio cyc wall)
+const SPIN_BG_BOTTOM = "#c2c2c2" // darker gray (studio floor)
 
 /**
  * Native 360° Spin Viewer — loads WebP frames directly from Supabase Storage.

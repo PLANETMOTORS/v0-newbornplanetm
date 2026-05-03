@@ -47,7 +47,7 @@ import { FRAME_MANIFEST } from "@/lib/drivee-frames"
 // ── Lazy-load heavy below-fold components ──
 const SpinViewer = dynamic(
   () => import("@/components/spin-viewer").then(m => ({ default: m.SpinViewer })),
-  { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl animate-pulse" style={{ background: "#e8e8e8" }} /> }
+  { ssr: false, loading: () => <div className="aspect-[4/3] rounded-xl animate-pulse" style={{ background: "#dcdcdc" }} /> }
 )
 
 const SimilarVehicles = dynamic(
