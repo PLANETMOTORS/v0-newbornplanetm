@@ -69,7 +69,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         "Access-Control-Allow-Origin": "*",
       },
     })
-  } catch (err) {
+  } catch (_err) {
     return NextResponse.json(
       { error: "Failed to fetch badge from upstream" },
       { status: 502 },
