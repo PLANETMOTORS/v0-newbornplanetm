@@ -730,23 +730,23 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </div>
                   </div>
 
-                  {/* ── ULTRA-LUXURY FERRARI POWER ROW — FINAL ── */}
-                  <div className="w-full mb-12 mt-4 px-4 md:px-0">
-                    <div className="flex flex-col md:flex-row items-center justify-between p-10 border border-slate-100 rounded-[40px] bg-white shadow-2xl transition-all duration-300">
+                  {/* ── FERRARI SLIM POWER BAR — 80px High-Density Trust Bar ── */}
+                  <div className="w-full max-w-[850px] mx-auto mb-10 mt-4 px-4 md:px-0">
+                    <div className="flex flex-col md:flex-row items-center justify-between h-auto md:h-[80px] px-8 border border-slate-100 rounded-[20px] bg-white shadow-lg hover:shadow-xl transition-all duration-300">
 
-                      {/* HERO: Official CARFAX badge strip — forced 65px via inline style */}
-                      <div className="flex-1 flex justify-center md:justify-start">
+                      {/* HERO: Official CARFAX Medium badge (36px) */}
+                      <div className="flex items-center py-5 md:py-0">
                         <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
                       </div>
 
-                      {/* ACTION: Premium Slate-900 CTA — matches badge height */}
+                      {/* ACTION: Sleek Slate-900 CTA — centered in the 80px bar */}
                       {carfaxReportUrl && (
-                        <div className="mt-8 md:mt-0 w-full md:w-auto">
+                        <div className="pb-5 md:pb-0 w-full md:w-auto">
                           <a
                             href={carfaxReportUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center px-12 py-5 bg-[#0f172a] text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-black active:scale-95 transition-all shadow-2xl w-full md:w-auto"
+                            className="inline-flex items-center justify-center px-8 py-3.5 bg-[#0f172a] text-white rounded-xl font-black text-[11px] uppercase tracking-[0.15em] hover:bg-black active:scale-95 transition-all shadow-md w-full md:w-auto"
                           >
                             VIEW FULL REPORT
                           </a>
