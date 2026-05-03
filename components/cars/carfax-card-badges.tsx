@@ -8,6 +8,7 @@ import {
   hasLowKilometerBadge,
 } from "@/lib/carfax/adapters"
 import { CheckCircle, ExternalLink } from "lucide-react"
+import { proxyBadgeUrl } from "@/lib/carfax/proxy-url"
 
 interface CarfaxCardBadgesProps {
   vin: string
@@ -77,7 +78,7 @@ export function CarfaxCardBadges({ vin }: CarfaxCardBadgesProps) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={summary.badgesImageUrl}
+            src={proxyBadgeUrl(summary.badgesImageUrl)}
             alt={claims.length > 0 ? `CARFAX: ${claims.join(", ")}` : "CARFAX Canada"}
             className="h-8 w-auto"
             onError={() => setImgError(true)}

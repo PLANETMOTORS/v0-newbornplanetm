@@ -282,6 +282,7 @@ const nextConfig = {
       'https://googleads.g.doubleclick.net',       // Google Ads data
       'https://www.merchant-center-analytics.goog', // Google Merchant Center
       'https://pagead2.googlesyndication.com',     // Google Ads CCM collect
+      'https://cdn.carfax.ca',                       // CARFAX badge SVGs
     ]
 
     const mainSiteCSP = [

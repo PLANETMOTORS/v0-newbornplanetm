@@ -23,6 +23,7 @@ import {
   hasOneOwnerBadge,
 } from "@/lib/carfax/adapters"
 import { useCarfaxSummary } from "@/hooks/use-carfax-summary"
+import { proxyBadgeUrl } from "@/lib/carfax/proxy-url"
 
 interface CarfaxSectionProps {
   vin: string | null
@@ -108,7 +109,7 @@ export function CarfaxSection({
             <a href={targetUrl} target="_blank" rel="noopener noreferrer" className="block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={summary.badgesImageUrl!}
+                src={proxyBadgeUrl(summary.badgesImageUrl!)}
                 alt={altText}
                 width="280"
                 height="36"
