@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
-  ChevronLeft, ChevronRight, Heart, Share2, Fuel, Gauge,
+  ChevronLeft, ChevronRight, Heart, Share2, Fuel,
   Settings, Shield, CheckCircle, Car,
   FileText, Zap, DollarSign, CreditCard,
   Phone, Star, TrendingUp, Users,
@@ -735,12 +735,6 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       <CarfaxSection vin={vehicle.vin ?? null} variant="headline" className="flex-1 min-w-[200px]" />
                       <Card className="flex-1 min-w-[140px]">
                         <CardContent className="p-3 flex items-center gap-2">
-                          <Gauge className="w-5 h-5 text-muted-foreground" />
-                          <p className="font-semibold text-sm tabular-nums">{vehicle.mileage.toLocaleString()} km</p>
-                        </CardContent>
-                      </Card>
-                      <Card className="flex-1 min-w-[140px]">
-                        <CardContent className="p-3 flex items-center gap-2">
                           <Shield className="w-5 h-5 text-purple-500" />
                           <div>
                             <p className="font-semibold text-sm">Safety certified</p>
@@ -750,6 +744,10 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                       </Card>
                     </div>
                   </div>
+
+                  {/* CARFAX Badge Panel — badge SVG strip + "View CARFAX Report" CTA.
+                      Moved here from Inspect tab for maximum visibility (industry standard). */}
+                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
 
                   {/* Delivery Options */}
                   <div>
@@ -1198,9 +1196,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </DialogContent>
                   </Dialog>
 
-                  {/* CARFAX panel — driven by /api/v1/carfax/[vin]; renders
-                      real badges + a tokenized VhrReportUrl. */}
-                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
+
 
 
                   {/* EV Battery Health - Show for EVs/PHEVs */}
