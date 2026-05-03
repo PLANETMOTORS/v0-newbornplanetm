@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import Image from "next/image"
 import {
   X, Upload, Trash2, Star, Loader2, ImagePlus,
-  AlertCircle, CheckCircle,
+  AlertCircle, CheckCircle, Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -42,6 +42,7 @@ export default function VehiclePhotoManager({
   const [settingPrimary, setSettingPrimary] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [removingBg, setRemovingBg] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // ─── Fetch photos ────────────────────────────────────────────────────
@@ -212,9 +213,43 @@ export default function VehiclePhotoManager({
             <h2 className="text-lg font-bold text-gray-900">Manage Photos</h2>
             <p className="text-sm text-gray-500">{vehicleTitle}</p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={removingBg || !photos?.imageUrls?.length}
+              onClick={async () => {
+                setRemovingBg(true)
+                setError(null)
+                try {
+                  const res = await fetch(`/api/v1/admin/vehicles/${vehicleId}/remove-bg`, { method: "POST" })
+                  const data = await res.json()
+                  if (res.ok) {
+                    setSuccessMsg(`Backgrounds removed: ${data.bgRemoved}/${data.totalImages} photos`)
+                    setTimeout(() => setSuccessMsg(null), 5000)
+                    fetchPhotos()
+                    onPhotosChanged?.()
+                  } else {
+                    setError(data.error || "Background removal failed")
+                  }
+                } catch {
+                  setError("Network error during background removal")
+                } finally {
+                  setRemovingBg(false)
+                }
+              }}
+            >
+              {removingBg ? (
+                <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-1.5" />
+              )}
+              {removingBg ? "Processing…" : "Studio Backgrounds"}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Alerts */}
