@@ -483,7 +483,7 @@ function IDVerificationContent() {
             )}
             <Button
               data-testid="verification-btn-submit"
-              className="w-full h-12 text-base"
+              className="w-full h-12 text-base aria-busy:opacity-80 aria-busy:cursor-wait"
               size="lg"
               aria-label="Submit for verification"
               aria-busy={isSubmitting}

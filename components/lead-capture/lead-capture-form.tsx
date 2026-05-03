@@ -332,7 +332,7 @@ export function LeadCaptureForm({
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full aria-busy:opacity-80 aria-busy:cursor-wait"
         disabled={!isFormValid() || isSubmitting}
         aria-busy={isSubmitting}
       >

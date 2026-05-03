@@ -234,7 +234,8 @@ export function ReviewOrderStep({
       <Button
         onClick={onFinalize}
         disabled={!agreeToTerms || isSubmitting}
-        className="w-full h-14 text-lg font-bold bg-green-600 hover:bg-green-700"
+        aria-busy={isSubmitting}
+        className="w-full h-14 text-lg font-bold bg-green-600 hover:bg-green-700 aria-busy:opacity-80 aria-busy:cursor-wait"
       >
         {isSubmitting ? "Processing…" : "Finalize Purchase"}
       </Button>

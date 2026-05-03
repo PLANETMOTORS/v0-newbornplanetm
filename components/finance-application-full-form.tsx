@@ -1042,7 +1042,7 @@ if (errors.length > 0) {
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : (
-          <Button data-testid="finance-btn-submit" aria-busy={isSubmitting} onClick={handleSubmit} disabled={isSubmitting}>
+          <Button data-testid="finance-btn-submit" aria-busy={isSubmitting} className="aria-busy:opacity-80 aria-busy:cursor-wait" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

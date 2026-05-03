@@ -187,7 +187,7 @@ export function PriceDropAlert({
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isSubmitting} aria-busy={isSubmitting}>
               {isSubmitting ? "Setting Alert..." : "Set Price Alert"}
             </Button>
 

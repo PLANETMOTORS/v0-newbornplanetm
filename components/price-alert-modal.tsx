@@ -160,7 +160,7 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
               </div>
 
               {error && <p className="text-sm text-destructive text-center">{error}</p>}
-              <Button type="submit" className="w-full" disabled={!email || isSubmitting}>
+              <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={!email || isSubmitting} aria-busy={isSubmitting}>
                 {isSubmitting ? "Setting up alerts..." : "Create Alert"}
               </Button>
 

@@ -264,8 +264,9 @@ export function LiveVideoTourForm({ vehicleId, vehicleName, onSuccess }: Readonl
       <div className="pt-2 space-y-3">
         <Button
           type="submit"
-          className="w-full h-12 text-base font-semibold"
+          className="w-full h-12 text-base font-semibold aria-busy:opacity-80 aria-busy:cursor-wait"
           disabled={isSubmitting}
+          aria-busy={isSubmitting}
         >
           {isSubmitting ? "Scheduling..." : "Schedule Video Tour"}
         </Button>

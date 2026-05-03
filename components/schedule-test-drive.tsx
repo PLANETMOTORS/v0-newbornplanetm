@@ -382,8 +382,9 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Readonly
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button
                   type="submit"
-                  className="flex-1"
+                  className="flex-1 aria-busy:opacity-80 aria-busy:cursor-wait"
                   disabled={!isFormComplete() || isSubmitting}
+                  aria-busy={isSubmitting}
                 >
                   {isSubmitting ? "Scheduling..." : "Confirm Test Drive"}
                 </Button>

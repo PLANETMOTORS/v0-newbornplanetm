@@ -181,8 +181,9 @@ export default function AdminResetPasswordPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white aria-busy:opacity-80 aria-busy:cursor-wait"
                   disabled={isSubmitting}
+                  aria-busy={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>

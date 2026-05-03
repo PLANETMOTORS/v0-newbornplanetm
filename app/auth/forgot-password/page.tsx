@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
 
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isSubmitting} aria-busy={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
