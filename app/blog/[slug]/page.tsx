@@ -28,6 +28,50 @@ export const revalidate = 300
 
 const SITE_URL = getPublicSiteUrl()
 
+/** Build Next.js image optimizer srcset for preload link tags. */
+const DEVICE_SIZES = [640, 750, 828, 1080, 1200, 1920]
+function buildPreloadSrcSet(src: string, quality: number): string {
+  return DEVICE_SIZES.map(
+    w => `/_next/image?url=${encodeURIComponent(src)}&w=${w}&q=${quality} ${w}w`
+  ).join(', ')
+}
+
+/** Shared sanitize-html configuration — created once, reused per call. */
+const BLOG_SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'iframe', 'video', 'source']),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    a: ['href', 'name', 'target', 'rel', 'class'],
+    img: ['src', 'alt', 'width', 'height', 'loading', 'class'],
+    iframe: ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title'],
+    video: ['src', 'controls', 'width', 'height', 'poster'],
+    source: ['src', 'type'],
+    '*': ['class', 'id', 'style'],
+  },
+  transformTags: {
+    a: (tagName, attribs) => {
+      const href = attribs.href || ''
+      const isExternal = href.startsWith('http') && !href.includes('planetmotors')
+      return {
+        tagName,
+        attribs: {
+          ...attribs,
+          ...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+        },
+      }
+    },
+    img: (tagName, attribs) => ({
+      tagName,
+      attribs: {
+        ...attribs,
+        loading: attribs.loading || 'lazy',
+        decoding: 'async',
+      },
+    }),
+  },
+  allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com'],
+}
+
 /** Convert display date "Apr 09, 2026" → ISO "2026-04-09" for structured data. */
 function toISODate(displayDate: string): string {
   const d = new Date(displayDate)
@@ -152,7 +196,7 @@ function mergePostData(sanityPost: BlogPost | null, staticPost: (typeof blogPost
     date: sanityPost?.publishedAt
       ? new Date(sanityPost.publishedAt).toLocaleDateString("en-CA", dateOpts)
       : staticPost?.date ?? "",
-    content: sanityContent ?? staticPost?.content ?? `<p>${sanityPost?.excerpt ?? ""}</p>`,
+    content: sanitizeHtml(sanityContent ?? staticPost?.content ?? `<p>${sanityPost?.excerpt ?? ""}</p>`, BLOG_SANITIZE_OPTIONS),
     relatedPosts: staticPost?.relatedPosts ?? [],
     readTime: staticPost?.readTime ?? "5 min read",
     author: staticPost?.author ?? "Planet Motors Team",
@@ -187,6 +231,15 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
         }}
       />
       <Header />
+
+      {/* Preload LCP hero image — hoisted to <head> by Next.js */}
+      <link
+        rel="preload"
+        as="image"
+        imageSrcSet={buildPreloadSrcSet(post.image, 75)}
+        imageSizes="100vw"
+        fetchPriority="high"
+      />
 
       <main id="main-content" tabIndex={-1} className="pt-24 pb-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
         {/* Back Link */}
@@ -235,44 +288,10 @@ export default async function BlogPostPage({ params }: Readonly<{ params: Promis
 
         {/* Article Content */}
         <article className="mx-auto max-w-4xl px-6 lg:px-8 py-12">
-          <div 
+          {/* Content pre-sanitized in mergePostData() — no runtime sanitizeHtml cost */}
+          <div
             className="prose prose-lg max-w-none prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground"
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content, {
-              allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'iframe', 'video', 'source']),
-              allowedAttributes: {
-                ...sanitizeHtml.defaults.allowedAttributes,
-                a: ['href', 'name', 'target', 'rel', 'class'],
-                img: ['src', 'alt', 'width', 'height', 'loading', 'class'],
-                iframe: ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title'],
-                video: ['src', 'controls', 'width', 'height', 'poster'],
-                source: ['src', 'type'],
-                '*': ['class', 'id', 'style'],
-              },
-              transformTags: {
-                // Ensure internal links open in same tab, external in new tab
-                a: (tagName, attribs) => {
-                  const href = attribs.href || ''
-                  const isExternal = href.startsWith('http') && !href.includes('planetmotors')
-                  return {
-                    tagName,
-                    attribs: {
-                      ...attribs,
-                      ...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
-                    },
-                  }
-                },
-                // Inject lazy loading on inline images to reduce initial payload
-                img: (tagName, attribs) => ({
-                  tagName,
-                  attribs: {
-                    ...attribs,
-                    loading: attribs.loading || 'lazy',
-                    decoding: 'async',
-                  },
-                }),
-              },
-              allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com'],
-            }) }}
+            dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
           {/* Share Section */}
