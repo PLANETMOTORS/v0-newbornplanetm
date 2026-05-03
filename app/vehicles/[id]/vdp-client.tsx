@@ -40,7 +40,6 @@ import { safeNum } from "@/lib/pricing/format"
 import { trackViewItem, trackAddToWishlist } from "@/components/analytics/google-analytics"
 import { PHONE_LOCAL, PHONE_LOCAL_TEL, DEALERSHIP_ADDRESS_FULL } from "@/lib/constants/dealership"
 import { CarfaxSection } from "@/components/vdp/carfax-section"
-import { useCarfaxSummary } from "@/hooks/use-carfax-summary"
 import { FALLBACK_VEHICLE_DATA as vehicleData } from "@/lib/vdp/fallback-vehicle-data"
 import { getVehicleStatusDisplay } from "@/lib/vehicles/status-display"
 
@@ -145,10 +144,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
   const { exteriorImgs, interiorImgs } = buildVdpImages(serverVehicle)
   const vehicle = buildMergedVehicle(serverVehicle, exteriorImgs, interiorImgs)
 
-  // CARFAX summary at page level — needed for the Power Bar CTA
-  const carfaxState = useCarfaxSummary(vehicle.vin ?? null)
-  const carfaxReportUrl = carfaxState.status === "ready" ? carfaxState.summary.vhrReportUrl : null
-  const carfaxHasBadges = carfaxState.status === "ready" && !!carfaxState.summary.badgesImageUrl
+  /* CARFAX Power Bar is now self-contained inside CarfaxSection (panel variant) */
 
   const vehicleId = vehicle.id
   const isAvailable = vehicle.status === "available"
@@ -731,33 +727,8 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                     </div>
                   </div>
 
-                  {/* ── FERRARI SLIM POWER BAR — only renders when badges exist ── */}
-                  {carfaxHasBadges && (
-                    <div className="w-full max-w-[850px] mx-auto mb-10 mt-4 px-4 md:px-0">
-                      <div className="flex flex-col md:flex-row items-center justify-between h-auto md:h-[80px] px-8 py-6 md:py-0 border border-slate-100 rounded-[20px] bg-white shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-500">
-
-                        {/* HERO: Official CARFAX Medium badge (36px forced) */}
-                        <div className="flex items-center">
-                          <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
-                        </div>
-
-                        {/* ACTION: Branded CTA — full-width on mobile, compact on desktop */}
-                        {carfaxReportUrl && (
-                          <div className="mt-6 md:mt-0 w-full md:w-auto">
-                            <a
-                              href={carfaxReportUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center px-10 py-4 bg-[#0f172a] text-white rounded-xl font-black text-xs md:text-sm uppercase tracking-[0.2em] hover:bg-black active:scale-95 transition-all shadow-lg w-full md:w-auto"
-                            >
-                              VIEW FULL REPORT
-                            </a>
-                          </div>
-                        )}
-
-                      </div>
-                    </div>
-                  )}
+                  {/* ── CARFAX POWER BAR — self-contained, returns null when nothing to show ── */}
+                  <CarfaxSection vin={vehicle.vin ?? null} variant="panel" />
 
                   {/* Delivery Options */}
                   <div>
