@@ -37,6 +37,7 @@ export default function Admin360UploadPage() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadCardRef = useRef<HTMLDivElement>(null)
 
   // Existing vehicles state
   const [vehicles, setVehicles] = useState<VehicleInfo[]>([])
@@ -163,7 +164,7 @@ export default function Admin360UploadPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upload Form */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4" ref={uploadCardRef}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -479,6 +480,12 @@ export default function Admin360UploadPage() {
                             onClick={() => {
                               setMid(v.mid)
                               setVehicleName("")
+                              setSelectedFiles([])
+                              setUploadResult(null)
+                              setUploadError(null)
+                              // Scroll to upload form and open file picker
+                              uploadCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+                              setTimeout(() => fileInputRef.current?.click(), 400)
                             }}
                           >
                             <Upload className="w-3 h-3 mr-1" />
