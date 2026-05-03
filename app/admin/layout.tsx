@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { 
   LayoutDashboard, Car, Users, FileText, DollarSign,
   MessageSquare, Settings, LogOut, Menu, X,
-  BarChart3, Bell, Search, Shield, Camera,
+  BarChart3, Bell, Search, Shield, Camera, Paintbrush,
   Bot, CalendarCheck, Mail, UserCog
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -30,6 +30,7 @@ const navigation = [
   { name: "AI Agents", href: "/admin/ai-agents", icon: Bot },
   { name: "Workflows", href: "/admin/workflows", icon: Mail },
   { name: "360° Photos", href: "/admin/360-upload", icon: Camera },
+  { name: "Backgrounds", href: "/admin/backgrounds", icon: Paintbrush },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Admin Users", href: "/admin/users", icon: UserCog },
   { name: "Settings", href: "/admin/settings", icon: Settings },
