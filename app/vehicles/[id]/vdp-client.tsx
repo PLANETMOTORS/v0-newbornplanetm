@@ -437,8 +437,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   <section
                     aria-label="Auto-spinning vehicle photos"
                     data-testid="vdp-auto-spin"
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
-                    style={{ backgroundColor: "#111" }}
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group bg-neutral-900"
                     onMouseEnter={() => setIsAutoSpinning(false)}
                     onMouseLeave={() => setIsAutoSpinning(true)}
                   >
@@ -501,8 +500,7 @@ export default function VDPClient({ serverVehicle }: Readonly<VDPClientProps>) {
                   <section
                     data-testid="vdp-image-gallery"
                     aria-label="Vehicle image gallery — use arrow buttons to navigate"
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
-                    style={{ backgroundColor: "#e8e8e8" }}
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group bg-neutral-200"
                   >
                     {/* Hidden native img for vdp-active-image testid (Playwright getAttribute('src')) */}
                     {currentImages.length > 0 && currentImages[activeIndex] && (

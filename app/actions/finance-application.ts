@@ -97,7 +97,17 @@ const financeApplicationSchema = z.object({
   coApplicant: applicantSchema.partial().nullable().optional(),
   coApplicantRelation: z.string().nullable().optional(),
   vehicleInfo: vehicleInfoSchema,
-  tradeIn: z.any().optional(),
+  tradeIn: z.object({
+    hasTradeIn: z.boolean().optional(),
+    estimatedValue: z.string().max(20).optional(),
+    hasLien: z.boolean().optional(),
+    lienAmount: z.string().max(20).optional(),
+    year: z.string().max(4).optional(),
+    make: z.string().max(100).optional(),
+    model: z.string().max(100).optional(),
+    mileage: z.string().max(20).optional(),
+    condition: z.string().max(50).optional(),
+  }).passthrough().nullable().optional(),
   financingTerms: financingTermsSchema,
   additionalNotes: z.string().max(2000).optional().or(z.literal('')),
   vehicleId: z.string().max(100).nullable().optional(),
@@ -112,18 +122,21 @@ async function getClientIp(): Promise<string> {
   return h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '0.0.0.0'
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function computeFinancingMath(vi: any, ft: any, ti: any) {
+interface VehicleInfoInput { totalPrice: string; downPayment: string }
+interface FinancingTermsInput { adminFee?: string; salesTaxRate?: string; interestRate?: string; paymentFrequency: string; loanTermMonths: number }
+interface TradeInInput { estimatedValue?: string; hasLien?: boolean; lienAmount?: string }
+
+function computeFinancingMath(vi: VehicleInfoInput, ft: FinancingTermsInput, ti: TradeInInput | null | undefined) {
   const price = Number.parseFloat(vi.totalPrice) || 0
   const dp = Number.parseFloat(vi.downPayment) || 0
-  const tv = Number.parseFloat(ti?.estimatedValue) || 0
-  const la = ti?.hasLien ? (Number.parseFloat(ti.lienAmount) || 0) : 0
+  const tv = Number.parseFloat(ti?.estimatedValue ?? '0') || 0
+  const la = ti?.hasLien ? (Number.parseFloat(ti.lienAmount ?? '0') || 0) : 0
   const netTrade = tv - la
-  const adminFee = Number.parseFloat(ft.adminFee) || 895
-  const taxRate = Number.parseFloat(ft.salesTaxRate) / 100 || PROVINCE_TAX_RATES.ON.total
+  const adminFee = Number.parseFloat(ft.adminFee ?? '895') || 895
+  const taxRate = Number.parseFloat(ft.salesTaxRate ?? '0') / 100 || PROVINCE_TAX_RATES.ON.total
   const subtotal = price + adminFee - dp - netTrade
   const amountFinanced = subtotal + subtotal * taxRate
-  const rate = (Number.parseFloat(ft.interestRate) || 8.99) / 100
+  const rate = (Number.parseFloat(ft.interestRate ?? '8.99') || 8.99) / 100
   const ppy = ft.paymentFrequency === 'weekly' ? 52
     : ft.paymentFrequency === 'bi-weekly' ? 26
     : ft.paymentFrequency === 'semi-monthly' ? 24 : 12

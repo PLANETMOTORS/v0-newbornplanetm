@@ -1,8 +1,8 @@
- 
 'use server'
 
 import { createHash } from 'node:crypto'
 import type Stripe from 'stripe'
+import { z } from 'zod'
 import { lockVehicle, unlockVehicle, rateLimit } from '@/lib/redis'
 import { getStripe } from '@/lib/stripe'
 import { getProductById } from '@/lib/products'
@@ -10,6 +10,26 @@ import { getPublicSiteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { headers } from 'next/headers'
+
+// ── Zod Schemas ──────────────────────────────────────────────────────────
+
+const reservationInputSchema = z.object({
+  vehicleId: z.string().uuid('Invalid vehicle ID'),
+  stockNumber: z.string().min(1, 'Stock number is required').max(50),
+  customerEmail: z.string().trim().email('Invalid email address').max(254),
+  customerPhone: z.string().max(20).optional(),
+  customerName: z.string().max(200).optional(),
+})
+
+const cancelReservationSchema = z.object({
+  reservationId: z.string().uuid('Invalid reservation ID'),
+  stockNumber: z.string().min(1).max(50),
+  email: z.string().trim().email().max(254),
+})
+
+const reservationStatusSchema = z.object({
+  sessionId: z.string().min(1, 'Session ID is required').max(200),
+})
 
 export interface ReservationInput {
   vehicleId: string
@@ -157,7 +177,12 @@ function logReservationError(error: unknown, input: ReservationInput) {
     ...(isProd ? {} : { stack: error instanceof Error ? error.stack : undefined }),
   })
 }
-export async function createReservation(input: ReservationInput): Promise<ReservationResult> {
+export async function createReservation(rawInput: ReservationInput): Promise<ReservationResult> {
+  const parsed = reservationInputSchema.safeParse(rawInput)
+  if (!parsed.success) {
+    return { error: parsed.error.issues.map(i => i.message).join('. ') }
+  }
+  const input = parsed.data
   const rateLimitScopeHash = await buildRateLimitScope(input.customerEmail)
 
   const supabase = await createClient()
@@ -341,18 +366,26 @@ export async function createReservation(input: ReservationInput): Promise<Reserv
 }
 
 export async function cancelReservation(
-  reservationId: string, 
-  stockNumber: string, 
+  reservationId: string,
+  stockNumber: string,
   email: string
 ): Promise<{ success?: boolean; error?: string }> {
+  const parsed = cancelReservationSchema.safeParse({ reservationId, stockNumber, email })
+  if (!parsed.success) {
+    return { error: parsed.error.issues.map(i => i.message).join('. ') }
+  }
   // Release the vehicle lock
-  await unlockVehicle(stockNumber, email)
+  await unlockVehicle(parsed.data.stockNumber, parsed.data.email)
   return { success: true }
 }
 
 export async function getReservationStatus(
   sessionId: string
 ): Promise<{ reservation?: Record<string, unknown>; error?: string }> {
+  const parsed = reservationStatusSchema.safeParse({ sessionId })
+  if (!parsed.success) {
+    return { error: parsed.error.issues.map(i => i.message).join('. ') }
+  }
   const stripe = getStripe()
   const supabase = await createClient()
   

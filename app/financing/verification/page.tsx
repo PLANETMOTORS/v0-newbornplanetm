@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useTransition, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -55,7 +55,7 @@ function IDVerificationContent() {
   const searchParams = useSearchParams()
   const applicationId = searchParams.get("applicationId")
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isVerified, setIsVerified] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   
@@ -127,48 +127,46 @@ function IDVerificationContent() {
     }
   }
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true)
-    
-    try {
-      // Build form data for API submission
-      const formData = new FormData()
-      formData.append("applicationId", applicationId || "")
-      formData.append("primaryIdType", primaryID.type)
-      formData.append("primaryIdNumber", primaryID.number)
-      formData.append("primaryExpiryDate", primaryID.expiryDate)
-      formData.append("primaryIssuingProvince", primaryID.issuingProvince)
-      if (primaryID.frontImage) formData.append("primaryFrontImage", primaryID.frontImage)
-      if (primaryID.backImage) formData.append("primaryBackImage", primaryID.backImage)
-      
-      // Secondary ID
-      if (useSecondaryID && secondaryID.type) {
-        formData.append("secondaryIdType", secondaryID.type)
-        formData.append("secondaryIdNumber", secondaryID.number)
-        if (secondaryID.frontImage) formData.append("secondaryFrontImage", secondaryID.frontImage)
-        if (secondaryID.backImage) formData.append("secondaryBackImage", secondaryID.backImage)
+  const handleSubmit = () => {
+    startTransition(async () => {
+      try {
+        // Build form data for API submission
+        const formData = new FormData()
+        formData.append("applicationId", applicationId || "")
+        formData.append("primaryIdType", primaryID.type)
+        formData.append("primaryIdNumber", primaryID.number)
+        formData.append("primaryExpiryDate", primaryID.expiryDate)
+        formData.append("primaryIssuingProvince", primaryID.issuingProvince)
+        if (primaryID.frontImage) formData.append("primaryFrontImage", primaryID.frontImage)
+        if (primaryID.backImage) formData.append("primaryBackImage", primaryID.backImage)
+
+        // Secondary ID
+        if (useSecondaryID && secondaryID.type) {
+          formData.append("secondaryIdType", secondaryID.type)
+          formData.append("secondaryIdNumber", secondaryID.number)
+          if (secondaryID.frontImage) formData.append("secondaryFrontImage", secondaryID.frontImage)
+          if (secondaryID.backImage) formData.append("secondaryBackImage", secondaryID.backImage)
+        }
+
+        // Submit to API
+        const response = await fetch("/api/v1/id-verification", {
+          method: "POST",
+          body: formData
+        })
+
+        const result = await response.json()
+
+        if (response.ok && result.success) {
+          setIsVerified(true)
+        } else {
+          console.error("Verification failed:", result.error)
+          setSubmitError(result.error || "Failed to submit verification. Please try again.")
+        }
+      } catch (error) {
+        console.error("Verification error:", error)
+        setSubmitError("An error occurred. Please try again.")
       }
-      
-      // Submit to API
-      const response = await fetch("/api/v1/id-verification", {
-        method: "POST",
-        body: formData
-      })
-      
-      const result = await response.json()
-      
-      if (response.ok && result.success) {
-        setIsVerified(true)
-      } else {
-        console.error("Verification failed:", result.error)
-        setSubmitError(result.error || "Failed to submit verification. Please try again.")
-      }
-    } catch (error) {
-      console.error("Verification error:", error)
-      setSubmitError("An error occurred. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
+    })
   }
 
   const isFormValid = primaryID.type && primaryID.number && primaryID.frontImage
@@ -486,11 +484,11 @@ function IDVerificationContent() {
               className="w-full h-12 text-base aria-busy:opacity-80 aria-busy:cursor-wait"
               size="lg"
               aria-label="Submit for verification"
-              aria-busy={isSubmitting}
+              aria-busy={isPending}
               onClick={() => { setSubmitError(null); handleSubmit() }}
-              disabled={!isFormValid || isSubmitting}
+              disabled={!isFormValid || isPending}
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Verifying Identity...

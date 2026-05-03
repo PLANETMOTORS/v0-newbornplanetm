@@ -2,11 +2,34 @@
 
 import { createHash } from 'node:crypto'
 import type Stripe from 'stripe'
+import { z } from 'zod'
 import { getStripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { isValidLicensePath } from '@/lib/license-path'
 import { rateLimit } from '@/lib/redis'
+
+// ── Zod Schemas ──────────────────────────────────────────────────────────
+
+const vehicleCheckoutSchema = z.object({
+  vehicleId: z.string().uuid('Invalid vehicle ID'),
+  vehicleName: z.string().min(1).max(200),
+  protectionPlanId: z.string().max(50).optional(),
+  depositOnly: z.boolean().optional(),
+  customerEmail: z.string().trim().email().max(254).optional(),
+  customerName: z.string().max(200).optional(),
+  customerPhone: z.string().max(20).optional(),
+  licenseStoragePath: z.string().max(500).optional(),
+  utmSource: z.string().max(200).optional(),
+  utmMedium: z.string().max(200).optional(),
+  utmCampaign: z.string().max(200).optional(),
+  utmContent: z.string().max(200).optional(),
+  utmTerm: z.string().max(200).optional(),
+})
+
+const checkoutSessionSchema = z.object({
+  productId: z.string().min(1, 'Product ID is required').max(100),
+})
 
 const PROTECTION_PLANS: Record<string, { name: string; priceInCents: number }> = {
   'essential': { name: 'PlanetCare Essential', priceInCents: 195000 },
@@ -225,10 +248,12 @@ async function createReservationOrNull(
 // payment-method matrix, ACSS+card line-item assembly, vehicle metadata, and
 // protection-plan upsell are tightly coupled. Splitting obscures the audit
 // trail required for OMVIC compliance. Refactor tracked as follow-up.
-export async function startVehicleCheckout(data: VehicleCheckoutData) {
-  if (!data.vehicleId) {
-    throw new Error('Vehicle ID is required for vehicle checkout. Use startCheckoutSession for generic deposits.')
+export async function startVehicleCheckout(rawData: VehicleCheckoutData) {
+  const parsed = vehicleCheckoutSchema.safeParse(rawData)
+  if (!parsed.success) {
+    throw new Error(`Invalid checkout data: ${parsed.error.issues.map(i => i.message).join('. ')}`)
   }
+  const data = parsed.data
 
   // SEC-001 + SEC-002: Auth gate + rate limit
   const { user } = await authenticateAndRateLimit('vehicle')
@@ -316,7 +341,12 @@ export async function startVehicleCheckout(data: VehicleCheckoutData) {
   return session.client_secret
 }
 
-export async function startCheckoutSession(productId: string) {
+export async function startCheckoutSession(rawProductId: string) {
+  const parsed = checkoutSessionSchema.safeParse({ productId: rawProductId })
+  if (!parsed.success) {
+    throw new Error(`Invalid product: ${parsed.error.issues.map(i => i.message).join('. ')}`)
+  }
+  const { productId } = parsed.data
   await authenticateAndRateLimit('generic')
 
   const PRODUCTS = [

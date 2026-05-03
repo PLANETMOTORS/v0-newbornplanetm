@@ -1,7 +1,7 @@
  
 "use client"
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { startVehicleCheckout } from "@/app/actions/stripe"
@@ -108,7 +108,7 @@ export function FinanceApplicationFullForm({ vehicleId, vehicleData, tradeInData
   }, [vehicleId])
   // handleFormStart is passed to child components via props/callbacks
   const [currentStep, setCurrentStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   // Idempotency key — generated once per form mount, prevents duplicate submissions
@@ -733,8 +733,8 @@ if (errors.length > 0) {
   }
 
   // Server Action submission — z.flatten().fieldErrors for precise error mapping
-  const handleSubmit = async () => {
-    setIsSubmitting(true)
+  const handleSubmit = () => {
+    startTransition(async () => {
     setSubmitError(null)
     setApplicantFieldErrors({})
     setCoApplicantFieldErrors({})
@@ -794,8 +794,9 @@ if (errors.length > 0) {
       setSubmitError(errMsg)
       trackFinanceEvent("form_error", { error_message: errMsg })
     } finally {
-      setIsSubmitting(false)
+      // isPending auto-resets when transition completes
     }
+    })
   }
   
   // Render success state — mandatory $250 deposit via Stripe Embedded Checkout
@@ -1020,7 +1021,7 @@ if (errors.length > 0) {
               documents={documents}
               setDocuments={setDocuments}
               onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
+              isSubmitting={isPending}
             />
           )}
         </CardContent>
@@ -1064,8 +1065,8 @@ if (errors.length > 0) {
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : (
-          <Button data-testid="finance-btn-submit" aria-busy={isSubmitting} className="aria-busy:opacity-80 aria-busy:cursor-wait" onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? (
+          <Button data-testid="finance-btn-submit" aria-busy={isPending} className="aria-busy:opacity-80 aria-busy:cursor-wait" onClick={handleSubmit} disabled={isPending}>
+            {isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Submitting...

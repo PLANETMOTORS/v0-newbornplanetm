@@ -7,7 +7,7 @@ import { Footer } from "@/components/footer"
 import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { blogPostsMeta } from "@/lib/blog-data"
+import { blogPostsMeta } from "@/lib/blog-posts-meta"
 import { getBlogPosts } from "@/lib/sanity/fetch"
 import type { NormalisedPost } from "@/components/blog-page-content"
 

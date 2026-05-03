@@ -1,7 +1,7 @@
  
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -83,38 +83,37 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Readonly
     setAvailableDates(dates)
   }, [])
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsSubmitting(true)
     setError("")
-    
-    try {
-      const response = await fetch("/api/video-call/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          customerEmail: formData.email,
-          customerPhone: formData.phone,
-          vehicleId: vehicleId,
-          vehicleName: vehicleTitle,
-          preferredTime: `${formData.date} at ${formData.time}`,
-          notes: `Location: ${locations.find(l => l.id === formData.location)?.name}. ${formData.notes}`,
-          type: "test_drive",
-        }),
-      })
-      
-      if (!response.ok) throw new Error("Failed to schedule test drive")
-      
-      setIsSubmitted(true)
-    } catch {
-      setError(`Failed to schedule. Please call us at ${PHONE_TOLL_FREE} or visit our Contact page.`)
-    } finally {
-      setIsSubmitting(false)
-    }
+
+    startTransition(async () => {
+      try {
+        const response = await fetch("/api/video-call/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerName: `${formData.firstName} ${formData.lastName}`,
+            customerEmail: formData.email,
+            customerPhone: formData.phone,
+            vehicleId: vehicleId,
+            vehicleName: vehicleTitle,
+            preferredTime: `${formData.date} at ${formData.time}`,
+            notes: `Location: ${locations.find(l => l.id === formData.location)?.name}. ${formData.notes}`,
+            type: "test_drive",
+          }),
+        })
+
+        if (!response.ok) throw new Error("Failed to schedule test drive")
+
+        setIsSubmitted(true)
+      } catch {
+        setError(`Failed to schedule. Please call us at ${PHONE_TOLL_FREE} or visit our Contact page.`)
+      }
+    })
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -383,10 +382,10 @@ export function ScheduleTestDrive({ vehicleTitle, vehicleId, trigger }: Readonly
                 <Button
                   type="submit"
                   className="flex-1 aria-busy:opacity-80 aria-busy:cursor-wait"
-                  disabled={!isFormComplete() || isSubmitting}
-                  aria-busy={isSubmitting}
+                  disabled={!isFormComplete() || isPending}
+                  aria-busy={isPending}
                 >
-                  {isSubmitting ? "Scheduling..." : "Confirm Test Drive"}
+                  {isPending ? "Scheduling..." : "Confirm Test Drive"}
                 </Button>
               </div>
             </div>

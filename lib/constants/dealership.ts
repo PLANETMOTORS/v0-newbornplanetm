@@ -77,8 +77,8 @@ const fmt12 = (h: number) => {
 }
 const fmt24 = (h: number) => `${String(h).padStart(2, "0")}:00`
 
-/** "Mon-Fri 9AM-7PM, Sat 9AM-6PM (EST)" */
-export const BUSINESS_HOURS_DISPLAY = `Mon-Fri ${fmt12(WEEKDAY_OPEN)}-${fmt12(WEEKDAY_CLOSE)}, Sat ${fmt12(SATURDAY_OPEN)}-${fmt12(SATURDAY_CLOSE)} (EST)`
+/** "Mon-Fri 9AM-7PM, Sat 9AM-6PM (ET)" */
+export const BUSINESS_HOURS_DISPLAY = `Mon-Fri ${fmt12(WEEKDAY_OPEN)}-${fmt12(WEEKDAY_CLOSE)}, Sat ${fmt12(SATURDAY_OPEN)}-${fmt12(SATURDAY_CLOSE)} (ET)`
 
 /** "Mon-Fri 9AM-7PM | Sat 9AM-6PM" — used in header bar */
 export const BUSINESS_HOURS_SHORT = `Mon-Fri ${fmt12(WEEKDAY_OPEN)}-${fmt12(WEEKDAY_CLOSE)} | Sat ${fmt12(SATURDAY_OPEN)}-${fmt12(SATURDAY_CLOSE)}`
