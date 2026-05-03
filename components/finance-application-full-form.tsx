@@ -30,6 +30,7 @@ import { ReviewStep } from "@/components/finance-application/review-step"
 import { DocumentsStep } from "@/components/finance-application/documents-step"
 import { buildSubmitError } from "@/lib/finance/build-submit-error"
 import { uploadDocuments } from "@/lib/finance/upload-documents"
+import { submitFinanceApplication, type FinanceFieldErrors, type FinanceFormState } from "@/app/actions/finance-application"
 
 // Types, sub-components, and emptyApplicant imported from @/components/finance-application/
 
@@ -489,9 +490,11 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
   
   const financing = calculateFinancing()
   
-  // Validation state
+  // Validation state — field-level errors from z.flatten().fieldErrors
   const [validationErrors, setValidationErrors] = useState<string[]>([])
-  
+  const [applicantFieldErrors, setApplicantFieldErrors] = useState<FinanceFieldErrors>({})
+  const [coApplicantFieldErrors, setCoApplicantFieldErrors] = useState<FinanceFieldErrors>({})
+
   // Helper to check if a field has an error and return the error class
 
   
@@ -654,6 +657,8 @@ const [financingTerms, setFinancingTerms] = useState<FinancingTerms>({
 // Handle step navigation with validation
   const handleNextStep = () => {
     setSubmitError(null)
+    setApplicantFieldErrors({})
+    setCoApplicantFieldErrors({})
   let errors: string[] = []
   
   if (currentStep === 1) {
@@ -705,60 +710,70 @@ if (errors.length > 0) {
     }
   }
 
-  // buildSubmitError and uploadDocuments are imported from @/lib/finance/
+  // Server Action submission — z.flatten().fieldErrors for precise error mapping
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
+    setApplicantFieldErrors({})
+    setCoApplicantFieldErrors({})
     try {
       trackFinanceEvent("form_submit", {
         has_co_applicant: includeCoApplicant,
         has_trade_in: tradeIn.hasTradeIn,
       })
-      const response = await fetch("/api/v1/financing/applications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKey.current,
-        },
-        body: JSON.stringify({
-          primaryApplicant,
-          coApplicant: includeCoApplicant ? coApplicant : null,
-          coApplicantRelation: includeCoApplicant ? coApplicantRelation : null,
-          vehicleInfo,
-          tradeIn: tradeIn.hasTradeIn ? tradeIn : null,
-          financingTerms,
-          additionalNotes,
-          vehicleId,
-          utm: utmParams.current,
-        })
-      })
-      
-      const result = await response.json()
 
-      if (!response.ok) {
-        throw new Error(buildSubmitError(response.status, result))
+      const result: FinanceFormState = await submitFinanceApplication({
+        primaryApplicant,
+        coApplicant: includeCoApplicant ? coApplicant : null,
+        coApplicantRelation: includeCoApplicant ? coApplicantRelation : null,
+        vehicleInfo,
+        tradeIn: tradeIn.hasTradeIn ? tradeIn : null,
+        financingTerms,
+        additionalNotes,
+        vehicleId,
+        utm: utmParams.current,
+        idempotencyKey: idempotencyKey.current,
+      })
+
+      if (result.status === 'error') {
+        // Map z.flatten().fieldErrors to the correct step/form
+        if (result.fieldErrors?.primaryApplicant) {
+          setApplicantFieldErrors(result.fieldErrors.primaryApplicant)
+          setCurrentStep(1) // Jump back to the step with errors
+        }
+        if (result.fieldErrors?.coApplicant) {
+          setCoApplicantFieldErrors(result.fieldErrors.coApplicant)
+          if (!result.fieldErrors.primaryApplicant) setCurrentStep(2)
+        }
+        // Convert any remaining errors to string[] for the generic banner
+        const allErrors: string[] = []
+        for (const section of Object.values(result.fieldErrors ?? {})) {
+          for (const msgs of Object.values(section ?? {})) {
+            if (msgs) allErrors.push(...msgs)
+          }
+        }
+        if (allErrors.length > 0) setValidationErrors(allErrors)
+        setSubmitError(result.message)
+        trackFinanceEvent("form_error", { error_message: result.message })
+        globalThis.scrollTo({ top: 0, behavior: 'smooth' })
+        return
       }
 
-      const applicationId =
-        result.data?.application?.id ||
-        result.data?.applicationId ||
-        result.data?.id
-  
-  // Upload documents to private Blob storage
-  if (applicationId && documents.length > 0) {
-    await uploadDocuments(applicationId, documents)
-  }
-  
+      // Success — upload documents
+      if (result.status === 'success' && result.applicationId && documents.length > 0) {
+        await uploadDocuments(result.applicationId, documents)
+      }
+
       cleanupAfterSubmit()
       setIsSubmitted(true)
-  } catch (error) {
+    } catch (error) {
       console.error("Submit error:", error)
       const errMsg = error instanceof Error ? error.message : "Unable to submit application right now."
       setSubmitError(errMsg)
       trackFinanceEvent("form_error", { error_message: errMsg })
-  } finally {
-    setIsSubmitting(false)
-  }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
   
   // Render success state — mandatory $250 deposit via Stripe Embedded Checkout
@@ -898,6 +913,7 @@ if (errors.length > 0) {
   data={primaryApplicant}
   onChange={setPrimaryApplicant}
   isPrimary
+  fieldErrors={applicantFieldErrors}
   validationErrors={validationErrors}
   />
           )}
@@ -941,6 +957,7 @@ if (errors.length > 0) {
   data={coApplicant}
   onChange={setCoApplicant}
   isPrimary={false}
+  fieldErrors={coApplicantFieldErrors}
   validationErrors={validationErrors}
   />
                 </>
