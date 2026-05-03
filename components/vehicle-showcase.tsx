@@ -153,8 +153,7 @@ export function VehicleShowcase({ serverVehicles }: { serverVehicles?: DbVehicle
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     revalidateOnMount: !hasServerData,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server data matches fetcher shape
-    ...(hasServerData ? { fallbackData: serverVehicles as any } : {}),
+    ...(hasServerData ? { fallbackData: serverVehicles as unknown as typeof fetcher extends (...args: infer _A) => Promise<infer R> ? R : never } : {}),
   })
 
   // Transform to showcase format - use fallback if no DB data

@@ -1,5 +1,6 @@
 'use server'
 
+import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
@@ -12,6 +13,13 @@ const ACCEPTED_MIME_TYPES = new Set([
 ])
 
 const BUCKET_NAME = 'secure_documents'
+
+// ── Zod Schema ───────────────────────────────────────────────────────────
+
+const uploadLicenseSchema = z.object({
+  vehicleId: z.string().trim().min(1, 'Vehicle ID is required').max(100),
+  customerEmail: z.string().trim().email('Invalid email address').max(254),
+})
 
 interface UploadLicenseResult {
   success: boolean
@@ -38,22 +46,21 @@ interface UploadLicenseResult {
  */
 export async function uploadDriversLicense(formData: FormData): Promise<UploadLicenseResult> {
   const file = formData.get('file')
-  const vehicleId = formData.get('vehicleId')
-  const customerEmail = formData.get('customerEmail')
 
   if (!(file instanceof File)) {
     return { success: false, error: 'No file provided' }
   }
 
-  if (typeof vehicleId !== 'string' || !vehicleId.trim()) {
-    return { success: false, error: 'Vehicle ID is required' }
+  // Validate non-file fields with Zod
+  const parsed = uploadLicenseSchema.safeParse({
+    vehicleId: formData.get('vehicleId'),
+    customerEmail: formData.get('customerEmail'),
+  })
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues.map(i => i.message).join('. ') }
   }
-
-  if (typeof customerEmail !== 'string' || !customerEmail.trim()) {
-    return { success: false, error: 'Customer email is required' }
-  }
-
-  const normalizedEmail = customerEmail.trim().toLowerCase()
+  const { vehicleId, customerEmail } = parsed.data
+  const normalizedEmail = customerEmail.toLowerCase()
 
   // --- Authorization: require authenticated user whose email matches ---
   // The checkout flow requires login (checkout-flow.tsx redirects to auth).

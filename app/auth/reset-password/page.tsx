@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, LockKeyhole, Eye, EyeOff, CheckCircle } from "lucide-react"
 
@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
     })
   }, [router])
 
-  const onSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const onSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
 
@@ -48,28 +48,27 @@ export default function ResetPasswordPage() {
       return
     }
 
-    setIsSubmitting(true)
-    try {
-      const supabase = createClient()
-      const { error: updateError } = await supabase.auth.updateUser({ password })
+    startTransition(async () => {
+      try {
+        const supabase = createClient()
+        const { error: updateError } = await supabase.auth.updateUser({ password })
 
-      if (updateError) {
-        setError(updateError.message)
-        return
+        if (updateError) {
+          setError(updateError.message)
+          return
+        }
+
+        // Invalidate all other sessions so old tokens can no longer be used
+        await supabase.auth.signOut({ scope: "others" })
+
+        setSuccess(true)
+        setTimeout(() => router.push("/account"), 2000)
+      } catch (unknownError) {
+        setError(
+          unknownError instanceof Error ? unknownError.message : "Unable to update password"
+        )
       }
-
-      // Invalidate all other sessions so old tokens can no longer be used
-      await supabase.auth.signOut({ scope: "others" })
-
-      setSuccess(true)
-      setTimeout(() => router.push("/account"), 2000)
-    } catch (unknownError) {
-      setError(
-        unknownError instanceof Error ? unknownError.message : "Unable to update password"
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
+    })
   }
 
   if (!sessionReady) {
@@ -149,8 +148,8 @@ export default function ResetPasswordPage() {
                 <p className="text-sm text-destructive">{error}</p>
               ) : null}
 
-              <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isSubmitting} aria-busy={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isPending} aria-busy={isPending}>
+                {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Updating password…

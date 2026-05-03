@@ -55,6 +55,11 @@ export interface SearchResponse {
   }>
 }
 
+/** Raw Typesense hit shape before transformation. */
+interface TypesenseHit { document: Record<string, unknown> | object }
+/** Raw Typesense facet shape. */
+interface TypesenseFacetCount { field_name: string; counts: Array<{ value: string; count: number }> }
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function asArray(value?: string | string[]): string[] {
@@ -207,8 +212,7 @@ async function searchTypesense(params: VehicleSearchParams): Promise<SearchRespo
       typo_tokens_threshold: 1,
     })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hits = (result.hits || []).map((hit: any) => {
+  const hits = (result.hits || []).map((hit) => {
     const doc = hit.document as Record<string, unknown>
     return {
       document: {
@@ -232,11 +236,9 @@ async function searchTypesense(params: VehicleSearchParams): Promise<SearchRespo
     }
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const facet_counts = (result.facet_counts || []).map((fc: any) => ({
+  const facet_counts = (result.facet_counts as TypesenseFacetCount[] || []).map((fc) => ({
     field_name: String(fc.field_name),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    counts: (fc.counts || []).map((c: any) => ({
+    counts: (fc.counts || []).map((c) => ({
       value: String(c.value),
       count: Number(c.count),
     })),
@@ -376,11 +378,9 @@ export async function getVehicleFacets() {
             max_facet_values: 100,
             per_page: 0, // we only want facets, not documents
           })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (result.facet_counts || []).map((fc: any) => ({
+        return (result.facet_counts as TypesenseFacetCount[] || []).map((fc) => ({
           field_name: String(fc.field_name),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          counts: (fc.counts || []).map((c: any) => ({
+          counts: (fc.counts || []).map((c) => ({
             value: String(c.value),
             count: Number(c.count),
           })),

@@ -134,10 +134,8 @@ export default async function HomePage() {
   // request, avoiding "preloaded but not used" mismatches across DPRs.
   // When the custom imgix loader is active, we use it to build the srcSet
   // so preloaded URLs match the <Image> output exactly.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase row shape
-  const firstVehicle = showcaseVehicles?.[0] as any
-  const firstImage: string | undefined = firstVehicle?.primary_image_url
-    || (firstVehicle?.image_urls?.[0])
+  const firstVehicle = showcaseVehicles?.[0] as { primary_image_url?: string | null; image_urls?: string[] | null } | undefined
+  const firstImage: string | undefined = firstVehicle?.primary_image_url ?? firstVehicle?.image_urls?.[0] ?? undefined
   if (firstImage) {
     // deviceSizes from next.config.mjs — must match exactly
     const widths = [640, 750, 828, 1080, 1200, 1920]

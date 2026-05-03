@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
@@ -16,7 +16,7 @@ export default function AdminResetPasswordPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [hasSession, setHasSession] = useState<boolean | null>(null)
@@ -34,7 +34,7 @@ export default function AdminResetPasswordPage() {
     return () => clearTimeout(id)
   }, [success, router])
 
-  const handleReset = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleReset = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
@@ -48,19 +48,17 @@ export default function AdminResetPasswordPage() {
       return
     }
 
-    setIsSubmitting(true)
+    startTransition(async () => {
+      try {
+        const supabase = createClient()
+        const { error: updateError } = await supabase.auth.updateUser({ password })
 
-    try {
-      const supabase = createClient()
-      const { error: updateError } = await supabase.auth.updateUser({ password })
-
-      if (updateError) throw updateError
-      setSuccess(true)
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update password")
-    } finally {
-      setIsSubmitting(false)
-    }
+        if (updateError) throw updateError
+        setSuccess(true)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to update password")
+      }
+    })
   }
 
   return (
@@ -182,10 +180,10 @@ export default function AdminResetPasswordPage() {
                 <Button
                   type="submit"
                   className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white aria-busy:opacity-80 aria-busy:cursor-wait"
-                  disabled={isSubmitting}
-                  aria-busy={isSubmitting}
+                  disabled={isPending}
+                  aria-busy={isPending}
                 >
-                  {isSubmitting ? (
+                  {isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Updating...

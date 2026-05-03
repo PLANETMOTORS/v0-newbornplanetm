@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,38 +31,37 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
     newListings: true,
     backInStock: false,
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isSuccess, setIsSuccess] = useState(false)
 
   const [error, setError] = useState("")
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsSubmitting(true)
     setError("")
-    
-    try {
-      const response = await fetch("/api/alerts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          vehicleId: vehicle?.id,
-          make: vehicle?.make || searchCriteria?.make,
-          model: vehicle?.model || searchCriteria?.model,
-          maxPrice: vehicle?.price || searchCriteria?.maxPrice,
-          preferences,
-        }),
-      })
-      
-      if (!response.ok) throw new Error("Failed to create alert")
-      
-      setIsSuccess(true)
-    } catch {
-      setError("Failed to create alert. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
+
+    startTransition(async () => {
+      try {
+        const response = await fetch("/api/alerts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            vehicleId: vehicle?.id,
+            make: vehicle?.make || searchCriteria?.make,
+            model: vehicle?.model || searchCriteria?.model,
+            maxPrice: vehicle?.price || searchCriteria?.maxPrice,
+            preferences,
+          }),
+        })
+
+        if (!response.ok) throw new Error("Failed to create alert")
+
+        setIsSuccess(true)
+      } catch {
+        setError("Failed to create alert. Please try again.")
+      }
+    })
   }
 
   let title: string
@@ -160,8 +159,8 @@ export function PriceAlertModal({ vehicle, searchCriteria, trigger }: Readonly<P
               </div>
 
               {error && <p className="text-sm text-destructive text-center">{error}</p>}
-              <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={!email || isSubmitting} aria-busy={isSubmitting}>
-                {isSubmitting ? "Setting up alerts..." : "Create Alert"}
+              <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={!email || isPending} aria-busy={isPending}>
+                {isPending ? "Setting up alerts..." : "Create Alert"}
               </Button>
 
               <p className="text-xs text-center text-muted-foreground">

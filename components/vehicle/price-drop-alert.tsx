@@ -1,7 +1,7 @@
  
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,7 +29,7 @@ export function PriceDropAlert({
   triggerClassName,
 }: Readonly<PriceDropAlertProps>) {
   const [isOpen, setIsOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isSuccess, setIsSuccess] = useState(false)
   const [alertId, setAlertId] = useState<string | null>(null)
 
@@ -40,32 +40,31 @@ export function PriceDropAlert({
     notifySms: false,
   })
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsSubmitting(true)
 
-    try {
-      const response = await fetch("/api/alerts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicleId,
-          vehicleName,
-          currentPrice,
-          ...formData,
-        }),
-      })
+    startTransition(async () => {
+      try {
+        const response = await fetch("/api/alerts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vehicleId,
+            vehicleName,
+            currentPrice,
+            ...formData,
+          }),
+        })
 
-      const data = await response.json()
-      if (data.success) {
-        setIsSuccess(true)
-        setAlertId(data.alertId)
+        const data = await response.json()
+        if (data.success) {
+          setIsSuccess(true)
+          setAlertId(data.alertId)
+        }
+      } catch (error) {
+        console.error("Failed to set alert:", error)
       }
-    } catch (error) {
-      console.error("Failed to set alert:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
+    })
   }
 
   const formatPhoneNumber = (value: string) => {
@@ -187,8 +186,8 @@ export function PriceDropAlert({
               </div>
             </div>
 
-            <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isSubmitting} aria-busy={isSubmitting}>
-              {isSubmitting ? "Setting Alert..." : "Set Price Alert"}
+            <Button type="submit" className="w-full aria-busy:opacity-80 aria-busy:cursor-wait" disabled={isPending} aria-busy={isPending}>
+              {isPending ? "Setting Alert..." : "Set Price Alert"}
             </Button>
 
             <p className="text-xs text-center text-muted-foreground">
