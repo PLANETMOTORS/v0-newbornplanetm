@@ -58,27 +58,44 @@ function isRealImage(url: string | null | undefined): url is string {
   return REAL_IMG.some(ind => url.includes(ind))
 }
 
+/** Race a promise against a timeout — returns fallback if the promise is too slow. */
+function withTimeout<T>(promise: Promise<T>, fallback: T, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>(resolve => setTimeout(() => resolve(fallback), ms)),
+  ])
+}
+
 /**
  * Server Component layout — fetches the first 4 vehicle image URLs and
  * renders `<link rel="preload" as="image">` tags hoisted to <head>.
  * Eliminates the 1.5s "resource load delay" Lighthouse reports because
  * the browser discovers LCP images in the initial HTML.
+ *
+ * The Supabase query is wrapped in a 2s timeout so a slow DB response
+ * doesn't block the entire layout render — the page loads instantly
+ * and the client-side fetcher picks up the images normally.
  */
 export default async function InventoryLayout({ children }: { children: React.ReactNode }) {
   let preloadUrls: string[] = []
 
   try {
     const supabase = createStaticClient()
-    const { data } = await supabase
-      .from('vehicles')
-      .select('primary_image_url')
-      .in('status', ['available', 'reserved'])
-      .order('created_at', { ascending: false })
-      .limit(8)
+    const queryPromise = Promise.resolve(
+      supabase
+        .from('vehicles')
+        .select('primary_image_url')
+        .in('status', ['available', 'reserved'])
+        .order('created_at', { ascending: false })
+        .limit(8)
+    ).then(res => res.data as Record<string, unknown>[] | null)
+
+    // 2s timeout — if Supabase is slow, skip preloads rather than blocking TTFB
+    const data = await withTimeout(queryPromise, null, 2000)
 
     if (data) {
       preloadUrls = data
-        .map(v => (v as Record<string, unknown>).primary_image_url as string | null)
+        .map(v => v.primary_image_url as string | null)
         .filter(isRealImage)
         .slice(0, 4)
     }
