@@ -98,6 +98,8 @@ describe("lib/homenet/image-pipeline runImagePipeline — early returns", () => 
       downloaded: 0,
       skipped: 0,
       failed: 0,
+      bgRemoved: 0,
+      bgFallback: 0,
       vehiclesProcessed: 0,
       errors: [],
     })

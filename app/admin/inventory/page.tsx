@@ -868,7 +868,7 @@ export default function AdminInventoryPage() {
                                 ) : null}
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => handleRemoveBg(vehicle.id)}
+                                onSelect={() => handleRemoveBg(vehicle.id)}
                                 disabled={bgRemovingId === vehicle.id}
                               >
                                 {bgRemovingId === vehicle.id ? (
