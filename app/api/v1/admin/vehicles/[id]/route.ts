@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
 import { asScalarString } from "@/lib/safe-coerce"
 import { pingVehicleChange } from "@/lib/seo/indexnow"
 
@@ -11,15 +10,6 @@ import { pingVehicleChange } from "@/lib/seo/indexnow"
  * PUT    — update a vehicle
  * DELETE — delete a vehicle
  */
-
-async function authorize() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-    return null
-  }
-  return user
-}
 
 const ALLOWED_VEHICLE_UPDATE_FIELDS = [
   "stock_number", "vin", "year", "make", "model", "trim", "body_style",
@@ -81,8 +71,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await authorize()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const { id } = await params
 
@@ -115,8 +105,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await authorize()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const { id } = await params
 
@@ -176,8 +166,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await authorize()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const { id } = await params
 

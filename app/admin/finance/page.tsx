@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DeleteRowButton } from "@/components/admin/delete-row-button"
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 interface Applicant {
   id: string
   applicant_type: string

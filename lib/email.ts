@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { PHONE_LOCAL } from "@/lib/constants/dealership"
+import { getPublicSiteUrl } from "@/lib/site-url"
 
 /** Escape user-supplied strings before interpolating into HTML templates. */
 export function escapeHtml(str: string): string {
@@ -329,6 +330,90 @@ const confirmationTemplates: Record<ConfirmationType, (data: ConfirmationData) =
       </div>
     `,
   }),
+}
+
+// ── Admin invitation email ──────────────────────────────────────────────
+
+interface AdminInvitationData {
+  email: string
+  role: string
+  invitedBy: string | null
+  notes?: string
+}
+
+function buildAdminInvitationEmail(data: AdminInvitationData): { subject: string; html: string } {
+  const siteUrl = getPublicSiteUrl()
+  const loginUrl = `${siteUrl}/admin`
+  const roleName = data.role.charAt(0).toUpperCase() + data.role.slice(1)
+
+  return {
+    subject: `🔑 You've been invited to Planet Motors Admin`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Planet Motors</h1>
+          <p style="margin: 5px 0 0;">Admin Portal Invitation</p>
+        </div>
+        <div style="padding: 30px; background: #f8fafc;">
+          <h2 style="color: #1e40af; margin-top: 0;">You&apos;re invited!</h2>
+          <p style="color: #334155; line-height: 1.6;">
+            You&apos;ve been granted <strong>${escapeHtml(roleName)}</strong> access
+            to the Planet Motors admin portal${data.invitedBy ? ` by <strong>${escapeHtml(data.invitedBy)}</strong>` : ''}.
+          </p>
+          ${data.notes ? `<p style="color: #64748b; font-style: italic; border-left: 3px solid #e2e8f0; padding-left: 12px;">${escapeHtml(data.notes)}</p>` : ''}
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <h3 style="margin: 0 0 12px; color: #1e40af;">Getting Started</h3>
+            <ol style="color: #334155; line-height: 1.8; padding-left: 20px; margin: 0;">
+              <li>Sign in at <a href="${escapeHtml(loginUrl)}" style="color: #1e40af;">${escapeHtml(loginUrl)}</a> using this email address (<strong>${escapeHtml(data.email)}</strong>)</li>
+              <li>Use your Google or email/password sign-in to authenticate</li>
+              <li>You&apos;ll have <strong>${escapeHtml(roleName)}</strong> permissions immediately</li>
+            </ol>
+          </div>
+          <div style="text-align: center; margin-top: 24px;">
+            <a href="${escapeHtml(loginUrl)}" style="background: #1e40af; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+              Go to Admin Portal
+            </a>
+          </div>
+        </div>
+        <div style="padding: 15px; background: #e2e8f0; text-align: center; font-size: 12px; color: #64748b;">
+          <p style="margin: 0;">Planet Motors Admin | ${PHONE_LOCAL}</p>
+          <p style="margin: 5px 0 0;">If you didn&apos;t expect this invitation, you can safely ignore this email.</p>
+        </div>
+      </div>
+    `,
+  }
+}
+
+/**
+ * Send an admin invitation email via Resend.
+ * Non-blocking: returns success/error but callers should NOT gate
+ * the DB insert on email delivery succeeding.
+ */
+export async function sendAdminInvitationEmail(
+  data: AdminInvitationData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const resendClient = getResendClient()
+    if (!resendClient) {
+      return { success: false, error: 'Email not configured - missing RESEND_API_KEY' }
+    }
+
+    const { subject, html } = buildAdminInvitationEmail(data)
+
+    const { error } = await resendClient.emails.send({
+      from: FROM_EMAIL,
+      to: data.email,
+      subject,
+      html,
+    })
+
+    if (error) {
+      return { success: false, error: JSON.stringify(error) }
+    }
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
 }
 
 // Customer confirmation emails

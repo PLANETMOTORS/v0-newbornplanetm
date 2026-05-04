@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
 
 /**
  * Provide aggregated analytics for the admin dashboard.
@@ -18,12 +17,8 @@ import { ADMIN_EMAILS } from "@/lib/admin"
  */
 export async function GET() {
   try {
-    const supabase = await createClient()
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     let adminClient: ReturnType<typeof createAdminClient>
     try {

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { createClient as createServiceClient, SupabaseClient } from "@supabase/supabase-js"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { fullPaymentVerification } from "@/lib/reservation-payment-rules"
 import type { ReservationPaymentFields } from "@/lib/reservation-payment-rules"
 import {
@@ -9,29 +8,12 @@ import {
   parseAdminPatch,
 } from "@/lib/security/admin-mutation-schemas"
 
-/** Authenticate the request and return a service-role admin client.
- *  Returns null (with a 401 response already sent) if the user is not an admin. */
-async function requireAdminClient(): Promise<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  | { adminClient: SupabaseClient<any>; unauthorized: null }
-  | { adminClient: null; unauthorized: NextResponse }
-> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) {
-    return { adminClient: null, unauthorized: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
-  }
-  const adminClient = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-  )
-  return { adminClient, unauthorized: null }
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const { adminClient, unauthorized } = await requireAdminClient()
-    if (!adminClient) return unauthorized
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
+
+    const adminClient = createAdminClient()
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -99,8 +81,10 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { adminClient, unauthorized } = await requireAdminClient()
-    if (!adminClient) return unauthorized
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
+
+    const adminClient = createAdminClient()
 
     const { id, ...rawUpdates } = await request.json()
     if (!id) return NextResponse.json({ error: "Reservation ID required" }, { status: 400 })

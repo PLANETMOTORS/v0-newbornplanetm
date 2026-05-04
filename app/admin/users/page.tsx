@@ -21,6 +21,7 @@ import {
   ToggleRight,
   ChevronDown,
   ChevronUp,
+  Mail,
 } from "lucide-react"
 import {
   Card,
@@ -114,6 +115,7 @@ export default function AdminUsersPage() {
   const [inviting, setInviting] = useState(false)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [resending, setResending] = useState<string | null>(null)
 
   const fetchAdmins = useCallback(async () => {
     setLoading(true)
@@ -207,6 +209,24 @@ export default function AdminUsersPage() {
     const current = resolvePermissions(row.role, row.permissions)
     const updated = { ...current, [feature]: level }
     await patchAdmin(row.id, { permissions: updated })
+  }
+
+  const resendInvitation = async (id: string, email: string) => {
+    setResending(id)
+    try {
+      const res = await fetch(`/api/v1/admin/users/${id}/resend`, { method: "POST" })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        setError(body?.error ?? "Failed to resend invitation")
+        return
+      }
+      setError(null)
+      alert(`Invitation re-sent to ${email}`)
+    } catch {
+      setError("Network error resending invitation")
+    } finally {
+      setResending(null)
+    }
   }
 
   const removeAdmin = async (id: string, email: string) => {
@@ -414,6 +434,17 @@ export default function AdminUsersPage() {
                             <ChevronDown className="w-4 h-4" />
                           )}
                           <span className="ml-1 text-xs">Permissions</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={busy || resending === row.id}
+                          onClick={() => resendInvitation(row.id, row.email)}
+                          aria-label={`Resend invitation to ${row.email}`}
+                          className="text-blue-600 hover:bg-blue-50"
+                        >
+                          <Mail className="w-4 h-4" />
+                          {resending === row.id && <span className="ml-1 text-xs">Sending…</span>}
                         </Button>
                         <Button
                           variant="outline"
