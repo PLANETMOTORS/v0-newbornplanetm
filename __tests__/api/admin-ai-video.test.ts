@@ -1,32 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
   cookies: vi.fn(() => ({ getAll: () => [] })),
 }))
 
-let mockAuthError: unknown = null
+let mockAuthResult: { error: unknown; user: unknown }
 vi.mock("@/lib/api/auth-helpers", () => ({
-  getAuthenticatedAdmin: vi.fn(async () => {
-    if (mockAuthError) return { error: mockAuthError, user: null }
-    return { error: null, user: { email: "admin@planetmotors.ca" } }
-  }),
+  getAuthenticatedAdmin: vi.fn(async () => mockAuthResult),
 }))
 
 const mockReplicateRun = vi.fn()
-vi.mock("replicate", () => {
-  const ReplicateClass = vi.fn().mockImplementation(() => ({ run: mockReplicateRun }))
-  return { default: ReplicateClass, __esModule: true }
-})
+vi.mock("replicate", () => ({
+  default: class MockReplicate {
+    run = (...args: unknown[]) => mockReplicateRun(...args)
+  },
+  __esModule: true,
+}))
 
-// Mock global fetch for video download
-const originalFetch = globalThis.fetch
+const mockBlobPut = vi.fn(async () => ({ url: "https://blob.vercel-storage.com/video.mp4" }))
+vi.mock("@vercel/blob", () => ({
+  put: (...args: unknown[]) => mockBlobPut(...args),
+}))
+
 const mockFetchFn = vi.fn()
 
-vi.mock("@vercel/blob", () => ({
-  put: vi.fn(async () => ({ url: "https://blob.vercel-storage.com/video.mp4" })),
-}))
+const { POST } = await import("@/app/api/v1/admin/ai-video/route")
 
 function makeRequest(body: Record<string, unknown>): NextRequest {
   return new NextRequest("http://localhost/api/v1/admin/ai-video", {
@@ -38,61 +38,79 @@ function makeRequest(body: Record<string, unknown>): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockAuthError = null
+  mockAuthResult = { error: null, user: { email: "admin@planetmotors.ca" } }
   process.env.REPLICATE_API_TOKEN = "test-token"
-  // Mock global fetch for downloading the video from Replicate URL
   globalThis.fetch = mockFetchFn as unknown as typeof fetch
-  mockFetchFn.mockResolvedValue({
-    ok: true,
-    arrayBuffer: async () => new ArrayBuffer(100),
-  })
+  mockFetchFn.mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(100) })
 })
-
-afterAll(() => {
-  globalThis.fetch = originalFetch
-})
-
-import { afterAll } from "vitest"
 
 describe("POST /api/v1/admin/ai-video", () => {
   it("returns 401 when not authenticated", async () => {
-    const { NextResponse } = await import("next/server")
-    mockAuthError = NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-video/route")
+    mockAuthResult = { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }), user: null }
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(401)
   })
 
   it("returns 503 when REPLICATE_API_TOKEN is not set", async () => {
     delete process.env.REPLICATE_API_TOKEN
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-video/route")
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(503)
   })
 
   it("returns 400 when imageUrl is missing", async () => {
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-video/route")
     const res = await POST(makeRequest({}))
     expect(res.status).toBe(400)
   })
 
-  it("returns 500 when Replicate succeeds but video download fails", async () => {
+  it("generates video and stores to blob on success", async () => {
+    mockReplicateRun.mockResolvedValueOnce("https://replicate.delivery/video.mp4")
+    const res = await POST(makeRequest({
+      imageUrl: "https://img.com/photo.jpg",
+      vehicleId: "v-1",
+      vehicleName: "2023 Tesla Model 3",
+    }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.videoUrl).toBe("https://blob.vercel-storage.com/video.mp4")
+    expect(body.duration).toBe(5)
+    expect(body.vehicle).toBe("2023 Tesla Model 3")
+    expect(mockBlobPut).toHaveBeenCalled()
+  })
+
+  it("uses default prompt when none provided", async () => {
+    mockReplicateRun.mockResolvedValueOnce("https://replicate.delivery/video.mp4")
+    const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.prompt).toContain("cinematic")
+  })
+
+  it("uses custom prompt when provided", async () => {
+    mockReplicateRun.mockResolvedValueOnce("https://replicate.delivery/video.mp4")
+    const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg", prompt: "Drone flyover" }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.prompt).toBe("Drone flyover")
+  })
+
+  it("handles Replicate output as object with url property", async () => {
+    mockReplicateRun.mockResolvedValueOnce({ url: "https://replicate.delivery/video.mp4" })
+    const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
+    expect(res.status).toBe(200)
+  })
+
+  it("returns 500 when video download fails", async () => {
     mockReplicateRun.mockResolvedValueOnce("https://replicate.delivery/video.mp4")
     mockFetchFn.mockResolvedValueOnce({ ok: false, status: 404 })
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-video/route")
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(500)
   })
 
   it("returns 500 when Replicate throws", async () => {
     mockReplicateRun.mockRejectedValueOnce(new Error("GPU error"))
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-video/route")
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(500)
+    const body = await res.json()
+    expect(body.error).toBe("GPU error")
   })
 })

@@ -1,43 +1,44 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
   cookies: vi.fn(() => ({ getAll: () => [] })),
 }))
 
-let mockAuthError: unknown = null
+let mockAuthResult: { error: unknown; user: unknown }
 vi.mock("@/lib/api/auth-helpers", () => ({
-  getAuthenticatedAdmin: vi.fn(async () => {
-    if (mockAuthError) return { error: mockAuthError, user: null }
-    return { error: null, user: { email: "admin@planetmotors.ca" } }
-  }),
+  getAuthenticatedAdmin: vi.fn(async () => mockAuthResult),
 }))
 
 const mockReplicateRun = vi.fn()
-vi.mock("replicate", () => {
-  const ReplicateClass = vi.fn().mockImplementation(() => ({ run: mockReplicateRun }))
-  return { default: ReplicateClass, __esModule: true }
-})
-
-vi.mock("@vercel/blob", () => ({
-  put: vi.fn(async () => ({ url: "https://blob.vercel-storage.com/enhanced.jpg" })),
+vi.mock("replicate", () => ({
+  default: class MockReplicate {
+    run = (...args: unknown[]) => mockReplicateRun(...args)
+  },
+  __esModule: true,
 }))
 
+const mockBlobPut = vi.fn(async () => ({ url: "https://blob.vercel-storage.com/enhanced.jpg" }))
+vi.mock("@vercel/blob", () => ({
+  put: (...args: unknown[]) => mockBlobPut(...args),
+}))
+
+const mockSelectSingle = vi.fn(async () => ({ data: { image_urls: ["old.jpg"] }, error: null }))
+const mockUpdateEq = vi.fn(async () => ({ error: null }))
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: vi.fn(() => ({
     from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(async () => ({ data: { image_urls: ["old.jpg"] }, error: null })),
-        })),
-      })),
-      update: vi.fn(() => ({
-        eq: vi.fn(async () => ({ error: null })),
-      })),
+      select: vi.fn(() => ({ eq: vi.fn(() => ({ single: mockSelectSingle })) })),
+      update: vi.fn(() => ({ eq: mockUpdateEq })),
     })),
   })),
 }))
+
+// Mock global fetch for downloading enhanced images
+const mockFetchFn = vi.fn()
+
+const { POST } = await import("@/app/api/v1/admin/ai-enhance/route")
 
 function makeRequest(body: Record<string, unknown>): NextRequest {
   return new NextRequest("http://localhost/api/v1/admin/ai-enhance", {
@@ -49,45 +50,80 @@ function makeRequest(body: Record<string, unknown>): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockAuthError = null
+  mockAuthResult = { error: null, user: { email: "admin@planetmotors.ca" } }
   process.env.REPLICATE_API_TOKEN = "test-token"
+  globalThis.fetch = mockFetchFn as unknown as typeof fetch
+  mockFetchFn.mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(100) })
 })
 
 describe("POST /api/v1/admin/ai-enhance", () => {
   it("returns 401 when not authenticated", async () => {
-    const { NextResponse } = await import("next/server")
-    mockAuthError = NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-enhance/route")
+    mockAuthResult = { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }), user: null }
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(401)
   })
 
   it("returns 503 when REPLICATE_API_TOKEN is not set", async () => {
     delete process.env.REPLICATE_API_TOKEN
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-enhance/route")
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(503)
   })
 
   it("returns 400 when imageUrl is missing", async () => {
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-enhance/route")
     const res = await POST(makeRequest({}))
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toContain("imageUrl is required")
   })
 
-  it("returns 500 when Replicate constructor fails (missing runtime)", async () => {
-    vi.resetModules()
-    const { POST } = await import("@/app/api/v1/admin/ai-enhance/route")
+  it("returns enhanced URL on success (no save)", async () => {
+    mockReplicateRun.mockResolvedValueOnce("https://replicate.delivery/enhanced.jpg")
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg", scale: 4 }))
-    // In test env without real Replicate, the constructor mock may not survive resetModules
-    // This verifies the error handling path catches and returns 500
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.enhancedUrl).toBe("https://replicate.delivery/enhanced.jpg")
+    expect(body.originalUrl).toBe("https://img.com/photo.jpg")
+    expect(body.scale).toBe(4)
+    expect(body.saved).toBe(false)
+  })
+
+  it("saves to blob and updates vehicle when saveToVehicle=true", async () => {
+    mockReplicateRun.mockResolvedValueOnce("https://replicate.delivery/enhanced.jpg")
+    mockSelectSingle.mockResolvedValueOnce({ data: { image_urls: ["https://img.com/photo.jpg", "other.jpg"] }, error: null })
+    const res = await POST(makeRequest({
+      imageUrl: "https://img.com/photo.jpg", vehicleId: "v-123", saveToVehicle: true,
+    }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.enhancedUrl).toBe("https://blob.vercel-storage.com/enhanced.jpg")
+    expect(body.saved).toBe(true)
+    expect(mockBlobPut).toHaveBeenCalled()
+    expect(mockUpdateEq).toHaveBeenCalled()
+  })
+
+  it("handles non-string Replicate output", async () => {
+    mockReplicateRun.mockResolvedValueOnce({ url: "https://replicate.delivery/out.jpg" })
+    const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.enhancedUrl).toBeDefined()
+  })
+
+  it("returns 500 when Replicate throws", async () => {
+    mockReplicateRun.mockRejectedValueOnce(new Error("GPU unavailable"))
+    const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(500)
     const body = await res.json()
-    expect(body.error).toBeDefined()
+    expect(body.error).toBe("GPU unavailable")
+  })
+
+  it("returns 500 when enhanced image download fails during save", async () => {
+    mockReplicateRun.mockResolvedValueOnce("https://replicate.delivery/enhanced.jpg")
+    mockFetchFn.mockResolvedValueOnce({ ok: false, status: 404 })
+    const res = await POST(makeRequest({
+      imageUrl: "https://img.com/photo.jpg", vehicleId: "v-123", saveToVehicle: true,
+    }))
+    expect(res.status).toBe(500)
+    expect((await res.json()).error).toContain("download")
   })
 })
