@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { NextResponse } from 'next/server'
 
 // Mock next/headers and next/server
 vi.mock('next/headers', () => ({ headers: vi.fn(), cookies: vi.fn(() => ({ getAll: () => [] })) }))
 
 // Track the mock supabase instances
-let mockUserEmail: string | null = 'admin@planetmotors.ca'
+let mockIsAdmin = true
 let mockReservationData: Record<string, unknown> | null = null
 let mockReservationError: { message: string } | null = null
 let mockUpdateData: Record<string, unknown> | null = { id: 'res-1', status: 'confirmed' }
@@ -29,28 +30,30 @@ function createChainableMock(result: { data: unknown; error: unknown }) {
   return () => new Proxy({}, handler)
 }
 
-// Mock Supabase server client (user auth)
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(async () => ({
-    auth: {
-      getUser: vi.fn(async () => ({
-        data: { user: mockUserEmail ? { email: mockUserEmail } : null },
-      })),
-    },
-  })),
+// Mock requireAdmin from admin-route-helpers
+vi.mock('@/lib/security/admin-route-helpers', () => ({
+  requireAdmin: vi.fn(async () => {
+    if (!mockIsAdmin) {
+      return { ok: false, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+    }
+    return {
+      ok: true,
+      value: {
+        email: 'admin@planetmotors.ca',
+        role: 'admin',
+        source: 'env',
+        permissions: {},
+      },
+    }
+  }),
 }))
 
-// Mock Supabase service client (admin operations)
+// Mock createAdminClient from supabase/admin
 const mockFrom = vi.fn()
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
     from: mockFrom,
   })),
-}))
-
-// Mock admin emails
-vi.mock('@/lib/admin', () => ({
-  ADMIN_EMAILS: ['admin@planetmotors.ca', 'toni@planetmotors.ca'],
 }))
 
 const { PATCH } = await import('@/app/api/v1/admin/reservations/route')
@@ -66,7 +69,7 @@ function makeRequest(body: Record<string, unknown>): Request {
 describe('PATCH /api/v1/admin/reservations', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUserEmail = 'admin@planetmotors.ca'
+    mockIsAdmin = true
     mockReservationData = {
       deposit_status: 'paid',
       stripe_payment_intent_id: 'pi_test_123',
@@ -115,14 +118,14 @@ describe('PATCH /api/v1/admin/reservations', () => {
   })
 
   it('returns 401 for non-admin user', async () => {
-    mockUserEmail = 'user@example.com'
+    mockIsAdmin = false
     const req = makeRequest({ id: 'res-1', status: 'confirmed' })
     const res = await PATCH(req as never)
     expect(res.status).toBe(401)
   })
 
   it('returns 401 for unauthenticated user', async () => {
-    mockUserEmail = null
+    mockIsAdmin = false
     const req = makeRequest({ id: 'res-1', status: 'confirmed' })
     const res = await PATCH(req as never)
     expect(res.status).toBe(401)
