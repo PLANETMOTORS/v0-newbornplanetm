@@ -4,11 +4,11 @@ import { useEffect, useState, useMemo } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
-import { 
+import {
   LayoutDashboard, Car, Users, FileText, DollarSign,
   MessageSquare, Settings, LogOut, Menu, X,
   BarChart3, Bell, Search, Shield, Camera, Paintbrush,
-  Bot, CalendarCheck, Mail, UserCog
+  Bot, CalendarCheck, Mail, UserCog, ArrowLeftRight
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ADMIN_EMAILS } from "@/lib/admin"
@@ -27,6 +27,7 @@ const navigation = [
   { name: "Reservations", href: "/admin/reservations", icon: CalendarCheck },
   { name: "Orders", href: "/admin/orders", icon: FileText },
   { name: "Finance Apps", href: "/admin/finance", icon: DollarSign },
+  { name: "Trade-Ins", href: "/admin/trade-ins", icon: ArrowLeftRight },
   { name: "AI Agents", href: "/admin/ai-agents", icon: Bot },
   { name: "Workflows", href: "/admin/workflows", icon: Mail },
   { name: "360° Photos", href: "/admin/360-upload", icon: Camera },

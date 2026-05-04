@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
-import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
 // GET — fetch all AI agent configs
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const adminClient = createAdminClient()
 
@@ -84,8 +79,8 @@ export async function GET() {
 // PUT — update an AI agent config
 export async function PUT(request: NextRequest) {
   try {
-    const admin = await getAuthenticatedAdmin()
-    if (admin.error) return admin.error
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const adminClient = createAdminClient()
 
@@ -102,7 +97,7 @@ export async function PUT(request: NextRequest) {
       .upsert({
         agent_type,
         ...updates,
-        updated_by: admin.user?.email,
+        updated_by: auth.value.email,
       }, { onConflict: "agent_type" })
       .select()
       .single()

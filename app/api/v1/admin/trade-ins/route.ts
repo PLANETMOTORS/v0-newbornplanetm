@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 // GET /api/v1/admin/trade-ins - Get all trade-in quotes for admin
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const adminClient = createAdminClient()
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -18,8 +16,8 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(Math.max(1, Number.isNaN(rawLimit) ? 100 : rawLimit), 500)
     const rawOffset = Number.parseInt(searchParams.get("offset") || "0")
     const offset = Math.max(0, Number.isNaN(rawOffset) ? 0 : rawOffset)
-    
-    let query = supabase
+
+    let query = adminClient
       .from("trade_in_quotes")
       .select("*")
       .order("created_at", { ascending: false })

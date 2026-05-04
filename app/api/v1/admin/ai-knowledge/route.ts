@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { ADMIN_EMAILS } from "@/lib/admin"
-import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
 interface KnowledgeEntry {
   id: string
@@ -22,11 +20,8 @@ interface KnowledgeEntry {
 // GET — fetch knowledge entries for an agent (or all agents)
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const adminClient = createAdminClient()
 
@@ -66,11 +61,8 @@ export async function GET(request: NextRequest) {
 // POST — create a new knowledge entry
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const adminClient = createAdminClient()
 
@@ -94,8 +86,8 @@ export async function POST(request: NextRequest) {
         priority: priority ?? 0,
         tags: tags || null,
         is_active: true,
-        created_by: user.email,
-        updated_by: user.email,
+        created_by: auth.value.email,
+        updated_by: auth.value.email,
       })
       .select()
       .single()
@@ -115,8 +107,8 @@ export async function POST(request: NextRequest) {
 // PUT — update an existing knowledge entry
 export async function PUT(request: NextRequest) {
   try {
-    const admin = await getAuthenticatedAdmin()
-    if (admin.error) return admin.error
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const adminClient = createAdminClient()
 
@@ -128,7 +120,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Clean up updates
-    const cleanUpdates: Record<string, unknown> = { updated_by: admin.user?.email }
+    const cleanUpdates: Record<string, unknown> = { updated_by: auth.value.email }
     if (updates.trigger_phrase !== undefined) cleanUpdates.trigger_phrase = updates.trigger_phrase.trim()
     if (updates.response !== undefined) cleanUpdates.response = updates.response.trim()
     if (updates.category !== undefined) cleanUpdates.category = updates.category
@@ -158,11 +150,8 @@ export async function PUT(request: NextRequest) {
 // DELETE — remove a knowledge entry
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
     const adminClient = createAdminClient()
 
