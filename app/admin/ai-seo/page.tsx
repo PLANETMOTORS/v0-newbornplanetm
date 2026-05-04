@@ -1,23 +1,16 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import Image from "next/image"
+import { useState } from "react"
 import {
-  Search as SearchIcon, Loader2, Copy, Check, Car,
-  Globe, Tag, FileCode, RefreshCw, ChevronDown, CheckCircle, AlertCircle
+  Search as SearchIcon, Loader2, Copy, Check,
+  Globe, Tag, FileCode, RefreshCw, CheckCircle, AlertCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
-interface Vehicle {
-  id: string; stock_number: string; year: number; make: string; model: string
-  trim: string | null; body_style: string | null; exterior_color: string | null
-  fuel_type: string | null; mileage: number; price: number; drivetrain: string | null
-  is_ev: boolean; ev_battery_health_percent: number | null
-  primary_image_url: string | null; status: string
-}
+import { useAdminVehicles } from "@/lib/admin/hooks/use-admin-vehicles"
+import type { AdminVehicle } from "@/lib/admin/hooks/use-admin-vehicles"
+import { VehiclePicker } from "@/components/admin/vehicle-picker"
 
 interface SeoResult {
   metaTitle: string; metaDescription: string; ogTitle: string; ogDescription: string
@@ -25,31 +18,12 @@ interface SeoResult {
 }
 
 export default function AISEOPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+  const { loading, search, setSearch, filtered } = useAdminVehicles()
+  const [selectedVehicle, setSelectedVehicle] = useState<AdminVehicle | null>(null)
   const [generating, setGenerating] = useState(false)
   const [seoResult, setSeoResult] = useState<SeoResult | null>(null)
   const [error, setError] = useState("")
   const [copied, setCopied] = useState<string | null>(null)
-  const [showPicker, setShowPicker] = useState(false)
-
-  const fetchVehicles = useCallback(async () => {
-    try {
-      const res = await fetch("/api/v1/admin/vehicles?limit=200")
-      if (!res.ok) throw new Error("Failed")
-      const data = await res.json()
-      setVehicles(data.vehicles || [])
-    } catch { /* ignore */ } finally { setLoading(false) }
-  }, [])
-  useEffect(() => { fetchVehicles() }, [fetchVehicles])
-
-  const filtered = vehicles.filter(v => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return `${v.year} ${v.make} ${v.model} ${v.trim || ""} ${v.stock_number}`.toLowerCase().includes(q)
-  })
 
   const generate = async () => {
     if (!selectedVehicle) return
@@ -112,46 +86,12 @@ export default function AISEOPage() {
               <CardTitle className="text-sm font-medium text-gray-700">Select Vehicle</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {selectedVehicle ? (
-                <button type="button" onClick={() => setShowPicker(!showPicker)}
-                  className="w-full flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-left hover:bg-blue-100">
-                  {selectedVehicle.primary_image_url
-                    ? <Image src={selectedVehicle.primary_image_url} alt="" width={60} height={45} className="rounded object-cover" />
-                    : <div className="w-[60px] h-[45px] bg-gray-200 rounded flex items-center justify-center"><Car className="w-5 h-5 text-gray-400" /></div>}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}</p>
-                    <p className="text-xs text-gray-500">Stock# {selectedVehicle.stock_number}</p>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                </button>
-              ) : (
-                <button type="button" onClick={() => setShowPicker(true)}
-                  className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center text-gray-500 hover:border-blue-400 hover:text-blue-600">
-                  <Car className="w-8 h-8 mx-auto mb-1" /><p className="text-sm font-medium">Choose a vehicle</p>
-                </button>
-              )}
-              {showPicker && (
-                <div className="border rounded-lg max-h-64 overflow-y-auto bg-white shadow-lg">
-                  <div className="sticky top-0 bg-white p-2 border-b">
-                    <div className="relative">
-                      <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400" />
-                      <Input placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
-                    </div>
-                  </div>
-                  {loading ? <div className="p-4 text-center text-sm text-gray-400">Loading…</div>
-                    : filtered.slice(0, 50).map(v => (
-                    <button key={v.id} type="button"
-                      onClick={() => { setSelectedVehicle(v); setShowPicker(false); setSeoResult(null) }}
-                      className="w-full flex items-center gap-3 p-2.5 hover:bg-gray-50 text-left border-b last:border-0">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{v.year} {v.make} {v.model}</p>
-                        <p className="text-xs text-gray-400">{v.stock_number}</p>
-                      </div>
-                      {v.is_ev && <Badge variant="outline" className="text-[10px]">EV</Badge>}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <VehiclePicker
+                selected={selectedVehicle} filtered={filtered} loading={loading}
+                search={search} onSearchChange={setSearch} accent="blue"
+                showImages
+                onSelect={(v) => { setSelectedVehicle(v); setSeoResult(null) }}
+              />
               <Button onClick={generate} disabled={!selectedVehicle || generating} className="w-full bg-blue-600 hover:bg-blue-700">
                 {generating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</> : <><SearchIcon className="w-4 h-4 mr-2" />Generate SEO</>}
               </Button>

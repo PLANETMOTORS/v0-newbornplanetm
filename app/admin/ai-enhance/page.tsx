@@ -1,52 +1,29 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import {
-  ZoomIn, Loader2, Car, Search, Download, ChevronDown,
-  CheckCircle, AlertCircle, ArrowRight
+  ZoomIn, Loader2, Download,
+  CheckCircle, AlertCircle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-
-interface Vehicle {
-  id: string; stock_number: string; year: number; make: string; model: string
-  trim: string | null; primary_image_url: string | null; image_urls: string[] | null
-  is_ev: boolean; status: string
-}
+import { useAdminVehicles, getVehiclePhotos } from "@/lib/admin/hooks/use-admin-vehicles"
+import type { AdminVehicle } from "@/lib/admin/hooks/use-admin-vehicles"
+import { VehiclePicker } from "@/components/admin/vehicle-picker"
 
 interface EnhanceResult { originalUrl: string; enhancedUrl: string; scale: number }
 
 export default function AIEnhancePage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+  const { loading, search, setSearch, filtered } = useAdminVehicles()
+  const [selectedVehicle, setSelectedVehicle] = useState<AdminVehicle | null>(null)
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
   const [enhancing, setEnhancing] = useState(false)
   const [result, setResult] = useState<EnhanceResult | null>(null)
   const [error, setError] = useState("")
-  const [showPicker, setShowPicker] = useState(false)
   const [scale, setScale] = useState(4)
 
-  const fetchVehicles = useCallback(async () => {
-    try {
-      const res = await fetch("/api/v1/admin/vehicles?limit=200")
-      if (!res.ok) throw new Error("Failed")
-      const data = await res.json()
-      setVehicles(data.vehicles || [])
-    } catch { /* ignore */ } finally { setLoading(false) }
-  }, [])
-  useEffect(() => { fetchVehicles() }, [fetchVehicles])
-
-  const filtered = vehicles.filter(v => {
-    if (!search) return true
-    return `${v.year} ${v.make} ${v.model} ${v.stock_number}`.toLowerCase().includes(search.toLowerCase())
-  })
-
-  const photos = selectedVehicle?.image_urls || (selectedVehicle?.primary_image_url ? [selectedVehicle.primary_image_url] : [])
+  const photos = getVehiclePhotos(selectedVehicle)
 
   const enhance = async () => {
     if (!selectedPhoto || !selectedVehicle) return
@@ -80,40 +57,13 @@ export default function AIEnhancePage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-gray-700">1. Select Vehicle</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {selectedVehicle ? (
-                <button type="button" onClick={() => setShowPicker(!showPicker)}
-                  className="w-full flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-left hover:bg-emerald-100">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model}</p>
-                    <p className="text-xs text-gray-500">{photos.length} photos</p>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                </button>
-              ) : (
-                <button type="button" onClick={() => setShowPicker(true)}
-                  className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-center text-gray-500 hover:border-emerald-400 hover:text-emerald-600">
-                  <Car className="w-8 h-8 mx-auto mb-1" /><p className="text-sm font-medium">Choose a vehicle</p>
-                </button>
-              )}
-              {showPicker && (
-                <div className="border rounded-lg max-h-48 overflow-y-auto bg-white shadow-lg">
-                  <div className="sticky top-0 bg-white p-2 border-b">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400" />
-                      <Input placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
-                    </div>
-                  </div>
-                  {filtered.slice(0, 30).map(v => (
-                    <button key={v.id} type="button"
-                      onClick={() => { setSelectedVehicle(v); setShowPicker(false); setSelectedPhoto(null); setResult(null) }}
-                      className="w-full flex items-center gap-3 p-2.5 hover:bg-gray-50 text-left border-b last:border-0">
-                      <p className="text-sm font-medium truncate flex-1">{v.year} {v.make} {v.model}</p>
-                      <span className="text-xs text-gray-400">{(v.image_urls?.length || 0)} photos</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+            <CardContent>
+              <VehiclePicker
+                selected={selectedVehicle} filtered={filtered} loading={loading}
+                search={search} onSearchChange={setSearch} accent="emerald"
+                showPhotoCount maxItems={30}
+                onSelect={(v) => { setSelectedVehicle(v); setSelectedPhoto(null); setResult(null) }}
+              />
             </CardContent>
           </Card>
 
