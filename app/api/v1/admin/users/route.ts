@@ -21,6 +21,7 @@ import {
   type AdminUserRepoError,
 } from "@/lib/admin/users/repository"
 import { logger } from "@/lib/logger"
+import { sendAdminInvitationEmail } from "@/lib/email"
 
 function repoErrorToResponse(error: AdminUserRepoError): NextResponse {
   switch (error.kind) {
@@ -84,5 +85,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     invitedByRole: auth.value.role,
     role: body.role,
   })
-  return NextResponse.json({ admin: result.value }, { status: 201 })
+
+  // Send invitation email (fire-and-forget — don't block the response)
+  const emailResult = await sendAdminInvitationEmail({
+    email: body.email,
+    role: body.role,
+    invitedBy: auth.value.email,
+    notes: body.notes,
+  })
+
+  if (!emailResult.success) {
+    logger.warn("[admin-users] invitation email failed", {
+      email: body.email,
+      error: emailResult.error,
+    })
+  }
+
+  return NextResponse.json(
+    { admin: result.value, emailSent: emailResult.success },
+    { status: 201 },
+  )
 }
