@@ -8,7 +8,8 @@ import {
   LayoutDashboard, Car, Users, FileText, DollarSign,
   MessageSquare, Settings, LogOut, Menu, X,
   BarChart3, Bell, Search, Shield, Camera, Paintbrush,
-  Bot, CalendarCheck, Mail, UserCog, ArrowLeftRight
+  Bot, CalendarCheck, Mail, UserCog, ArrowLeftRight,
+  Sparkles, Globe, ZoomIn, Clapperboard
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ADMIN_EMAILS } from "@/lib/admin"
@@ -34,6 +35,10 @@ const navigation = [
   { name: "Workflows", href: "/admin/workflows", icon: Mail },
   { name: "360° Photos", href: "/admin/360-upload", icon: Camera },
   { name: "Backgrounds", href: "/admin/backgrounds", icon: Paintbrush },
+  { name: "AI Writer", href: "/admin/ai-writer", icon: Sparkles },
+  { name: "AI SEO", href: "/admin/ai-seo", icon: Globe },
+  { name: "AI Enhance", href: "/admin/ai-enhance", icon: ZoomIn },
+  { name: "AI Video", href: "/admin/ai-video", icon: Clapperboard },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Admin Users", href: "/admin/users", icon: UserCog },
   { name: "Settings", href: "/admin/settings", icon: Settings },

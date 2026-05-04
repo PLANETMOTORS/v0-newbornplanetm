@@ -14,7 +14,7 @@ import {
 
 describe("ADMIN_FEATURES", () => {
   it("contains all registered features", () => {
-    expect(ADMIN_FEATURES).toHaveLength(17)
+    expect(ADMIN_FEATURES).toHaveLength(21)
   })
 
   it("every feature has a label", () => {
@@ -118,7 +118,7 @@ describe("featureForRoute", () => {
 
 describe("ROUTE_TO_FEATURE", () => {
   it("maps all sidebar routes", () => {
-    expect(Object.keys(ROUTE_TO_FEATURE)).toHaveLength(17)
+    expect(Object.keys(ROUTE_TO_FEATURE)).toHaveLength(21)
   })
 })
 

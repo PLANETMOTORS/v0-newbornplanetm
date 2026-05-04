@@ -7,6 +7,8 @@ import { validateOrigin } from "@/lib/csrf"
 import { rateLimit } from "@/lib/redis"
 import { RATE_FLOOR } from "@/lib/rates"
 
+export const maxDuration = 60 // 1 minute — AI negotiation with structured output
+
 export async function POST(req: Request) {
   // CSRF origin validation
   if (!validateOrigin(req)) {
