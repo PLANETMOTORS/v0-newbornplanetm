@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     let videoUrl: string
     if (typeof output === "string") {
       videoUrl = output
-    } else if (Array.isArray(output) && typeof output[0] === "string") {
+    } else if (Array.isArray(output) && output.length > 0 && typeof output[0] === "string") {
       videoUrl = output[0]
     } else if (output && typeof output === "object" && "url" in (output as Record<string, unknown>)) {
       const urlValue = (output as Record<string, unknown>).url
