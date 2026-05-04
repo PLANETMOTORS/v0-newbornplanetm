@@ -17,7 +17,9 @@ import {
   ROUTE_TO_FEATURE,
   resolvePermissions,
   hasAccess,
+  featureForRoute,
 } from "@/lib/admin/permissions"
+import { AccessDenied } from "@/components/admin/access-denied"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -48,6 +50,7 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [permissions, setPermissions] = useState<PermissionMap | null>(null)
+  const [adminRole, setAdminRole] = useState<string>("admin")
 
   // Allow auth-related pages to render without admin shell or auth gate
   const isAuthPage = pathname === "/admin/login" || pathname === "/admin/forgot-password" || pathname === "/admin/reset-password"
@@ -66,6 +69,7 @@ export default function AdminLayout({
       user.user_metadata?.is_admin === true
     if (fastPathAdmin) {
       setIsAdmin(true)
+      setAdminRole("admin")
       setPermissions(resolvePermissions("admin"))
       return
     }
@@ -85,8 +89,10 @@ export default function AdminLayout({
         const json = (await res.json()) as { isAdmin?: boolean; role?: string; permissions?: Partial<PermissionMap> | null }
         if (cancelled) return
         if (json.isAdmin) {
+          const role = json.role ?? "viewer"
           setIsAdmin(true)
-          setPermissions(resolvePermissions(json.role ?? "viewer", json.permissions))
+          setAdminRole(role)
+          setPermissions(resolvePermissions(role, json.permissions))
         } else {
           router.push("/")
         }
@@ -109,6 +115,14 @@ export default function AdminLayout({
       return hasAccess(permissions, feature, "read")
     })
   }, [permissions])
+
+  // Per-page permission enforcement — blocks direct URL access to
+  // features the user's role doesn't grant read access for.
+  const currentFeature = featureForRoute(pathname)
+  const isPageBlocked =
+    permissions !== null &&
+    currentFeature !== null &&
+    !hasAccess(permissions, currentFeature, "read")
 
   // Render auth pages without the admin shell
   if (isAuthPage) {
@@ -226,7 +240,13 @@ export default function AdminLayout({
                 </div>
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium">{user.email}</p>
-                  <p className="text-xs text-gray-500">Administrator</p>
+                  <p className={`text-xs font-medium capitalize ${
+                    adminRole === "admin"
+                      ? "text-blue-600"
+                      : adminRole === "manager"
+                        ? "text-amber-600"
+                        : "text-gray-500"
+                  }`}>{adminRole}</p>
                 </div>
               </div>
             </div>
@@ -235,7 +255,15 @@ export default function AdminLayout({
 
         {/* Page content */}
         <main className="p-4 lg:p-6">
-          {children}
+          {isPageBlocked ? (
+            <AccessDenied
+              feature={currentFeature}
+              role={adminRole}
+              email={user.email ?? undefined}
+            />
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>
