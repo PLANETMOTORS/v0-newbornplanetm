@@ -5,11 +5,11 @@ import Image from "next/image"
 import {
   Sparkles, Loader2, CheckCircle, AlertCircle, RefreshCw,
   Car, ImageIcon, Search, PlayCircle, XCircle, ChevronLeft,
-  ChevronRight, X as XIcon, Images
+  ChevronRight, Images
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 
@@ -356,13 +356,13 @@ export default function AdminBackgroundsPage() {
                         {v.image_urls.length > 1 && (
                           <>
                             <button
-                              onClick={() => setGalleryIndex(i => (i - 1 + v.image_urls!.length) % v.image_urls!.length)}
+                              onClick={() => setGalleryIndex(i => (i - 1 + (v.image_urls?.length ?? 0)) % (v.image_urls?.length ?? 1))}
                               className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
                             >
                               <ChevronLeft className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => setGalleryIndex(i => (i + 1) % v.image_urls!.length)}
+                              onClick={() => setGalleryIndex(i => (i + 1) % (v.image_urls?.length ?? 1))}
                               className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
                             >
                               <ChevronRight className="w-4 h-4" />
