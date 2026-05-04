@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Car, Search, ChevronDown } from "lucide-react"
+import { Car, Search, ChevronDown, AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { AdminVehicle } from "@/lib/admin/hooks/use-admin-vehicles"
@@ -11,6 +11,7 @@ interface VehiclePickerProps {
   selected: AdminVehicle | null
   filtered: AdminVehicle[]
   loading: boolean
+  error?: string | null
   search: string
   onSearchChange: (v: string) => void
   onSelect: (v: AdminVehicle) => void
@@ -25,7 +26,7 @@ interface VehiclePickerProps {
 }
 
 export function VehiclePicker({
-  selected, filtered, loading, search, onSearchChange, onSelect,
+  selected, filtered, loading, error, search, onSearchChange, onSelect,
   accent = "blue", showImages = false, showPhotoCount = false, maxItems = 50,
 }: VehiclePickerProps) {
   const [showPicker, setShowPicker] = useState(false)
@@ -82,6 +83,11 @@ export function VehiclePicker({
           </div>
           {loading ? (
             <div className="p-4 text-center text-sm text-gray-400">Loading…</div>
+          ) : error ? (
+            <div className="p-4 text-center text-sm text-red-500 flex items-center justify-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
           ) : filtered.length === 0 ? (
             <div className="p-4 text-center text-sm text-gray-400">No vehicles</div>
           ) : (

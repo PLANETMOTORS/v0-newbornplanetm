@@ -8,7 +8,8 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { list } from "@vercel/blob"
-import { authenticateAdmin } from "@/lib/admin-api"
+import { requirePermission } from "@/lib/security/admin-route-helpers"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export const maxDuration = 60
 
@@ -16,10 +17,10 @@ export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const auth = await authenticateAdmin()
-  if (!auth.ok) return auth.response
+  const auth = await requirePermission("backgrounds", "full")
+  if (!auth.ok) return auth.error
 
-  const { adminClient } = auth
+  const adminClient = createAdminClient()
   const { id } = await params
 
   // Fetch vehicle

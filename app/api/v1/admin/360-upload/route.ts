@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { isAdminEmail } from "@/lib/admin"
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
 
 const BUCKET = "vehicle-360"
 const MAX_FRAME_SIZE = 5 * 1024 * 1024 // 5 MB per frame
@@ -30,11 +29,8 @@ function buildUploadMessage(input: UploadMessageInput): string {
 }
 
 async function requireAdminUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !isAdminEmail(user.email)) {
-    return NextResponse.json({ error: "Unauthorized — admin access required" }, { status: 401 })
-  }
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.error
   return null
 }
 

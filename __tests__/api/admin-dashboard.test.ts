@@ -1,24 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { NextResponse } from "next/server"
 
 vi.mock("next/headers", () => ({
   headers: vi.fn(),
   cookies: vi.fn(() => ({ getAll: () => [] })),
 }))
 
-let currentUserEmail: string | null = "toni@planetmotors.ca"
+let mockIsAdmin = true
 
-vi.mock("@/lib/supabase/server", () => ({
-  createClient: vi.fn(async () => ({
-    auth: {
-      getUser: async () => ({
-        data: { user: currentUserEmail ? { email: currentUserEmail } : null },
-      }),
-    },
-  })),
-}))
-
-vi.mock("@/lib/admin", () => ({
-  ADMIN_EMAILS: ["toni@planetmotors.ca"],
+// Mock requireAdmin — controls auth gating
+vi.mock("@/lib/security/admin-route-helpers", () => ({
+  requireAdmin: vi.fn(async () => {
+    if (!mockIsAdmin) {
+      return { ok: false, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+    }
+    return {
+      ok: true,
+      value: {
+        email: "toni@planetmotors.ca",
+        role: "admin",
+        source: "env",
+        permissions: {},
+      },
+    }
+  }),
 }))
 
 interface ScenarioOptions {
@@ -106,20 +111,19 @@ function makeFakeClient(scenario: ScenarioOptions = {}) {
   }
 }
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: vi.fn(),
+// Mock createAdminClient — we reconfigure per scenario in loadRoute()
+const mockCreateAdminClient = vi.fn()
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: (...args: unknown[]) => mockCreateAdminClient(...args),
 }))
 
 beforeEach(() => {
   vi.clearAllMocks()
-  currentUserEmail = "toni@planetmotors.ca"
+  mockIsAdmin = true
 })
 
 async function loadRoute(scenario: ScenarioOptions) {
-  const sb = await import("@supabase/supabase-js")
-  ;(sb.createClient as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
-    makeFakeClient(scenario),
-  )
+  mockCreateAdminClient.mockReturnValue(makeFakeClient(scenario))
   vi.resetModules()
   const mod = await import("@/app/api/v1/admin/dashboard/route")
   return mod.GET
@@ -127,14 +131,14 @@ async function loadRoute(scenario: ScenarioOptions) {
 
 describe("GET /api/v1/admin/dashboard — auth", () => {
   it("rejects 401 when no user", async () => {
-    currentUserEmail = null
+    mockIsAdmin = false
     const GET = await loadRoute({})
     const res = await GET()
     expect(res.status).toBe(401)
   })
 
   it("rejects 401 when user not admin", async () => {
-    currentUserEmail = "stranger@example.com"
+    mockIsAdmin = false
     const GET = await loadRoute({})
     const res = await GET()
     expect(res.status).toBe(401)

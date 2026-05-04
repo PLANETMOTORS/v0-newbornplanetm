@@ -1,7 +1,7 @@
 import Replicate from "replicate"
 import { put } from "@vercel/blob"
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
+import { requirePermission } from "@/lib/security/admin-route-helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export const maxDuration = 180 // 3 minutes — Real-ESRGAN upscaling via Replicate
@@ -11,8 +11,8 @@ const REPLICATE_TIMEOUT_MS = 120_000
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await getAuthenticatedAdmin()
-    if (admin.error) return admin.error
+    const auth = await requirePermission("ai_enhance", "read")
+    if (!auth.ok) return auth.error
 
     if (!process.env.REPLICATE_API_TOKEN) {
       return NextResponse.json({ error: "REPLICATE_API_TOKEN not configured" }, { status: 503 })

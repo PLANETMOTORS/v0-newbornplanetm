@@ -6,9 +6,17 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(() => ({ getAll: () => [] })),
 }))
 
-let mockAuthResult: { error: unknown; user: unknown }
-vi.mock("@/lib/api/auth-helpers", () => ({
-  getAuthenticatedAdmin: vi.fn(async () => mockAuthResult),
+let mockIsAdmin = true
+vi.mock("@/lib/security/admin-route-helpers", () => ({
+  requirePermission: vi.fn(async () => {
+    if (!mockIsAdmin) {
+      return { ok: false, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+    }
+    return {
+      ok: true,
+      value: { email: "admin@planetmotors.ca", role: "admin", source: "env", permissions: {} },
+    }
+  }),
 }))
 
 const mockGenerateText = vi.fn()
@@ -38,12 +46,12 @@ const SAMPLE_VEHICLE = { id: "v1", year: 2023, make: "Tesla", model: "Model 3", 
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockAuthResult = { error: null, user: { email: "admin@planetmotors.ca" } }
+  mockIsAdmin = true
 })
 
 describe("POST /api/v1/admin/ai-seo", () => {
   it("returns 401 when not authenticated", async () => {
-    mockAuthResult = { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }), user: null }
+    mockIsAdmin = false
     const res = await POST(makeRequest({ vehicle: SAMPLE_VEHICLE }))
     expect(res.status).toBe(401)
   })
@@ -53,9 +61,23 @@ describe("POST /api/v1/admin/ai-seo", () => {
     expect(res.status).toBe(400)
   })
 
+  it("returns 400 for invalid mode", async () => {
+    const res = await POST(makeRequest({ mode: "foo", vehicle: SAMPLE_VEHICLE }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toContain("Invalid mode")
+  })
+
   it("returns 400 when batch mode has empty vehicles array", async () => {
     const res = await POST(makeRequest({ mode: "batch", vehicles: [] }))
     expect(res.status).toBe(400)
+  })
+
+  it("returns 400 when batch mode vehicles is not an array", async () => {
+    const res = await POST(makeRequest({ mode: "batch", vehicles: "not-an-array" }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toContain("vehicles must be an array")
   })
 
   it("returns parsed SEO data on success (single mode)", async () => {

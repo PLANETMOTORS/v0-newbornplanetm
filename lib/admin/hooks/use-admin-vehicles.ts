@@ -35,16 +35,18 @@ export interface AdminVehicle {
 export function useAdminVehicles() {
   const [vehicles, setVehicles] = useState<AdminVehicle[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
 
   const fetchVehicles = useCallback(async () => {
+    setError(null)
     try {
       const res = await fetch("/api/v1/admin/vehicles?limit=200")
-      if (!res.ok) throw new Error("Failed")
+      if (!res.ok) throw new Error(`Failed to load vehicles (${res.status})`)
       const data = await res.json()
       setVehicles(data.vehicles || [])
-    } catch {
-      /* ignore */
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load vehicles")
     } finally {
       setLoading(false)
     }
@@ -62,7 +64,7 @@ export function useAdminVehicles() {
       .includes(q)
   })
 
-  return { vehicles, loading, search, setSearch, filtered }
+  return { vehicles, loading, error, search, setSearch, filtered }
 }
 
 /** Get photos array for a vehicle */

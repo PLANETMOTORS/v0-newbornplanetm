@@ -37,6 +37,11 @@ vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }))
 
+const sendAdminInvitationEmailMock = vi.fn(async () => ({ success: true }))
+vi.mock("@/lib/email", () => ({
+  sendAdminInvitationEmail: (...args: unknown[]) => sendAdminInvitationEmailMock(...args),
+}))
+
 const SAMPLE_ROW = {
   id: "00000000-0000-0000-0000-000000000001",
   email: "toni@planetmotors.ca",
@@ -63,6 +68,7 @@ beforeEach(() => {
   currentUserEmail = "toni@planetmotors.ca"
   isActiveAdminMock.mockResolvedValue(false)
   getAdminByEmailMock.mockResolvedValue({ ok: true, value: null })
+  sendAdminInvitationEmailMock.mockResolvedValue({ success: true })
 })
 
 describe("GET /api/v1/admin/users — auth", () => {
@@ -152,12 +158,39 @@ describe("POST /api/v1/admin/users — auth + validation", () => {
 })
 
 describe("POST /api/v1/admin/users — happy path + repo errors", () => {
-  it("returns 201 with the created row", async () => {
+  it("returns 201 with the created row and sends email", async () => {
     inviteAdminMock.mockResolvedValue({ ok: true, value: SAMPLE_ROW })
     const res = await POST(makePost({ email: "new@x.com", role: "manager" }))
     expect(res.status).toBe(201)
     const body = await res.json()
     expect(body.admin).toEqual(SAMPLE_ROW)
+    expect(body.emailSent).toBe(true)
+    expect(sendAdminInvitationEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "new@x.com",
+        role: "manager",
+        invitedBy: "toni@planetmotors.ca",
+      }),
+    )
+  })
+
+  it("returns 201 with emailSent=false when email fails", async () => {
+    inviteAdminMock.mockResolvedValue({ ok: true, value: SAMPLE_ROW })
+    sendAdminInvitationEmailMock.mockResolvedValue({ success: false, error: "Rate limit" })
+    const res = await POST(makePost({ email: "new@x.com", role: "viewer" }))
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.admin).toEqual(SAMPLE_ROW)
+    expect(body.emailSent).toBe(false)
+  })
+
+  it("passes notes to sendAdminInvitationEmail", async () => {
+    inviteAdminMock.mockResolvedValue({ ok: true, value: SAMPLE_ROW })
+    const res = await POST(makePost({ email: "new@x.com", role: "admin", notes: "Welcome aboard!" }))
+    expect(res.status).toBe(201)
+    expect(sendAdminInvitationEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({ notes: "Welcome aboard!" }),
+    )
   })
 
   it("returns 409 on duplicate-email", async () => {

@@ -1,20 +1,28 @@
 import { generateText } from "ai"
 import { gateway } from "@ai-sdk/gateway"
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
+import { requirePermission } from "@/lib/security/admin-route-helpers"
 
 export const maxDuration = 120 // 2 minutes — batch mode processes up to 20 vehicles sequentially
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await getAuthenticatedAdmin()
-    if (admin.error) return admin.error
+    const auth = await requirePermission("ai_seo", "read")
+    if (!auth.ok) return auth.error
 
     const body = await request.json()
     const { vehicle, mode = "single" } = body
 
+    if (mode !== "single" && mode !== "batch") {
+      return NextResponse.json({ error: "Invalid mode. Use: single or batch" }, { status: 400 })
+    }
+
     if (!vehicle && mode === "single") {
       return NextResponse.json({ error: "Vehicle data required" }, { status: 400 })
+    }
+
+    if (mode === "batch" && !Array.isArray(body.vehicles)) {
+      return NextResponse.json({ error: "vehicles must be an array in batch mode" }, { status: 400 })
     }
 
     const vehicles = mode === "batch" ? body.vehicles : [vehicle]

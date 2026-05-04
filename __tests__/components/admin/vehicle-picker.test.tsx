@@ -99,6 +99,18 @@ describe("VehiclePicker", () => {
     expect(screen.getByText("No vehicles")).toBeDefined()
   })
 
+  it("shows error message when error prop is provided", () => {
+    render(
+      <VehiclePicker
+        selected={null} filtered={[]} loading={false}
+        error="Failed to load vehicles (401)"
+        search="" onSearchChange={vi.fn()} onSelect={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByText("Choose a vehicle"))
+    expect(screen.getByText("Failed to load vehicles (401)")).toBeDefined()
+  })
+
   it("shows photo count when showPhotoCount=true", () => {
     const v = makeVehicle({ image_urls: ["a.jpg", "b.jpg", "c.jpg"] })
     render(

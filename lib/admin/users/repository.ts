@@ -55,6 +55,24 @@ export async function listAdmins(
   }
 }
 
+export async function getAdminById(
+  id: string,
+  factory: ClientFactory = createAdminClient,
+): Promise<Result<AdminUserRow | null, AdminUserRepoError>> {
+  try {
+    const client = factory()
+    const { data, error } = await client
+      .from("admin_users")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle()
+    if (error) return err(dbError(error.message, error.code))
+    return ok((data ?? null) as AdminUserRow | null)
+  } catch (error_) {
+    return err({ kind: "exception", message: describe(error_) })
+  }
+}
+
 export async function getAdminByEmail(
   email: string,
   factory: ClientFactory = createAdminClient,

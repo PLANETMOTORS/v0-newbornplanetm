@@ -1,7 +1,7 @@
 import Replicate from "replicate"
 import { put } from "@vercel/blob"
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
+import { requirePermission } from "@/lib/security/admin-route-helpers"
 
 export const maxDuration = 300 // 5 minutes — video gen is slow
 
@@ -10,8 +10,8 @@ const REPLICATE_TIMEOUT_MS = 300_000 // 5 min — video gen is slow
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await getAuthenticatedAdmin()
-    if (admin.error) return admin.error
+    const auth = await requirePermission("ai_video", "read")
+    if (!auth.ok) return auth.error
 
     if (!process.env.REPLICATE_API_TOKEN) {
       return NextResponse.json({ error: "REPLICATE_API_TOKEN not configured" }, { status: 503 })
@@ -47,15 +47,24 @@ export async function POST(request: NextRequest) {
       ),
     ])
 
-    // Wan i2v returns a ReadableStream or URL
+    // Wan i2v may return:
+    //   - a string URL
+    //   - an array of URL strings (pick the first)
+    //   - an object with a `url` property (some Replicate models)
+    // Anything else is an unsupported shape and we return 502.
     let videoUrl: string
-    if (output && typeof output === "object" && "url" in (output as Record<string, unknown>)) {
-      videoUrl = (output as { url: string }).url
-    } else if (typeof output === "string") {
+    if (typeof output === "string") {
       videoUrl = output
+    } else if (Array.isArray(output) && typeof output[0] === "string") {
+      videoUrl = output[0]
+    } else if (output && typeof output === "object" && "url" in (output as Record<string, unknown>)) {
+      const urlValue = (output as Record<string, unknown>).url
+      if (typeof urlValue !== "string") {
+        return NextResponse.json({ error: "Unsupported output shape from video model" }, { status: 502 })
+      }
+      videoUrl = urlValue
     } else {
-      // It might be a ReadableStream — try to get the URL from the output
-      videoUrl = String(output)
+      return NextResponse.json({ error: "Unsupported output shape from video model" }, { status: 502 })
     }
 
     // Store to Vercel Blob for persistence

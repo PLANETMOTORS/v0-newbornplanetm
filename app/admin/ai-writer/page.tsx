@@ -21,7 +21,7 @@ const CONTENT_TABS: { type: ContentType; label: string; icon: typeof FileText; d
 ]
 
 export default function AIWriterPage() {
-  const { loading, search, setSearch, filtered } = useAdminVehicles()
+  const { loading, error: vehiclesError, search, setSearch, filtered } = useAdminVehicles()
   const [selectedVehicle, setSelectedVehicle] = useState<AdminVehicle | null>(null)
   const [contentType, setContentType] = useState<ContentType>("listing")
   const [generating, setGenerating] = useState(false)
@@ -71,6 +71,7 @@ export default function AIWriterPage() {
             <CardContent>
               <VehiclePicker
                 selected={selectedVehicle} filtered={filtered} loading={loading}
+                error={vehiclesError}
                 search={search} onSearchChange={setSearch} accent="purple"
                 showImages
                 onSelect={(v) => { setSelectedVehicle(v); setGeneratedContent("") }}

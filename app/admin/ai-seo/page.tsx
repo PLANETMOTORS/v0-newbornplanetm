@@ -18,7 +18,7 @@ interface SeoResult {
 }
 
 export default function AISEOPage() {
-  const { loading, search, setSearch, filtered } = useAdminVehicles()
+  const { loading, error: vehiclesError, search, setSearch, filtered } = useAdminVehicles()
   const [selectedVehicle, setSelectedVehicle] = useState<AdminVehicle | null>(null)
   const [generating, setGenerating] = useState(false)
   const [seoResult, setSeoResult] = useState<SeoResult | null>(null)
@@ -88,6 +88,7 @@ export default function AISEOPage() {
             <CardContent className="space-y-3">
               <VehiclePicker
                 selected={selectedVehicle} filtered={filtered} loading={loading}
+                error={vehiclesError}
                 search={search} onSearchChange={setSearch} accent="blue"
                 showImages
                 onSelect={(v) => { setSelectedVehicle(v); setSeoResult(null) }}

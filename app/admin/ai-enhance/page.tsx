@@ -15,7 +15,7 @@ import { VehiclePicker } from "@/components/admin/vehicle-picker"
 interface EnhanceResult { originalUrl: string; enhancedUrl: string; scale: number }
 
 export default function AIEnhancePage() {
-  const { loading, search, setSearch, filtered } = useAdminVehicles()
+  const { loading, error: vehiclesError, search, setSearch, filtered } = useAdminVehicles()
   const [selectedVehicle, setSelectedVehicle] = useState<AdminVehicle | null>(null)
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
   const [enhancing, setEnhancing] = useState(false)
@@ -60,6 +60,7 @@ export default function AIEnhancePage() {
             <CardContent>
               <VehiclePicker
                 selected={selectedVehicle} filtered={filtered} loading={loading}
+                error={vehiclesError}
                 search={search} onSearchChange={setSearch} accent="emerald"
                 showPhotoCount maxItems={30}
                 onSelect={(v) => { setSelectedVehicle(v); setSelectedPhoto(null); setResult(null) }}

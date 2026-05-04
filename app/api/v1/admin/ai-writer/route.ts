@@ -1,7 +1,7 @@
 import { generateText } from "ai"
 import { gateway } from "@ai-sdk/gateway"
 import { NextRequest, NextResponse } from "next/server"
-import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
+import { requirePermission } from "@/lib/security/admin-route-helpers"
 
 export const maxDuration = 60 // 1 minute — GPT-4o-mini text generation
 
@@ -28,8 +28,8 @@ Format clearly with labels.`,
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = await getAuthenticatedAdmin()
-    if (admin.error) return admin.error
+    const auth = await requirePermission("ai_writer", "read")
+    if (!auth.ok) return auth.error
 
     const body = await request.json()
     const { vehicle, contentType = "listing", customPrompt } = body
@@ -52,7 +52,10 @@ export async function POST(request: NextRequest) {
       vehicle.transmission ? `Transmission: ${vehicle.transmission}` : null,
       vehicle.drivetrain ? `Drivetrain: ${vehicle.drivetrain}` : null,
       vehicle.fuel_type ? `Fuel: ${vehicle.fuel_type}` : null,
-      vehicle.mileage ? `Mileage: ${vehicle.mileage.toLocaleString()} km` : null,
+      // Omit mileage for listing copy — the prompt instructs the model not to
+      // include numeric figures, and providing the value increases the risk it
+      // will appear in the output despite that instruction.
+      contentType !== "listing" && vehicle.mileage ? `Mileage: ${vehicle.mileage.toLocaleString()} km` : null,
       vehicle.is_ev ? "This is an electric vehicle (EV)" : null,
       vehicle.battery_capacity_kwh ? `Battery: ${vehicle.battery_capacity_kwh} kWh` : null,
       vehicle.ev_battery_health_percent ? `Battery Health: ${vehicle.ev_battery_health_percent}%` : null,

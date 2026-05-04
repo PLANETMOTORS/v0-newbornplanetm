@@ -1,26 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { ADMIN_EMAILS } from "@/lib/admin"
+import { requireAdmin } from "@/lib/security/admin-route-helpers"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
 
-    // Verify admin access
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const serviceClient = createAdminClient()
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
-
-    // Use service role for admin queries to bypass RLS
-    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
-    const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
 
     // Build query — fetch ALL fields from finance_applications_v2
     let query = serviceClient
@@ -143,11 +133,10 @@ export async function GET(request: NextRequest) {
 // PATCH — save internal notes for an application
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const auth = await requireAdmin()
+    if (!auth.ok) return auth.error
+
+    const serviceClient = createAdminClient()
 
     const body = await request.json()
     const { id, internal_notes } = body
@@ -155,12 +144,6 @@ export async function PATCH(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: "Application ID required" }, { status: 400 })
     }
-
-    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
-    const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
-    )
 
     const { error: updateError } = await serviceClient
       .from("finance_applications_v2")

@@ -6,9 +6,17 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(() => ({ getAll: () => [] })),
 }))
 
-let mockAuthResult: { error: unknown; user: unknown }
-vi.mock("@/lib/api/auth-helpers", () => ({
-  getAuthenticatedAdmin: vi.fn(async () => mockAuthResult),
+let mockIsAdmin = true
+vi.mock("@/lib/security/admin-route-helpers", () => ({
+  requirePermission: vi.fn(async () => {
+    if (!mockIsAdmin) {
+      return { ok: false, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+    }
+    return {
+      ok: true,
+      value: { email: "admin@planetmotors.ca", role: "admin", source: "env", permissions: {} },
+    }
+  }),
 }))
 
 const mockReplicateRun = vi.fn()
@@ -50,7 +58,7 @@ function makeRequest(body: Record<string, unknown>): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockAuthResult = { error: null, user: { email: "admin@planetmotors.ca" } }
+  mockIsAdmin = true
   process.env.REPLICATE_API_TOKEN = "test-token"
   globalThis.fetch = mockFetchFn as unknown as typeof fetch
   mockFetchFn.mockResolvedValue({ ok: true, arrayBuffer: async () => new ArrayBuffer(100) })
@@ -58,7 +66,7 @@ beforeEach(() => {
 
 describe("POST /api/v1/admin/ai-enhance", () => {
   it("returns 401 when not authenticated", async () => {
-    mockAuthResult = { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }), user: null }
+    mockIsAdmin = false
     const res = await POST(makeRequest({ imageUrl: "https://img.com/photo.jpg" }))
     expect(res.status).toBe(401)
   })

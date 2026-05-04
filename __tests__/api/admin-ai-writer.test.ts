@@ -6,9 +6,17 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(() => ({ getAll: () => [] })),
 }))
 
-let mockAuthResult: { error: unknown; user: unknown }
-vi.mock("@/lib/api/auth-helpers", () => ({
-  getAuthenticatedAdmin: vi.fn(async () => mockAuthResult),
+let mockIsAdmin = true
+vi.mock("@/lib/security/admin-route-helpers", () => ({
+  requirePermission: vi.fn(async () => {
+    if (!mockIsAdmin) {
+      return { ok: false, error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+    }
+    return {
+      ok: true,
+      value: { email: "admin@planetmotors.ca", role: "admin", source: "env", permissions: {} },
+    }
+  }),
 }))
 
 const mockGenerateText = vi.fn()
@@ -34,12 +42,12 @@ const SAMPLE_VEHICLE = {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockAuthResult = { error: null, user: { email: "admin@planetmotors.ca" } }
+  mockIsAdmin = true
 })
 
 describe("POST /api/v1/admin/ai-writer", () => {
   it("returns 401 when not authenticated", async () => {
-    mockAuthResult = { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }), user: null }
+    mockIsAdmin = false
     const res = await POST(makeRequest({ vehicle: SAMPLE_VEHICLE }))
     expect(res.status).toBe(401)
   })
@@ -109,6 +117,20 @@ describe("POST /api/v1/admin/ai-writer", () => {
     const callArgs = mockGenerateText.mock.calls[0][0]
     expect(callArgs.prompt).toContain("electric vehicle")
     expect(callArgs.prompt).toContain("Battery: 75 kWh")
+  })
+
+  it("omits mileage from listing prompt to prevent inclusion despite instruction", async () => {
+    mockGenerateText.mockResolvedValueOnce({ text: "listing" })
+    await POST(makeRequest({ vehicle: SAMPLE_VEHICLE, contentType: "listing" }))
+    const callArgs = mockGenerateText.mock.calls[0][0]
+    expect(callArgs.prompt).not.toContain("Mileage:")
+  })
+
+  it("includes mileage in social/ad prompts", async () => {
+    mockGenerateText.mockResolvedValueOnce({ text: "social" })
+    await POST(makeRequest({ vehicle: SAMPLE_VEHICLE, contentType: "social" }))
+    const callArgs = mockGenerateText.mock.calls[0][0]
+    expect(callArgs.prompt).toContain("Mileage:")
   })
 
   it("includes non-EV vehicle details in prompt", async () => {
