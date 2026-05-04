@@ -494,3 +494,83 @@ describe("lib/email sendCustomerConfirmationEmail", () => {
     expect(out.error).toBe("Unknown error")
   })
 })
+
+
+describe("lib/email sendAdminInvitationEmail", () => {
+  beforeEach(() => {
+    process.env.RESEND_API_KEY = "test-key"
+    process.env.NEXT_PUBLIC_BASE_URL = "https://planetmotors.ca"
+  })
+
+  it("returns error when no API key is set", async () => {
+    delete process.env.RESEND_API_KEY
+    delete process.env.API_KEY_RESEND
+    const { sendAdminInvitationEmail } = await import("@/lib/email")
+    const out = await sendAdminInvitationEmail({
+      email: "new@example.com",
+      role: "manager",
+      invitedBy: "admin@planetmotors.ca",
+    })
+    expect(out.success).toBe(false)
+    expect(out.error).toContain("not configured")
+  })
+
+  it("sends invitation email successfully", async () => {
+    const { sendAdminInvitationEmail } = await import("@/lib/email")
+    const out = await sendAdminInvitationEmail({
+      email: "manager@example.com",
+      role: "manager",
+      invitedBy: "toni@planetmotors.ca",
+    })
+    expect(out.success).toBe(true)
+    expect(sentEmails.at(-1)?.to).toBe("manager@example.com")
+    expect(sentEmails.at(-1)?.subject).toContain("invited")
+    expect(sentEmails.at(-1)?.html).toContain("Manager")
+    expect(sentEmails.at(-1)?.html).toContain("toni@planetmotors.ca")
+  })
+
+  it("includes notes in the email when provided", async () => {
+    const { sendAdminInvitationEmail } = await import("@/lib/email")
+    await sendAdminInvitationEmail({
+      email: "viewer@example.com",
+      role: "viewer",
+      invitedBy: "admin@planetmotors.ca",
+      notes: "Please review the inventory section.",
+    })
+    expect(sentEmails.at(-1)?.html).toContain("Please review the inventory section.")
+  })
+
+  it("handles Resend API errors gracefully", async () => {
+    emailsSendImpl = async () => ({ data: null, error: { statusCode: 429, message: "Rate limited" } })
+    const { sendAdminInvitationEmail } = await import("@/lib/email")
+    const out = await sendAdminInvitationEmail({
+      email: "test@example.com",
+      role: "admin",
+      invitedBy: null,
+    })
+    expect(out.success).toBe(false)
+    expect(out.error).toContain("429")
+    // Reset the impl
+    emailsSendImpl = async (args) => { sentEmails.push(args); return { data: { id: "mock-id" }, error: null } }
+  })
+
+  it("capitalizes the role name in the email body", async () => {
+    const { sendAdminInvitationEmail } = await import("@/lib/email")
+    await sendAdminInvitationEmail({
+      email: "admin@example.com",
+      role: "admin",
+      invitedBy: null,
+    })
+    expect(sentEmails.at(-1)?.html).toContain("Admin")
+  })
+
+  it("includes login URL in the email", async () => {
+    const { sendAdminInvitationEmail } = await import("@/lib/email")
+    await sendAdminInvitationEmail({
+      email: "test@example.com",
+      role: "viewer",
+      invitedBy: null,
+    })
+    expect(sentEmails.at(-1)?.html).toContain("/admin")
+  })
+})

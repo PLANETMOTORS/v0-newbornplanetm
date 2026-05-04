@@ -3,6 +3,7 @@ import {
   deactivateAdmin,
   deleteAdmin,
   getAdminByEmail,
+  getAdminById,
   inviteAdmin,
   isActiveAdmin,
   listAdmins,
@@ -165,6 +166,36 @@ describe("getAdminByEmail", () => {
   it("returns exception kind on thrown error", async () => {
     const client = fakeClient({ throwOn: "select" })
     const r = await getAdminByEmail("a@b.com", () => client)
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.error.kind).toBe("exception")
+  })
+})
+
+describe("getAdminById", () => {
+  it("returns the row when found", async () => {
+    const client = fakeClient({ selectData: SAMPLE_ROW })
+    const r = await getAdminById("00000000-0000-0000-0000-000000000001", () => client)
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.value).toEqual(SAMPLE_ROW)
+  })
+
+  it("returns null when not found", async () => {
+    const client = fakeClient({ selectData: null })
+    const r = await getAdminById("non-existent-id", () => client)
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.value).toBeNull()
+  })
+
+  it("returns db-error on select failure", async () => {
+    const client = fakeClient({ selectError: { message: "connection lost", code: "08006" } })
+    const r = await getAdminById("some-id", () => client)
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.error.kind).toBe("db-error")
+  })
+
+  it("returns exception kind on thrown error", async () => {
+    const client = fakeClient({ throwOn: "select" })
+    const r = await getAdminById("some-id", () => client)
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.error.kind).toBe("exception")
   })
