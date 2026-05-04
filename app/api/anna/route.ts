@@ -1,6 +1,8 @@
 import { streamText, convertToModelMessages, UIMessage, consumeStream, tool, stepCountIs } from "ai"
 import { gateway } from "@ai-sdk/gateway"
 import { NextResponse } from "next/server"
+
+export const maxDuration = 60 // 1 minute — AI chatbot with multi-step tool calls
 import { getAISettings, getSiteSettings } from "@/lib/sanity/fetch"
 import { rateLimit } from "@/lib/redis"
 import { PROVINCE_TAX_RATES } from "@/lib/tax/canada"

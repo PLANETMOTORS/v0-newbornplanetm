@@ -8,6 +8,8 @@ import {
   syncVehiclesToDatabase,
 } from "@/lib/homenet/parser"
 
+export const maxDuration = 120 // 2 minutes — parses CSV/XML feeds and syncs to DB
+
 // API Key for HomenetIOL webhook authentication
 const HOMENET_API_KEY = process.env.HOMENET_API_KEY
 

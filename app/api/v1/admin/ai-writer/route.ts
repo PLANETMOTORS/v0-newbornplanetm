@@ -3,6 +3,8 @@ import { gateway } from "@ai-sdk/gateway"
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
+export const maxDuration = 60 // 1 minute — GPT-4o-mini text generation
+
 type ContentType = "listing" | "social" | "ad"
 
 const CONTENT_TYPE_PROMPTS: Record<ContentType, string> = {

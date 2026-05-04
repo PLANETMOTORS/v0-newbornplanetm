@@ -3,6 +3,8 @@ import { gateway } from "@ai-sdk/gateway"
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
+export const maxDuration = 120 // 2 minutes — batch mode processes up to 20 vehicles sequentially
+
 export async function POST(request: NextRequest) {
   try {
     const admin = await getAuthenticatedAdmin()

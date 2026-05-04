@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { ADMIN_EMAILS } from "@/lib/admin"
+
+export const maxDuration = 120 // 2 minutes — scrapes images for up to 100 vehicles concurrently
+
 const DEFAULT_BATCH_LIMIT = 50
 const MAX_BATCH_LIMIT = 100
 const SCRAPE_CONCURRENCY = 5
