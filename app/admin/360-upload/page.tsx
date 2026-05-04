@@ -485,7 +485,8 @@ export default function Admin360UploadPage() {
                               setUploadError(null)
                               // Scroll to upload form and open file picker
                               uploadCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-                              setTimeout(() => fileInputRef.current?.click(), 400)
+                              const clickFileInput = () => fileInputRef.current?.click()
+                              setTimeout(clickFileInput, 400)
                             }}
                           >
                             <Upload className="w-3 h-3 mr-1" />
