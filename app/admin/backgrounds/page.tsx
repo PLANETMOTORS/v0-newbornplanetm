@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
 import {
   Sparkles, Loader2, CheckCircle, AlertCircle, RefreshCw,
-  Car, ImageIcon, Search, PlayCircle, XCircle
+  Car, ImageIcon, Search, PlayCircle, XCircle, ChevronLeft,
+  ChevronRight, X as XIcon, Images
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,6 +52,10 @@ export default function AdminBackgroundsPage() {
   // Batch processing
   const [batchRunning, setBatchRunning] = useState(false)
   const [batchProgress, setBatchProgress] = useState({ done: 0, total: 0 })
+
+  // Image gallery viewer
+  const [expandedVehicleId, setExpandedVehicleId] = useState<string | null>(null)
+  const [galleryIndex, setGalleryIndex] = useState(0)
 
   // Debounce search
   useEffect(() => {
@@ -286,39 +291,110 @@ export default function AdminBackgroundsPage() {
                   )}
                 </div>
 
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-sm truncate">
-                        {v.year} {v.make} {v.model} {v.trim || ""}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Stock# {v.stock_number} • {photoCount} photo{photoCount === 1 ? "" : "s"}
+                <CardContent className="p-4 space-y-3">
+                  {/* Vehicle info */}
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-sm truncate">
+                      {v.year} {v.make} {v.model} {v.trim || ""}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Stock# {v.stock_number}
+                    </p>
+                    {state.status === "done" && state.skipped ? (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {state.skipped} spin frame{state.skipped === 1 ? "" : "s"} skipped
                       </p>
-                      {state.status === "done" && state.skipped ? (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {state.skipped} spin frame{state.skipped === 1 ? "" : "s"} skipped
-                        </p>
-                      ) : null}
-                      {state.status === "error" && (
-                        <p className="text-xs text-red-500 mt-0.5">{state.error}</p>
-                      )}
-                    </div>
+                    ) : null}
+                    {state.status === "error" && (
+                      <p className="text-xs text-red-500 mt-1 break-words">{state.error}</p>
+                    )}
+                  </div>
+                  {/* Action row — button + photo count side by side */}
+                  <div className="flex items-center gap-2">
                     <Button
                       size="sm"
                       variant={state.status === "done" ? "outline" : "default"}
                       disabled={state.status === "processing" || photoCount === 0}
                       onClick={() => processVehicle(v.id)}
-                      className="shrink-0"
+                      className="flex-1"
                     >
                       {state.status === "processing" ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Sparkles className="w-4 h-4 mr-1" />
+                        <Sparkles className="w-4 h-4 mr-1.5" />
                       )}
-                      {state.status === "done" ? "Redo" : state.status === "processing" ? "" : "Remove BG"}
+                      {state.status === "done" ? "Redo" : state.status === "processing" ? "Processing…" : "Remove BG"}
                     </Button>
+                    {photoCount > 0 && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="shrink-0 text-gray-500"
+                        onClick={() => {
+                          setExpandedVehicleId(expandedVehicleId === v.id ? null : v.id)
+                          setGalleryIndex(0)
+                        }}
+                      >
+                        <Images className="w-4 h-4 mr-1" />
+                        {photoCount}
+                      </Button>
+                    )}
                   </div>
+
+                  {/* Expanded image gallery */}
+                  {expandedVehicleId === v.id && v.image_urls && v.image_urls.length > 0 && (
+                    <div className="border-t pt-3 space-y-2">
+                      <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden">
+                        <Image
+                          src={v.image_urls[galleryIndex]}
+                          alt={`Photo ${galleryIndex + 1} of ${v.year} ${v.make} ${v.model}`}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width:768px)100vw,400px"
+                        />
+                        {/* Navigation arrows */}
+                        {v.image_urls.length > 1 && (
+                          <>
+                            <button
+                              onClick={() => setGalleryIndex(i => (i - 1 + v.image_urls!.length) % v.image_urls!.length)}
+                              className="absolute left-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setGalleryIndex(i => (i + 1) % v.image_urls!.length)}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                        <span className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
+                          {galleryIndex + 1} / {v.image_urls.length}
+                        </span>
+                      </div>
+                      {/* Thumbnail strip */}
+                      <div className="flex gap-1 overflow-x-auto pb-1">
+                        {v.image_urls.map((url, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setGalleryIndex(idx)}
+                            className={`relative w-12 h-9 rounded shrink-0 overflow-hidden border-2 transition-colors ${
+                              idx === galleryIndex ? "border-blue-500" : "border-transparent hover:border-gray-300"
+                            }`}
+                          >
+                            <Image
+                              src={url}
+                              alt={`Thumb ${idx + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )
