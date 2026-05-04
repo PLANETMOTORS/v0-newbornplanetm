@@ -46,7 +46,11 @@ export default function AIVideoPage() {
     return `${v.year} ${v.make} ${v.model} ${v.stock_number}`.toLowerCase().includes(search.toLowerCase())
   })
 
-  const photos = selectedVehicle?.image_urls || (selectedVehicle?.primary_image_url ? [selectedVehicle.primary_image_url] : [])
+  const photos = selectedVehicle?.image_urls?.length 
+    ? selectedVehicle.image_urls 
+    : selectedVehicle?.primary_image_url 
+      ? [selectedVehicle.primary_image_url] 
+      : []
 
   const generate = async () => {
     if (!selectedPhoto || !selectedVehicle) return
