@@ -13,8 +13,8 @@ import {
 } from "@/lib/admin/permissions"
 
 describe("ADMIN_FEATURES", () => {
-  it("contains 13 features", () => {
-    expect(ADMIN_FEATURES).toHaveLength(14)
+  it("contains 18 features", () => {
+    expect(ADMIN_FEATURES).toHaveLength(18)
   })
 
   it("every feature has a label", () => {
@@ -117,8 +117,8 @@ describe("featureForRoute", () => {
 })
 
 describe("ROUTE_TO_FEATURE", () => {
-  it("maps all 14 sidebar routes", () => {
-    expect(Object.keys(ROUTE_TO_FEATURE)).toHaveLength(14)
+  it("maps all 18 sidebar routes", () => {
+    expect(Object.keys(ROUTE_TO_FEATURE)).toHaveLength(18)
   })
 })
 
