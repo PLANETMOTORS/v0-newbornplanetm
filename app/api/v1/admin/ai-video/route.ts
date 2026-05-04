@@ -3,6 +3,8 @@ import { put } from "@vercel/blob"
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthenticatedAdmin } from "@/lib/api/auth-helpers"
 
+export const maxDuration = 300 // 5 minutes — video gen is slow
+
 const REPLICATE_MODEL = "wan-video/wan-2.7-i2v"
 const REPLICATE_TIMEOUT_MS = 300_000 // 5 min — video gen is slow
 
